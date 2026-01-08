@@ -1,0 +1,66 @@
+.titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 32px;
+  background: var(--sub-alt-color); /* Seamless blending with theme */
+  user-select: none;
+  position: fixed;
+  top: 0;
+  left: 50px; /* Shifted to accommodate fixed sidebar */
+  right: 0;
+  z-index: 9999;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.titlebar-drag-region {
+  flex-grow: 1;
+  height: 100%;
+  -webkit-app-region: drag; /* Crucial for dragging */
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+}
+
+.titlebar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--sub-color);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.titlebar-title .app-icon {
+  color: var(--main-color);
+}
+
+.titlebar-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag; /* Buttons must be clickable */
+}
+
+.control-btn {
+  border: none;
+  background: transparent;
+  width: 46px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+}
+
+.control-btn.close:hover {
+  background: #e81123;
+  color: white;
+}

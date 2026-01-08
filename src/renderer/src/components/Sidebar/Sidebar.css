@@ -1,0 +1,150 @@
+.main-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  background: var(--bg-color);
+  border-right: 1px solid var(--sub-alt-color);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  z-index: 10000; /* Above TitleBar */
+  transition: opacity 0.5s ease;
+  min-width: 50px;
+  flex-shrink: 0;
+}
+
+
+@media (max-width: 768px) {
+  .main-sidebar {
+    width: 50px; /* Consistent slim width */
+    padding: 0.5rem 0;
+  }
+}
+
+.sidebar-nav {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0; /* No gap between icons */
+  padding-top: 32px; /* Space for TitleBar height if needed, or simply 0 if overlaying */
+}
+
+.engine-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 0;
+}
+
+.nav-item {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--sub-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0;
+}
+
+.nav-item:hover {
+  color: var(--text-color);
+  background: var(--sub-alt-color);
+}
+
+.nav-item.active {
+  color: var(--main-color);
+  background: rgba(var(--main-color-rgb), 0.1);
+}
+
+.nav-item.toggle-active {
+  color: var(--main-color);
+  /* No background for toggles, just colored icon */
+  text-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.5);
+}
+
+.active-indicator {
+  position: absolute;
+  left: -20px;
+  width: 4px;
+  height: 24px;
+  background: var(--main-color);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 5px var(--main-color);
+}
+
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.nav-item.secondary {
+  color: var(--sub-color);
+  opacity: 0.6;
+}
+
+.nav-item.secondary:hover {
+  opacity: 1;
+  background: none;
+}
+
+.zen-active {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+/* Notification Dot */
+.notification-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  border: 1px solid var(--bg-color);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.active-green {
+  color: #4ade80 !important;
+  opacity: 1 !important;
+}
+
+
+@media (max-width: 768px) {
+  .main-sidebar {
+    width: 60px;
+    padding: 1rem 0;
+  }
+  
+  .nav-item {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-sidebar {
+    width: 50px;
+  }
+  
+  .nav-item {
+    width: 36px;
+    height: 36px;
+  }
+}

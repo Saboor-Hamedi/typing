@@ -1,0 +1,374 @@
+.main-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  transition: opacity 0.5s ease;
+  padding: 0.5rem 0;
+}
+
+/* Row 1: Brand & Metadata */
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-bottom: 0.8rem;
+}
+
+.branding {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.logo-box {
+  background: var(--sub-alt-color);
+  width: 32px; /* Smaller logo box */
+  height: 32px;
+  border-radius: var(--round);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logo-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-main {
+  font-weight: 800; /* Slightly less heavy */
+  font-size: 0.9rem; /* Smaller text */
+  letter-spacing: 1.5px;
+  color: var(--text-color);
+}
+
+.logo-version {
+  font-size: 0.55rem;
+  color: var(--sub-color);
+  letter-spacing: 1px;
+  margin-top: 0;
+}
+
+.system-status {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  color: var(--sub-color);
+  font-size: 0.6rem; /* Smaller status font */
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.6;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pulse {
+  color: var(--main-color);
+  animation: logo-pulse 2s infinite;
+}
+
+@keyframes logo-pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.user-profile {
+  background: var(--sub-alt-color);
+  padding: 4px 10px;
+  border-radius: var(--round);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-profile:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.username-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--main-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  outline: none;
+  width: 100px;
+  padding: 0;
+  margin: 0;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+
+/* Row 2: Config & Metrics */
+.header-main-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+}
+
+.pb-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--sub-color);
+}
+
+.trophy-icon {
+  color: var(--main-color);
+  filter: drop-shadow(0 0 5px rgba(226, 183, 20, 0.3));
+}
+
+.pb-label {
+  font-size: 0.55rem;
+  display: block;
+  letter-spacing: 1px;
+}
+
+.pb-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.pb-value small {
+  font-size: 0.6rem;
+  color: var(--sub-color);
+}
+
+.header-center {
+  display: flex;
+  justify-content: center;
+}
+
+.master-config {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.3rem 0.8rem; /* Smaller padding */
+  background: var(--sub-alt-color);
+  border-radius: var(--round);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: var(--shadow);
+}
+
+.config-group {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--sub-color);
+}
+
+.config-group.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 4px 8px;
+  border-radius: var(--round);
+}
+
+.config-group.clickable:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+}
+
+.current-theme-label {
+  font-size: 0.7rem; /* Smaller font */
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.config-options {
+  display: flex;
+  gap: 4px;
+}
+
+.config-btn {
+  background: transparent;
+  border: none;
+  color: var(--sub-color);
+  font-family: inherit;
+  font-size: 0.7rem; /* Smaller font */
+  cursor: pointer;
+  padding: 3px 8px; /* Smaller padding */
+  border-radius: var(--round);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: lowercase;
+}
+
+.config-btn:hover {
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.config-btn.active {
+  color: var(--main-color);
+  background: rgba(226, 183, 20, 0.1);
+  font-weight: 700;
+}
+
+.config-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zen-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--sub-color);
+  font-size: 0.7rem; /* Smaller font */
+  padding: 3px 8px; /* Smaller padding */
+  border-radius: var(--round);
+  transition: 0.2s;
+}
+
+.zen-box.active {
+  color: var(--main-color);
+  background: rgba(226, 183, 20, 0.1);
+}
+
+.header-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.live-metric-card {
+  text-align: right;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--round);
+  min-width: 100px;
+  transition: all 0.3s ease;
+}
+
+.live-metric-card.active {
+  background: var(--sub-alt-color);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.metric-number {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--main-color);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.2);
+}
+
+.metric-unit {
+  font-size: 0.4rem;
+  color: var(--sub-color);
+  letter-spacing: 1px;
+  font-weight: 700;
+  display: block;
+  opacity: 0.6;
+}
+
+.zen-active {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1100px) {
+  .logo-version, .status-item:not(:first-child), .system-status {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .header-main-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .header-left, .header-right {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .pb-box {
+    justify-content: center;
+  }
+
+  .live-metric-card {
+    text-align: center;
+    min-width: unset;
+    width: fit-content;
+  }
+
+  .system-status {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .logo-main {
+    display: none;
+  }
+  
+  .master-config {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem;
+  }
+
+  .config-divider {
+    display: none;
+  }
+  
+  .config-group {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px 8px;
+    border-radius: var(--round);
+  }
+}
+
+@media (max-width: 480px) {
+  .main-header {
+    gap: 0.5rem;
+    padding: 0;
+  }
+  
+  .logo-box {
+    width: 30px;
+    height: 30px;
+  }
+
+  .metric-number {
+    font-size: 1.5rem;
+  }
+
+  .live-metric-card {
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .master-config {
+    padding: 0.3rem 0.5rem;
+  }
+}

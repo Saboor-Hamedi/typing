@@ -1,0 +1,85 @@
+.toast-container {
+  position: fixed;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast-notification {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 500px;
+  padding: 1rem 1.4rem;
+  background: rgba(var(--bg-color-rgb, 17, 17, 17), 0.85);
+  backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-color);
+  transform-origin: top center;
+}
+
+.toast-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(var(--main-color-rgb), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--main-color);
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex-grow: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.toast-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: var(--sub-color);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.toast-close:hover {
+  background: rgba(var(--error-color-rgb), 0.1);
+  color: var(--error-color);
+  transform: rotate(90deg);
+}
+
+.toast-notification.success {
+  border-color: rgba(0, 255, 128, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.toast-notification.success .toast-icon {
+  background: rgba(0, 255, 128, 0.1);
+  color: #00ff80;
+}
+
+.toast-notification.error {
+  border-color: rgba(var(--error-color-rgb), 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.toast-notification.error .toast-icon {
+  background: rgba(var(--error-color-rgb), 0.1);
+  color: var(--error-color);
+}
