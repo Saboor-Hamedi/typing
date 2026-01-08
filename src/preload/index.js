@@ -24,9 +24,21 @@ const api = {
   update: {
     checkForUpdates: () => ipcRenderer.send('check-for-updates'),
     quitAndInstall: () => ipcRenderer.send('quit-and-install'),
-    onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
-    onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', callback),
-    onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', callback)
+    onUpdateAvailable: (callback) => {
+      const subscription = (_event, ...args) => callback(...args)
+      ipcRenderer.on('update-available', subscription)
+      return () => ipcRenderer.removeListener('update-available', subscription)
+    },
+    onUpdateNotAvailable: (callback) => {
+      const subscription = (_event, ...args) => callback(...args)
+      ipcRenderer.on('update-not-available', subscription)
+      return () => ipcRenderer.removeListener('update-not-available', subscription)
+    },
+    onUpdateDownloaded: (callback) => {
+      const subscription = (_event, ...args) => callback(...args)
+      ipcRenderer.on('update-downloaded', subscription)
+      return () => ipcRenderer.removeListener('update-downloaded', subscription)
+    }
   }
 }
 

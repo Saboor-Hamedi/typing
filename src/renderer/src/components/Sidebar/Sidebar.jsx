@@ -19,15 +19,27 @@ const Sidebar = ({
   const [updateStatus, setUpdateStatus] = useState('idle') // idle, checking, avail, downloaded
 
   useEffect(() => {
+    let cleanupAvailable = () => {}
+    let cleanupNotAvailable = () => {}
+    let cleanupDownloaded = () => {}
+
     if (window.api && window.api.update) {
-      window.api.update.onUpdateAvailable(() => setUpdateStatus('available'))
-      window.api.update.onUpdateNotAvailable(() => {
+      cleanupAvailable = window.api.update.onUpdateAvailable(() => setUpdateStatus('available'))
+      
+      cleanupNotAvailable = window.api.update.onUpdateNotAvailable(() => {
         setUpdateStatus('idle')
         if (onNotification) onNotification('You are on the latest version.', 'info')
       })
-      window.api.update.onUpdateDownloaded(() => setUpdateStatus('downloaded'))
+      
+      cleanupDownloaded = window.api.update.onUpdateDownloaded(() => setUpdateStatus('downloaded'))
     }
-  }, [])
+
+    return () => {
+      cleanupAvailable()
+      cleanupNotAvailable()
+      cleanupDownloaded()
+    }
+  }, [onNotification])
 
   const handleUpdateClick = () => {
     if (updateStatus === 'downloaded') {
