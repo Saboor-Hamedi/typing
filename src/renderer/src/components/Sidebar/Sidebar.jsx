@@ -1,9 +1,9 @@
 import './Sidebar.css'
-import { Keyboard, History, Settings, Info, Trophy, Command, Volume2, VolumeX, Ghost, LayoutDashboard, Zap, RefreshCw, ArrowUpCircle } from 'lucide-react'
+import { Keyboard, History, Settings, Info, Trophy, Command, Volume2, VolumeX, Ghost, LayoutDashboard, Zap, RefreshCw, ArrowUpCircle, Globe, MousePointer } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 
-const Sidebar = ({ 
+const Sidebar = memo(({ 
   activeTab, 
   setActiveTab, 
   testStarted, 
@@ -12,11 +12,13 @@ const Sidebar = ({
   setIsSoundEnabled,
   isHallEffect,
   setIsHallEffect,
+  isSmoothCaret,
+  setIsSmoothCaret,
   isGhostEnabled,
   setIsGhostEnabled,
   onNotification
 }) => {
-  const [updateStatus, setUpdateStatus] = useState('idle') // idle, checking, avail, downloaded
+  const [updateStatus, setUpdateStatus] = useState('idle')
 
   useEffect(() => {
     let cleanupAvailable = () => {}
@@ -53,6 +55,7 @@ const Sidebar = ({
   const menuItems = [
     { id: 'dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { id: 'typing', icon: <Keyboard size={20} />, label: 'Typing' },
+    { id: 'leaderboard', icon: <Globe size={20} />, label: 'Global' },
     { id: 'history', icon: <History size={20} />, label: 'History' },
     { id: 'achievements', icon: <Trophy size={20} />, label: 'Awards' },
   ]
@@ -89,7 +92,6 @@ const Sidebar = ({
           </div>
         ))}
         
-        {/* Toggles grouped with nav */}
         <div className="engine-controls">
           <div 
             className={`nav-item ${isSoundEnabled ? 'toggle-active' : ''}`} 
@@ -106,6 +108,13 @@ const Sidebar = ({
             <Zap size={20} />
           </div>
           <div 
+            className={`nav-item ${isSmoothCaret ? 'toggle-active' : ''}`} 
+            onClick={() => setIsSmoothCaret(!isSmoothCaret)}
+            title="Smooth Caret"
+          >
+            <MousePointer size={20} />
+          </div>
+          <div 
             className={`nav-item ${isGhostEnabled ? 'toggle-active' : ''}`} 
             onClick={() => setIsGhostEnabled(!isGhostEnabled)}
             title="Ghost Caret (Race PB)"
@@ -114,7 +123,6 @@ const Sidebar = ({
           </div>
         </div>
         
-        {/* Secondary Info Items pushed to top section as requested */}
         <div className="nav-item secondary" title="How to use">
           <Command size={20} />
         </div>
@@ -124,8 +132,6 @@ const Sidebar = ({
       </nav>
 
       <div className="sidebar-bottom">
-
-        {/* Bottom Group: Update & Settings with no gap */}
         <div className="bottom-group" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           <div 
             className={`nav-item secondary ${updateStatus === 'checking' ? 'spin' : ''} ${updateStatus === 'downloaded' ? 'active-green' : ''}`}
@@ -155,6 +161,6 @@ const Sidebar = ({
       </div>
     </motion.aside>
   )
-}
+})
 
 export default Sidebar

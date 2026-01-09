@@ -1,8 +1,19 @@
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { RotateCcw, Play } from 'lucide-react'
 import TelemetryGraph from '../Analytics/TelemetryGraph'
 
 const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onReplay }) => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter' || e.key === 'Escape') {
+        onRestart()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onRestart])
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}

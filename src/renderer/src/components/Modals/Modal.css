@@ -1,0 +1,90 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-content.glass-panel {
+  background: var(--bg-color-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  padding: 2.5rem;
+  border-radius: var(--round-lg, 12px);
+  color: var(--text-color);
+}
+
+.modal-header.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--main-color);
+}
+
+.modal-body {
+  margin: 1.5rem 0;
+  color: var(--sub-color);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.modal-footer.center-gap {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--round);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-family: inherit;
+}
+
+.modal-btn.secondary {
+  background: var(--sub-alt-color);
+  color: var(--sub-color);
+}
+
+.modal-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+}
+
+.modal-btn.primary.danger {
+  background: #ea3232;
+  color: #fff;
+}
+
+.modal-btn.primary.danger:hover {
+  background: #ff4444;
+  box-shadow: 0 0 15px rgba(234, 50, 50, 0.4);
+  transform: translateY(-1px);
+}
+
+.modal-btn.primary.danger:active {
+  transform: translateY(0);
+}
+
+.small-modal {
+  width: 100%;
+  max-width: 400px;
+}

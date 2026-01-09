@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { generateWords } from '../utils/words'
 import { soundEngine } from '../utils/SoundEngine'
+import { supabase } from '../utils/supabase'
 
 export const useEngine = (testMode, testLimit) => {
   const [words, setWords] = useState([])
@@ -26,6 +27,7 @@ export const useEngine = (testMode, testLimit) => {
   const [isGhostEnabled, setIsGhostEnabled] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [ghostPos, setGhostPos] = useState({ left: 0, top: 0 })
+  const [isStoreLoaded, setIsStoreLoaded] = useState(false)
   const typingTimeoutRef = useRef(null)
 
   // Sync and Persistent Savings
@@ -33,12 +35,14 @@ export const useEngine = (testMode, testLimit) => {
     soundEngine.setProfile(soundProfile)
     soundEngine.setHallEffect(isHallEffect)
     
-    if (window.api && window.api.settings) {
+    // Only save to store IF we have already loaded the initial values
+    // This prevents overwriting user settings with defaults on boot
+    if (window.api && window.api.settings && isStoreLoaded) {
       window.api.settings.set('isGhostEnabled', isGhostEnabled)
       window.api.settings.set('isSoundEnabled', isSoundEnabled)
       window.api.settings.set('isHallEffect', isHallEffect)
     }
-  }, [soundProfile, isHallEffect, isGhostEnabled, isSoundEnabled])
+  }, [soundProfile, isHallEffect, isGhostEnabled, isSoundEnabled, isStoreLoaded])
 
   // Load PB on mount
   useEffect(() => {
@@ -61,9 +65,12 @@ export const useEngine = (testMode, testLimit) => {
 
           const savedHall = await window.api.settings.get('isHallEffect')
           if (savedHall !== undefined) setIsHallEffect(savedHall)
+
+          setIsStoreLoaded(true)
         }
       } catch (err) {
         console.warn('Failed to load PB from store:', err)
+        setIsStoreLoaded(true) // Set to true anyway so we can start saving
       }
     }
     loadPb()
@@ -109,18 +116,28 @@ export const useEngine = (testMode, testLimit) => {
 
       // Save to History
       const currentHistory = await window.api.data.get('history') || []
-      const newEntry = {
-        wpm,
-        accuracy,
-        mode: testMode,
-        limit: testLimit,
-        date: new Date().toISOString()
-      }
+      const newEntry = { wpm, accuracy, mode: testMode, limit: testLimit, date: new Date().toISOString() }
       const updatedHistory = [newEntry, ...currentHistory].slice(0, 50)
       window.api.data.set('history', updatedHistory)
       setTestHistory(updatedHistory)
     }
-  }, [startTime, words, stopTimer])
+
+    // CLOUD SYNC: Save to Supabase if logged in
+    try {
+      // Use getSession().session.user for a non-blocking check
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        await supabase.from('scores').insert({
+          user_id: session.user.id,
+          wpm,
+          accuracy,
+          mode: `${testMode} ${testLimit}`
+        })
+      }
+    } catch (err) {
+      console.warn('Cloud save skipped/failed (Offline or Sess Expired)');
+    }
+  }, [startTime, words, stopTimer, testMode, testLimit])
 
   const clearAllData = useCallback(async () => {
     if (window.api && window.api.data) {

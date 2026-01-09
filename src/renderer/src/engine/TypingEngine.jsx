@@ -9,35 +9,37 @@ const Letter = memo(({ char, status, active, id }) => (
   </span>
 ))
 
-const Word = memo(({ word, input, isCurrent, startIndex }) => (
-  <div className={`word ${isCurrent ? 'current' : ''}`}>
-    {word.split('').map((letter, i) => {
-      const charIndex = startIndex + i
-      let status = ''
-      if (charIndex < input.length) {
-        status = input[charIndex] === letter ? 'correct' : 'incorrect'
-      }
-      return (
-        <Letter 
-          key={i} 
-          id={`char-${charIndex}`}
-          char={letter} 
-          status={status} 
-          active={isCurrent && input.length === charIndex}
-        />
-      )
-    })}
-    <Letter 
-      id={`char-${startIndex + word.length}`}
-      char={' '} 
-      status={input.length > startIndex + word.length ? 
-        (input[startIndex + word.length] === ' ' ? 'correct' : 'incorrect') : ''}
-      active={isCurrent && input.length === startIndex + word.length}
-    />
-  </div>
-))
+const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
+  return (
+    <div className={`word ${isCurrent ? 'current' : ''}`}>
+      {word.split('').map((letter, i) => {
+        const charIndex = startIndex + i
+        let status = ''
+        if (i < chunk.length) {
+          status = chunk[i] === letter ? 'correct' : 'incorrect'
+        }
+        return (
+          <Letter 
+            key={i} 
+            id={`char-${charIndex}`}
+            char={letter} 
+            status={status} 
+            active={isCurrent && chunk.length === i}
+          />
+        )
+      })}
+      <Letter 
+        id={`char-${startIndex + word.length}`}
+        char={' '} 
+        status={chunk.length > word.length ? 
+          (chunk[word.length] === ' ' ? 'correct' : 'incorrect') : ''}
+        active={isCurrent && chunk.length === word.length}
+      />
+    </div>
+  )
+})
 
-const TypingEngine = ({ engine, testMode, testLimit }) => {
+const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret }) => {
   const {
     words,
     userInput,
@@ -92,7 +94,12 @@ const TypingEngine = ({ engine, testMode, testLimit }) => {
             <motion.div 
               className={`caret blinking ${isTyping ? 'typing' : ''}`}
               animate={{ x: caretPos.left, y: caretPos.top }}
-              transition={{ 
+              transition={isSmoothCaret ? { 
+                type: 'spring',
+                stiffness: 150,
+                damping: 20,
+                mass: 0.5
+              } : { 
                 type: 'spring',
                 stiffness: 1000,
                 damping: 28,
@@ -104,11 +111,12 @@ const TypingEngine = ({ engine, testMode, testLimit }) => {
               {words.map((word, i) => {
                 const startIndex = words.slice(0, i).join(' ').length + (i > 0 ? 1 : 0)
                 const isCurrent = userInput.length >= startIndex && userInput.length <= startIndex + word.length
+                const chunk = userInput.slice(startIndex, startIndex + word.length + 1)
                 return (
                   <Word 
                     key={i}
                     word={word}
-                    input={userInput}
+                    chunk={chunk}
                     isCurrent={isCurrent}
                     startIndex={startIndex}
                   />

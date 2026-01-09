@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import './Header.css'
-import './Header.css'
-import { Zap, Trophy, Activity, Wifi, User } from 'lucide-react'
+import { Zap, Trophy } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ConfigBar from './ConfigBar'
+import UserDropdown from './UserDropdown'
+import './Header.css'
 
 const Header = ({ 
   testStarted, 
@@ -18,14 +18,15 @@ const Header = ({
   displayValue,
   pb,
   username,
+  isLoggedIn,
   setUsername,
   onReload,
   openThemeModal,
+  openLoginModal,
+  onLogoutRequest,
   activeTab
 }) => {
   const [version, setVersion] = useState('0.0.0')
-  const [isEditing, setIsEditing] = useState(false)
-  const [tempName, setTempName] = useState('')
 
   useEffect(() => {
     const fetchVersion = async () => {
@@ -39,7 +40,7 @@ const Header = ({
 
   return (
     <header className={`main-header ${testStarted && isZenMode ? 'zen-active' : ''}`}>
-      {/* Top Layer: Branding & System Status */}
+      {/* Top Layer: Branding & User Dropdown */}
       <div className="header-top-row">
         <div className="branding" onClick={onReload}>
           <motion.div 
@@ -55,48 +56,14 @@ const Header = ({
           </div>
         </div>
 
-        <div className="system-status">
-          <div className="status-item">
-            <Activity size={12} className="pulse" />
-            <span>Blazing Fast</span>
-          </div>
-          <div className="status-item">
-            <Wifi size={12} />
-            <span>Local Sync</span>
-          </div>
-          <div 
-             className="user-profile" 
-             onClick={() => {
-               if (!isEditing) {
-                 setIsEditing(true)
-                 setTempName(username)
-               }
-             }}
-          >
-            <User size={14} />
-            {isEditing ? (
-              <input 
-                type="text" 
-                className="username-input"
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                onBlur={() => {
-                  setIsEditing(false)
-                  if (tempName.trim()) setUsername(tempName.trim())
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    setIsEditing(false)
-                    if (tempName.trim()) setUsername(tempName.trim())
-                  }
-                }}
-                autoFocus
-                maxLength={12}
-              />
-            ) : (
-              <span>{username}</span>
-            )}
-          </div>
+        <div className="header-actions">
+           <UserDropdown 
+              username={username}
+              isLoggedIn={isLoggedIn}
+              setUsername={setUsername}
+              openLoginModal={openLoginModal}
+              onLogoutRequest={onLogoutRequest}
+           />
         </div>
       </div>
 

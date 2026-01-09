@@ -8,10 +8,17 @@ class SoundEngine {
 
   init() {
     if (!this.audioCtx) {
-      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      this.createReverb();
+      // Only create context if window is available and user interaction happened
+      try {
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        this.createReverb();
+      } catch (e) {
+        console.warn('AudioContext creation failed (silent if no gesture):', e);
+        return;
+      }
     }
-    if (this.audioCtx.state === 'suspended') {
+    
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
     }
   }

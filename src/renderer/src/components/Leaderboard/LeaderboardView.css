@@ -1,0 +1,150 @@
+.leaderboard-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.lb-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--main-color);
+}
+
+.lb-icon-main {
+  color: var(--main-color);
+}
+
+.lb-title h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.lb-filters {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--sub-alt-color);
+  padding: 4px;
+  border-radius: var(--round);
+}
+
+.lb-filters button {
+  background: transparent;
+  border: none;
+  color: var(--sub-color);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lb-filters button:hover {
+  color: var(--text-color);
+}
+
+.lb-filters button.active {
+  background: var(--bg-color);
+  color: var(--main-color);
+  box-shadow: var(--shadow);
+}
+
+.lb-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.lb-table-header {
+  display: grid;
+  grid-template-columns: 50px 2fr 1fr 1fr 1.5fr 1fr;
+  padding: 0 1rem 1rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--sub-color);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lb-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 50px 2fr 1fr 1fr 1.5fr 1fr;
+  padding: 0.8rem 1rem;
+  align-items: center;
+  border-radius: 4px;
+  transition: background 0.1s;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+.lb-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rank-col {
+  font-weight: 700;
+  color: var(--sub-color);
+}
+
+.rank-1 { color: #ffd700; font-size: 1.1rem; }
+.rank-2 { color: #c0c0c0; font-size: 1.05rem; }
+.rank-3 { color: #cd7f32; font-size: 1.05rem; }
+
+.user-col {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.wpm-col.highlight {
+  color: var(--main-color);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.acc-col {
+  color: var(--sub-color);
+}
+
+.mode-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--sub-color);
+  text-transform: capitalize;
+}
+
+.date-col {
+  color: var(--sub-color);
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.lb-loading, .lb-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--sub-color);
+  font-style: italic;
+}

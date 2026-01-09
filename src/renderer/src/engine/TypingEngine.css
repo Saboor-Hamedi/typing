@@ -23,13 +23,14 @@
 .letter {
   position: relative;
 }
-
+/* Correct typing */
 .letter.correct {
-  color: var(--text-color);
+  color: #00ff80; /* Explicit Green */
 }
 
+/* wrong typing */
 .letter.incorrect {
-  color: var(--error-color);
+  color: #ff4444; /* Explicit Red */
 }
 
 .caret {
