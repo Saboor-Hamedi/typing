@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
+import { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import Header from '../Header/Header'
 import TitleBar from '../TitleBar/TitleBar'
 import Sidebar from '../Sidebar/Sidebar'
@@ -13,10 +13,17 @@ import LoginModal from '../Modals/LoginModal'
 import { ToastContainer } from '../Notification/Toast'
 import { supabase, getCurrentUser, signOut } from '../../utils/supabase'
 import LeaderboardView from '../Leaderboard/LeaderboardView'
+import { motion, AnimatePresence } from 'framer-motion'
 import ConfirmationModal from '../Modals/ConfirmationModal'
+import { calculateLevel } from '../../utils/Leveling'
+
+import { useAccountManager } from '../../hooks/useAccountManager'
 
 const AppLayout = () => {
-  // 1. Core State
+  const isElectron = !!window.api
+  const isWeb = !isElectron
+  
+  // --- 1. Navigation & UI State ---
   const [activeTab, setActiveTab] = useState('typing')
   const [testMode, setTestMode] = useState('words')
   const [testLimit, setTestLimit] = useState(() => Number(localStorage.getItem('testLimit')) || 25)
@@ -32,64 +39,75 @@ const AppLayout = () => {
   })
   const [isSmoothCaret, setIsSmoothCaret] = useState(() => {
     const saved = localStorage.getItem('isSmoothCaret')
-    // Default to true as user requested smooth caret
     return saved !== null ? JSON.parse(saved) : true 
   })
 
-  const [username, setUsername] = useState(() => localStorage.getItem('username') || 'Guest')
-  const [localUsername, setLocalUsername] = useState(() => localStorage.getItem('localUsername') || 'Guest')
   const [toasts, setToasts] = useState([])
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false)
-  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  // Notification Utility
+  // Notifications
   const addToast = useCallback((message, type = 'info') => {
-    const id = Date.now()
+    const id = `${performance.now()}-${Math.random().toString(36).substr(2, 9)}`
     setToasts(prev => [...prev, { id, message, type }])
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id))
-    }, 4000)
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000)
   }, [])
 
   const removeToast = useCallback((id) => {
     setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
   
-  // 2. The Engine (Lifted for global access)
+  // 2. The Engine
   const engine = useEngine(testMode, testLimit)
   const { 
-    startTime, isFinished, results, liveWpm, timeLeft, pb,
+    startTime, isFinished, results, liveWpm, timeLeft, pb, setPb,
     isSoundEnabled, setIsSoundEnabled,
     isHallEffect, setIsHallEffect,
     isGhostEnabled, setIsGhostEnabled,
-    ghostPos, testHistory, clearAllData
+    testHistory, clearAllData,
+    ghostSpeed, setGhostSpeed
   } = engine
 
-  // 3. Callbacks
-  const handleGlobalInteraction = useCallback(() => {
-    soundEngine.warmUp();
-  }, []);
+  // 3. Account & Progress (Hookified)
+  const account = useAccountManager(engine, addToast)
+  const {
+    isLoggedIn, username, localUsername, setLocalUsername,
+    unlockedAvatars, setUnlockedAvatars,
+    selectedAvatarId, setSelectedAvatarId,
+    isSettingsLoaded, setIsSettingsLoaded,
+    handleLogout, handleUpdateNickname, updateSelectedAvatar,
+    mergedHistory, currentLevel, isLoggingOut
+  } = account
 
+  // 4. Global Interactions
+  const handleGlobalInteraction = useCallback(() => soundEngine.warmUp(), [])
   const handleReload = useCallback(() => {
     setActiveTab('typing')
     engine.resetGame()
   }, [engine])
 
-  // Persistence & Auth Layer
-  const isFirstAuthCheck = useRef(true)
-  const lastNotifiedUser = useRef(null)
+  const handleClearAllData = useCallback(async () => {
+    if (typeof clearAllData === 'function') {
+      await clearAllData()
+      addToast('History and PBs cleared', 'success')
+      setIsClearDataModalOpen(false)
+    }
+  }, [clearAllData, addToast])
 
+  const toggleThemeModal = useCallback((isOpen) => setIsThemeModalOpen(isOpen), [])
+  const toggleLoginModal = useCallback((isOpen) => setIsLoginModalOpen(isOpen), [])
+  const toggleLogoutModal = useCallback((isOpen) => setIsLogoutModalOpen(isOpen), [])
+  const toggleClearModal = useCallback((isOpen) => setIsClearDataModalOpen(isOpen), [])
+
+  // Settings Loading Effect (Atomic)
   useEffect(() => {
-    // A. Load Settings
     const loadSettings = async () => {
-      if (window.api && window.api.settings) {
+      if (window.api?.settings) {
         const [
           savedTheme, savedMode, savedLimit, savedChameleon, savedKinetic, savedSmooth, 
-          savedLocalUsername, savedUsername
+          savedUser, savedAvatarId, savedUnlocked
         ] = await Promise.all([
           window.api.settings.get('theme'),
           window.api.settings.get('testMode'),
@@ -98,7 +116,8 @@ const AppLayout = () => {
           window.api.settings.get('isKineticEnabled'),
           window.api.settings.get('isSmoothCaret'),
           window.api.settings.get('localUsername'),
-          window.api.settings.get('username')
+          window.api.settings.get('selectedAvatarId'),
+          window.api.settings.get('unlockedAvatars')
         ])
         
         if (savedTheme) setTheme(savedTheme)
@@ -107,164 +126,106 @@ const AppLayout = () => {
         if (savedChameleon !== undefined) setIsChameleonEnabled(savedChameleon)
         if (savedKinetic !== undefined) setIsKineticEnabled(savedKinetic)
         if (savedSmooth !== undefined) setIsSmoothCaret(savedSmooth)
-        if (savedLocalUsername) setLocalUsername(savedLocalUsername)
-        
-        const session = await getCurrentUser()
-        if (session?.user_metadata?.username) {
-           const cloudName = session.user_metadata.username
-           setUsername(cloudName)
-           setIsLoggedIn(true)
-        } else {
-           // If not logged in, always use the local name
-           setUsername(savedLocalUsername || 'Guest')
-           setIsLoggedIn(false)
-        }
-        setIsSettingsLoaded(true)
+        if (savedUser) setLocalUsername(savedUser)
+        if (savedAvatarId !== undefined) setSelectedAvatarId(savedAvatarId)
+        if (savedUnlocked) setUnlockedAvatars([...new Set([0, 1, ...savedUnlocked])])
       }
+      setIsSettingsLoaded(true)
     }
     loadSettings()
+  }, [setLocalUsername, setSelectedAvatarId, setUnlockedAvatars, setIsSettingsLoaded])
 
-    // B. Auth Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const name = session?.user?.user_metadata?.username
-
-      if (event === 'SIGNED_IN' && name) {
-         setUsername(name)
-         setIsLoggedIn(true)
-         
-         // Only show notification if NOT the initial boot check 
-         // AND if it's a different user than last time we notified
-         if (!isFirstAuthCheck.current && lastNotifiedUser.current !== name) {
-            addToast(`Signed in as ${name}`, 'success')
-            lastNotifiedUser.current = name
-         } else if (isFirstAuthCheck.current) {
-            // Even if silent boot, track the name so we don't toast it later on focus
-            lastNotifiedUser.current = name
-         }
-      } else if (event === 'SIGNED_OUT') {
-         setUsername(localUsername)
-         setIsLoggedIn(false)
-         lastNotifiedUser.current = null // Clear on sign out
-         
-         if (!isFirstAuthCheck.current) {
-            addToast('Signed out successfully', 'info')
-         }
-      }
-    })
-
-    // Suppress notifications for the first 2 seconds of app load
-    // to catch any initial session/signed-in events silently
-    const timer = setTimeout(() => {
-      isFirstAuthCheck.current = false
-    }, 2000)
-
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(timer)
+  // Deep Link Handler (Secure Bridge)
+  useEffect(() => {
+    if (window.api?.onDeepLink) {
+      const removeListener = window.api.onDeepLink(async (url) => {
+        if (url.includes('access_token=')) {
+          const hash = url.split('#')[1]
+          if (!hash) return
+          const params = new URLSearchParams(hash)
+          const access_token = params.get('access_token')
+          const refresh_token = params.get('refresh_token')
+          
+          if (access_token && refresh_token) {
+            try {
+              // Reset the manual logout flag: this is a deliberate login action
+              localStorage.removeItem('typingzone-manual-logout')
+              
+              const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+              if (error) throw error
+              addToast('Authenticated via browser!', 'success')
+              setIsLoginModalOpen(false)
+            } catch (err) {
+              addToast('Deep link authentication failed', 'error')
+            }
+          }
+        }
+      })
+      return () => removeListener()
     }
-  }, [localUsername])
+  }, [addToast])
 
+  // Ready signal for main process
+  useEffect(() => {
+    if (isSettingsLoaded && window.api?.rendererReady) window.api.rendererReady()
+  }, [isSettingsLoaded])
+
+  // Visibility & Tab Focus Persistence
+  useEffect(() => {
+    const handleVisibilitySync = async () => {
+      // If we are currently logging out or already logged out, DON'T sync session
+      if (document.visibilityState === 'visible' && !isLoggingOut.current && isLoggedIn) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+           handleLogout()
+           addToast('Session expired', 'info')
+        } 
+      }
+    }
+    window.addEventListener('visibilitychange', handleVisibilitySync)
+    window.addEventListener('focus', handleVisibilitySync)
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilitySync)
+      window.removeEventListener('focus', handleVisibilitySync)
+    }
+  }, [isLoggedIn, handleLogout, addToast, isLoggingOut])
+
+  // High-Performance Layout Effects
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    const colors = {
-      carbon: '226, 183, 20',
-      nord: '136, 192, 208',
-      dracula: '189, 147, 249',
-      serika_blue: '29, 161, 242',
-      matrix: '21, 255, 0',
-      lavender: '187, 154, 247'
-    }
+    const colors = { carbon: '226, 183, 20', nord: '136, 192, 208', dracula: '189, 147, 249', serika_blue: '29, 161, 242', matrix: '21, 255, 0', lavender: '187, 154, 247' }
     document.documentElement.style.setProperty('--main-color-rgb', colors[theme] || colors.carbon)
   }, [theme])
 
+  // Persistence Sync
   useEffect(() => {
-    // Sync to localStorage
-    localStorage.setItem('theme', theme)
-    localStorage.setItem('testMode', testMode)
-    localStorage.setItem('testLimit', testLimit)
-    localStorage.setItem('isChameleonEnabled', isChameleonEnabled)
-    localStorage.setItem('isKineticEnabled', isKineticEnabled)
-    localStorage.setItem('isSmoothCaret', isSmoothCaret)
-    localStorage.setItem('localUsername', localUsername)
-    localStorage.setItem('username', username)
-
-    if (window.api && window.api.settings && isSettingsLoaded) {
-      window.api.settings.set('theme', theme)
-      window.api.settings.set('testMode', testMode)
-      window.api.settings.set('testLimit', testLimit)
-      window.api.settings.set('isChameleonEnabled', isChameleonEnabled)
-      window.api.settings.set('isKineticEnabled', isKineticEnabled)
-      window.api.settings.set('isSmoothCaret', isSmoothCaret)
-      window.api.settings.set('username', username)
-      window.api.settings.set('localUsername', localUsername)
+    localStorage.setItem('theme', theme); localStorage.setItem('testMode', testMode); localStorage.setItem('testLimit', testLimit);
+    localStorage.setItem('isChameleonEnabled', isChameleonEnabled); localStorage.setItem('isKineticEnabled', isKineticEnabled);
+    localStorage.setItem('isSmoothCaret', isSmoothCaret);
+    if (window.api?.settings && isSettingsLoaded) {
+      window.api.settings.set('theme', theme); window.api.settings.set('testMode', testMode); window.api.settings.set('testLimit', testLimit);
+      window.api.settings.set('isChameleonEnabled', isChameleonEnabled); window.api.settings.set('isKineticEnabled', isKineticEnabled); window.api.settings.set('isSmoothCaret', isSmoothCaret);
     }
-  }, [theme, testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, username, localUsername, isSettingsLoaded])
+  }, [theme, testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isSettingsLoaded])
 
-  // Chameleon Flow
+  // Dynamic Aesthetic: Chameleon Flow
   useEffect(() => {
     if (!isChameleonEnabled || !startTime || isFinished) return
-    const baseColors = {
-      carbon: [226, 183, 20],
-      nord: [136, 192, 208],
-      dracula: [189, 147, 249],
-      serika_blue: [29, 161, 242],
-      matrix: [21, 255, 0],
-      lavender: [187, 154, 247]
-    }
+    const baseColors = { carbon: [226, 183, 20], nord: [136, 192, 208], dracula: [189, 147, 249], serika_blue: [29, 161, 242], matrix: [21, 255, 0], lavender: [187, 154, 247] }
     const hotColor = [226, 68, 20]
     const base = baseColors[theme] || baseColors.carbon
     const targetWpm = pb > 0 ? pb : 100 
-    const startHeatAt = targetWpm * 0.6
-    const maxHeatAt = targetWpm * 1.1
-    let heat = (liveWpm - startHeatAt) / (maxHeatAt - startHeatAt)
+    let heat = (liveWpm - (targetWpm * 0.6)) / ((targetWpm * 1.1) - (targetWpm * 0.6))
     heat = Math.max(0, Math.min(1, heat))
-    const r = Math.round(base[0] + (hotColor[0] - base[0]) * heat)
-    const g = Math.round(base[1] + (hotColor[1] - base[1]) * heat)
-    const b = Math.round(base[2] + (hotColor[2] - base[2]) * heat)
+    const [r, g, b] = base.map((c, i) => Math.round(c + (hotColor[i] - c) * heat))
     document.documentElement.style.setProperty('--main-color-rgb', `${r}, ${g}, ${b}`)
   }, [liveWpm, isChameleonEnabled, startTime, isFinished, theme, pb])
 
-  const displayValue = startTime 
-    ? (testMode === 'time' ? timeLeft : liveWpm) 
-    : (isFinished ? results.wpm : '—')
-
-  const isWeb = window.api?.isWeb;
-
-  const handleUpdateNickname = async (newName) => {
-     if (!newName.trim()) return
-
-     if (isLoggedIn) {
-        // 1. Update Cloud Identity
-        try {
-          const { error } = await supabase.auth.updateUser({
-            data: { username: newName.trim() }
-          })
-          if (error) throw error
-          setUsername(newName.trim())
-          addToast('Cloud profile updated', 'success')
-        } catch (err) {
-          console.error('Cloud name update failed:', err)
-          addToast('Cloud sync failed - using local only', 'warning')
-          setUsername(newName.trim())
-        }
-     } else {
-        // 2. Update Local Identity
-        setUsername(newName.trim())
-        setLocalUsername(newName.trim())
-        addToast('Local nickname saved', 'success')
-     }
-  }
-
-  const handleLogout = async () => {
-    try {
-      await signOut()
-    } catch (err) {
-      setUsername(localUsername)
-      addToast('Signed out (Local session cleared)', 'info')
-    } finally {
-      setIsLogoutModalOpen(false)
-    }
-  }
+  const displayValue = useMemo(() => {
+    if (startTime) return testMode === 'time' ? timeLeft : liveWpm
+    if (isFinished) return results.wpm
+    return testMode === 'time' ? testLimit : '—'
+  }, [startTime, isFinished, testMode, timeLeft, liveWpm, results.wpm, testLimit])
 
   return (
     <div className="app-container" onClick={handleGlobalInteraction} onKeyDown={handleGlobalInteraction} style={{ paddingTop: isWeb ? '0' : '32px' }}>
@@ -303,48 +264,69 @@ const AppLayout = () => {
           isLoggedIn={isLoggedIn}
           setUsername={handleUpdateNickname}
           onReload={handleReload}
-          openThemeModal={() => setIsThemeModalOpen(true)}
-          openLoginModal={() => setIsLoginModalOpen(true)}
-          onLogoutRequest={() => setIsLogoutModalOpen(true)}
+          openThemeModal={() => toggleThemeModal(true)}
+          openLoginModal={() => toggleLoginModal(true)}
+          onLogoutRequest={() => toggleLogoutModal(true)}
+          selectedAvatarId={selectedAvatarId}
         />
 
         <main className="content-area">
-          {activeTab === 'typing' ? (
-             <TypingEngine 
-                engine={engine}
-                testMode={testMode} 
-                testLimit={testLimit} 
-                isSmoothCaret={isSmoothCaret}
-             />
-          ) : activeTab === 'history' ? (
-             <HistoryView data={testHistory} />
-          ) : activeTab === 'settings' ? (
-             <SettingsView 
-                isGhostEnabled={isGhostEnabled}
-                setIsGhostEnabled={setIsGhostEnabled}
-                isSoundEnabled={isSoundEnabled}
-                setIsSoundEnabled={setIsSoundEnabled}
-                isHallEffect={isHallEffect}
-                setIsHallEffect={setIsHallEffect}
-                isChameleonEnabled={isChameleonEnabled}
-                setIsChameleonEnabled={setIsChameleonEnabled}
-                isKineticEnabled={isKineticEnabled}
-                setIsKineticEnabled={setIsKineticEnabled}
-                isSmoothCaret={isSmoothCaret}
-                setIsSmoothCaret={setIsSmoothCaret}
-                onClearHistory={() => setIsClearDataModalOpen(true)}
-                openThemeModal={() => setIsThemeModalOpen(true)}
-             />
-          ) : activeTab === 'dashboard' ? (
-             <DashboardView stats={{ pb }} history={testHistory} username={username} />
-          ) : activeTab === 'leaderboard' ? (
-             <LeaderboardView currentUser={username} />
-          ) : (
-             <div className="placeholder-view glass-panel">
-                <h2>{activeTab.toUpperCase()}</h2>
-                <p>Advanced metrics coming soon.</p>
-             </div>
-          )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 1.02, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.19, 1, 0.22, 1] }}
+              style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+            >
+              {activeTab === 'typing' ? (
+                <TypingEngine 
+                    engine={engine}
+                    testMode={testMode} 
+                    testLimit={testLimit} 
+                    isSmoothCaret={isSmoothCaret}
+                />
+              ) : activeTab === 'history' ? (
+                <HistoryView data={mergedHistory} />
+              ) : activeTab === 'settings' ? (
+                <SettingsView 
+                    isGhostEnabled={isGhostEnabled}
+                    setIsGhostEnabled={setIsGhostEnabled}
+                    isSoundEnabled={isSoundEnabled}
+                    setIsSoundEnabled={setIsSoundEnabled}
+                    isHallEffect={isHallEffect}
+                    setIsHallEffect={setIsHallEffect}
+                    isChameleonEnabled={isChameleonEnabled}
+                    setIsChameleonEnabled={setIsChameleonEnabled}
+                    isKineticEnabled={isKineticEnabled}
+                    setIsKineticEnabled={setIsKineticEnabled}
+                    isSmoothCaret={isSmoothCaret}
+                    setIsSmoothCaret={setIsSmoothCaret}
+                    onClearHistory={() => toggleClearModal(true)}
+                    openThemeModal={() => toggleThemeModal(true)}
+                    ghostSpeed={ghostSpeed}
+                    setGhostSpeed={setGhostSpeed}
+                />
+              ) : activeTab === 'dashboard' ? (
+                <DashboardView 
+                  stats={{ pb }} 
+                  history={mergedHistory} 
+                  username={username}
+                  selectedAvatarId={selectedAvatarId}
+                  unlockedAvatars={unlockedAvatars}
+                  onUpdateAvatar={updateSelectedAvatar}
+                />
+              ) : activeTab === 'leaderboard' ? (
+                <LeaderboardView currentUser={username} />
+              ) : (
+                <div className="placeholder-view glass-panel">
+                    <h2>{activeTab.toUpperCase()}</h2>
+                    <p>Advanced metrics coming soon.</p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         <footer className={(!!startTime && !isFinished) && isZenMode ? 'zen-active' : ''}>
@@ -357,7 +339,7 @@ const AppLayout = () => {
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <ThemeModal 
         isOpen={isThemeModalOpen} 
-        onClose={() => setIsThemeModalOpen(false)} 
+        onClose={() => toggleThemeModal(false)} 
         currentTheme={theme}
         onSelect={(t) => {
           setTheme(t)
@@ -366,27 +348,23 @@ const AppLayout = () => {
       />
       <LoginModal 
         isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLogin={(name) => {
-          setUsername(name)
-          addToast(`Welcome back, ${name}!`, 'success')
+        onClose={() => toggleLoginModal(false)}
+        onLogin={() => {
+          toggleLoginModal(false)
         }}
       />
       <ConfirmationModal 
         isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
+        onClose={() => toggleLogoutModal(false)}
         onConfirm={handleLogout}
-        title="Logout"
-        message="Are you sure you want to sign out of your account?"
-        confirmText="Logout"
+        title="Sign Out"
+        message="Are you sure? This will end your active session and pause cloud synchronization until you sign back in."
+        confirmText="Sign Out Now"
       />
       <ConfirmationModal 
         isOpen={isClearDataModalOpen}
-        onClose={() => setIsClearDataModalOpen(false)}
-        onConfirm={async () => {
-           await clearAllData()
-           addToast('History and PBs cleared successfully', 'success')
-        }}
+        onClose={() => toggleClearModal(false)}
+        onConfirm={handleClearAllData}
         title="Clear All Data"
         message="This will permanently delete your local history and PBs. This cannot be undone."
         confirmText="Clear All"

@@ -1,0 +1,141 @@
+.results-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  background: rgba(var(--bg-color-rgb), 0.8);
+  backdrop-filter: blur(20px);
+}
+
+.results-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.results-metrics-main {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+}
+
+.metric-group-large {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-item .label {
+  font-size: 0.8rem;
+  color: var(--sub-color);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.metric-item .value-large {
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--main-color);
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.2);
+}
+
+.results-graph-wrapper {
+  flex-grow: 1;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  height: 150px;
+  display: flex;
+  align-items: center;
+}
+
+.results-stats-bar {
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-pill .label {
+  font-size: 0.65rem;
+  color: var(--sub-color);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.stat-pill .val {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.stat-pill .val.error {
+  color: var(--error-color);
+}
+
+.results-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.action-btn.primary {
+  background: var(--main-color);
+  color: var(--bg-color);
+}
+
+.action-btn.primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.action-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .results-metrics-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .results-graph-wrapper {
+    width: 100%;
+  }
+}

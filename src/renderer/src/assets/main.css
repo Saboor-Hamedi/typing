@@ -9,6 +9,7 @@
   --round: 5px;
   --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   --bg-color-rgb: 17, 17, 17;
+  --main-color-rgb: 226, 183, 20;
 }
 
 [data-theme='nord'] {
@@ -19,6 +20,7 @@
   --text-color: #ffffff; /* Max contrast */
   --error-color: #bf616a;
   --bg-color-rgb: 46, 52, 64;
+  --main-color-rgb: 136, 192, 208;
 }
 
 [data-theme='dracula'] {
@@ -29,6 +31,7 @@
   --text-color: #ffffff;
   --error-color: #ff5555;
   --bg-color-rgb: 40, 42, 54;
+  --main-color-rgb: 189, 147, 249;
 }
 
 [data-theme='serika_blue'] {
@@ -39,6 +42,7 @@
   --text-color: #ffffff;
   --error-color: #e0245e;
   --bg-color-rgb: 21, 32, 43;
+  --main-color-rgb: 29, 161, 242;
 }
 
 [data-theme='matrix'] {
@@ -49,6 +53,7 @@
   --text-color: #15ff00;
   --error-color: #ff0000;
   --bg-color-rgb: 0, 0, 0;
+  --main-color-rgb: 21, 255, 0;
 }
 
 [data-theme='lavender'] {
@@ -59,6 +64,7 @@
   --text-color: #ffffff;
   --error-color: #f7768e;
   --bg-color-rgb: 26, 27, 38;
+  --main-color-rgb: 187, 154, 247;
 }
 
 /* Custom Scrollbar */

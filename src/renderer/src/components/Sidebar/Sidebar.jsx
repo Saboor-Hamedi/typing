@@ -19,34 +19,51 @@ const Sidebar = memo(({
   onNotification
 }) => {
   const [updateStatus, setUpdateStatus] = useState('idle')
+  const [downloadProgress, setDownloadProgress] = useState(0)
 
   useEffect(() => {
-    let cleanupAvailable = () => {}
-    let cleanupNotAvailable = () => {}
-    let cleanupDownloaded = () => {}
+    let cleanups = []
 
     if (window.api && window.api.update) {
-      cleanupAvailable = window.api.update.onUpdateAvailable(() => setUpdateStatus('available'))
+      if (window.api.update.onUpdateAvailable) {
+        cleanups.push(window.api.update.onUpdateAvailable((info) => {
+          setUpdateStatus('available')
+          if (onNotification) onNotification(`Update Available: v${info.version}`, 'success')
+        }))
+      }
       
-      cleanupNotAvailable = window.api.update.onUpdateNotAvailable(() => {
-        setUpdateStatus('idle')
-        if (onNotification) onNotification('You are on the latest version.', 'info')
-      })
+      if (window.api.update.onUpdateNotAvailable) {
+        cleanups.push(window.api.update.onUpdateNotAvailable(() => {
+          if (updateStatus === 'checking') {
+            if (onNotification) onNotification('You are on the latest version.', 'info')
+          }
+          setUpdateStatus('idle')
+        }))
+      }
       
-      cleanupDownloaded = window.api.update.onUpdateDownloaded(() => setUpdateStatus('downloaded'))
+      if (window.api.update.onDownloadProgress) {
+        cleanups.push(window.api.update.onDownloadProgress((percent) => {
+          setUpdateStatus('downloading')
+          setDownloadProgress(Math.round(percent))
+        }))
+      }
+      
+      if (window.api.update.onUpdateDownloaded) {
+        cleanups.push(window.api.update.onUpdateDownloaded(() => {
+          setUpdateStatus('downloaded')
+          setDownloadProgress(0)
+          if (onNotification) onNotification('Update ready! Restart to apply.', 'success')
+        }))
+      }
     }
 
-    return () => {
-      cleanupAvailable()
-      cleanupNotAvailable()
-      cleanupDownloaded()
-    }
-  }, [onNotification])
+    return () => cleanups.forEach(c => c())
+  }, [onNotification, updateStatus])
 
   const handleUpdateClick = () => {
     if (updateStatus === 'downloaded') {
       window.api.update.quitAndInstall()
-    } else {
+    } else if (updateStatus === 'idle') {
       setUpdateStatus('checking')
       window.api.update.checkForUpdates()
     }
@@ -123,10 +140,10 @@ const Sidebar = memo(({
           </div>
         </div>
         
-        <div className="nav-item secondary" title="How to use">
+        <div className="nav-item secondary" title="Commands Help" onClick={() => onNotification('Press Ctrl + Shift + P for commands', 'info')}>
           <Command size={20} />
         </div>
-        <div className="nav-item secondary" title="About">
+        <div className="nav-item secondary" title="About TypingZone" onClick={() => onNotification('TypingZone v1.0.3 - Built for speed.', 'success')}>
           <Info size={20} />
         </div>
       </nav>
@@ -134,11 +151,21 @@ const Sidebar = memo(({
       <div className="sidebar-bottom">
         <div className="bottom-group" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           <div 
-            className={`nav-item secondary ${updateStatus === 'checking' ? 'spin' : ''} ${updateStatus === 'downloaded' ? 'active-green' : ''}`}
+            className={`nav-item secondary ${updateStatus === 'checking' ? 'spin' : ''} ${updateStatus === 'downloaded' ? 'active-green' : ''} ${updateStatus === 'downloading' ? 'downloading' : ''}`}
             onClick={handleUpdateClick}
-            title={updateStatus === 'downloaded' ? 'Restart to Update' : 'Check for Updates'}
+            title={
+              updateStatus === 'downloaded' ? 'Restart to Update' : 
+              updateStatus === 'downloading' ? `Downloading... ${downloadProgress}%` : 
+              'Check for Updates'
+            }
           >
-            {updateStatus === 'downloaded' ? <ArrowUpCircle size={20} /> : <RefreshCw size={20} />}
+            {updateStatus === 'downloaded' ? (
+              <ArrowUpCircle size={20} />
+            ) : updateStatus === 'downloading' ? (
+              <span className="progress-text">{downloadProgress}%</span>
+            ) : (
+              <RefreshCw size={20} />
+            )}
             {updateStatus === 'available' && <div className="notification-dot" />}
           </div>
           

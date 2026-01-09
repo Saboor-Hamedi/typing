@@ -14,7 +14,9 @@ const SettingsView = ({
   isKineticEnabled,
   setIsKineticEnabled,
   onClearHistory,
-  openThemeModal
+  openThemeModal,
+  ghostSpeed,
+  setGhostSpeed
 }) => {
   return (
     <div className="settings-container">
@@ -65,6 +67,29 @@ const SettingsView = ({
               <span className="slider"></span>
             </label>
           </div>
+
+          <motion.div 
+            initial={false}
+            animate={{ height: isGhostEnabled ? 'auto' : 0, opacity: isGhostEnabled ? 1 : 0 }}
+            className="setting-sub-item"
+            style={{ overflow: 'hidden' }}
+          >
+            <div className="slider-container" style={{ padding: '10px 0 10px 20px', borderLeft: '2px solid var(--sub-alt-color)', marginTop: '10px' }}>
+              <div className="slider-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                <span style={{ color: 'var(--sub-color)' }}>Ghost Intensity</span>
+                <span style={{ color: 'var(--main-color)', fontWeight: 'bold' }}>{Math.round(ghostSpeed * 100)}% of PB</span>
+              </div>
+              <input 
+                type="range" 
+                min="0.5" 
+                max="1.5" 
+                step="0.05" 
+                value={ghostSpeed} 
+                onChange={(e) => setGhostSpeed(parseFloat(e.target.value))}
+                style={{ width: '100%', accentColor: 'var(--main-color)', cursor: 'pointer' }}
+              />
+            </div>
+          </motion.div>
 
           <div className="setting-item">
             <div className="setting-info">

@@ -24,7 +24,8 @@ const Header = ({
   openThemeModal,
   openLoginModal,
   onLogoutRequest,
-  activeTab
+  activeTab,
+  selectedAvatarId
 }) => {
   const [version, setVersion] = useState('0.0.0')
 
@@ -63,6 +64,7 @@ const Header = ({
               setUsername={setUsername}
               openLoginModal={openLoginModal}
               onLogoutRequest={onLogoutRequest}
+              selectedAvatarId={selectedAvatarId}
            />
         </div>
       </div>

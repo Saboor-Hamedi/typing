@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Lock, User, Github, AlertCircle } from 'lucide-react'
+import { X, Mail, Lock, User, Github, AlertCircle, Globe } from 'lucide-react'
 import { useState } from 'react'
 import './LoginModal.css'
 
@@ -25,6 +25,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             data: { username: formData.username }
           }
         })
+        setLoading(false)
         if (error) throw error
         if (onLogin) onLogin(formData.username)
         onClose()
@@ -33,13 +34,46 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
           email: formData.email,
           password: formData.password
         })
+        
+        // Signal success immediately
+        setLoading(false)
         if (error) throw error
+
+        // Handle success
         onClose()
+        const user = data?.user
+        const displayName = user?.user_metadata?.username || user?.email || 'User'
+        if (onLogin) onLogin(displayName)
       }
     } catch (err) {
-      setError(err.message)
-    } finally {
       setLoading(false)
+      setError(err.message)
+    }
+  }
+
+  const handleBrowserLogin = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      // Construction of the redirect URL that Supabase will use to send the tokens back to Electron
+      const redirectTo = 'typingzone://auth'
+      
+      // We trigger the OAuth flow using Supabase, which will open the default browser.
+      // This is the cleanest way to handle "Login via Website"
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github', // Switched to GitHub as it's enabled in the UI
+        options: {
+          redirectTo,
+          skipBrowserRedirect: false // This will open the browser automatically
+        }
+      })
+
+      if (error) throw error
+      // The browser is now open, we wait for the deep link in AppLayout
+      setLoading(false)
+    } catch (err) {
+      setLoading(false)
+      setError(err.message)
     }
   }
 
@@ -162,9 +196,15 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               <span>OR</span>
             </motion.div>
 
-            <motion.button layout className="social-btn github" type="button">
-              <Github size={18} />
-              <span>Continue with GitHub</span>
+            <motion.button 
+              layout 
+              className="social-btn browser" 
+              type="button" 
+              onClick={handleBrowserLogin}
+              disabled={loading}
+            >
+              <Globe size={18} />
+              <span>Continue in Browser</span>
             </motion.button>
 
             <motion.p layout className="auth-footer">

@@ -38,8 +38,19 @@ const api = {
       const subscription = (_event, ...args) => callback(...args)
       ipcRenderer.on('update-downloaded', subscription)
       return () => ipcRenderer.removeListener('update-downloaded', subscription)
+    },
+    onDownloadProgress: (callback) => {
+      const subscription = (_event, ...args) => callback(...args)
+      ipcRenderer.on('download-progress', subscription)
+      return () => ipcRenderer.removeListener('download-progress', subscription)
     }
-  }
+  },
+  onDeepLink: (callback) => {
+    const subscription = (_event, ...args) => callback(...args)
+    ipcRenderer.on('deep-link', subscription)
+    return () => ipcRenderer.removeListener('deep-link', subscription)
+  },
+  rendererReady: () => ipcRenderer.send('renderer-ready')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

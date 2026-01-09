@@ -64,8 +64,8 @@
 
 .nav-item.toggle-active {
   color: var(--main-color);
-  /* No background for toggles, just colored icon */
-  text-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.5);
+  text-shadow: 0 0 15px rgba(var(--main-color-rgb), 0.6);
+  transform: scale(1.1);
 }
 
 .active-indicator {
@@ -121,21 +121,33 @@
 }
 
 .active-green {
-  color: #4ade80 !important;
+  color: #00ff80 !important;
   opacity: 1 !important;
+  text-shadow: 0 0 10px rgba(0, 255, 128, 0.3);
 }
 
+.nav-item.downloading {
+  color: #3b82f6;
+  opacity: 1;
+}
 
-@media (max-width: 768px) {
-  .main-sidebar {
-    width: 60px;
-    padding: 1rem 0;
-  }
-  
-  .nav-item {
-    width: 40px;
-    height: 40px;
-  }
+.progress-text {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* Notification Dot */
+.notification-dot {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  background-color: #00ff80;
+  border-radius: 50%;
+  border: 1px solid var(--bg-color);
+  box-shadow: 0 0 5px #00ff80;
 }
 
 @media (max-width: 480px) {

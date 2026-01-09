@@ -4,9 +4,43 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../resources/icon.png?asset'
 
+let mainWindow = null
+let pendingDeepLink = null
+
+function handleDeepLink(url) {
+  if (!url || typeof url !== 'string') return
+  if (!url.startsWith('typingzone://')) return
+
+  if (mainWindow && mainWindow.webContents) {
+    // If window is ready, send immediately
+    mainWindow.webContents.send('deep-link', url)
+  } else {
+    // Otherwise buffer it for later
+    pendingDeepLink = url
+  }
+}
+
+// Single Instance Lock
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (event, commandLine) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+    // Command line contains the URL on Windows
+    const url = commandLine.pop()
+    handleDeepLink(url)
+  })
+}
+
 function createWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -57,6 +91,15 @@ app.whenReady().then(() => {
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+  // Handle Deep Linking / Custom Protocol
+  if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient('typingzone', process.execPath, [join(__dirname, '../../')])
+    }
+  } else {
+    app.setAsDefaultProtocolClient('typingzone')
+  }
+
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
@@ -101,6 +144,14 @@ app.whenReady().then(() => {
   ipcMain.handle('settings-get', (event, key) => settingsStore.get(key))
   ipcMain.handle('settings-set', (event, key, val) => settingsStore.set(key, val))
 
+  // Deep Link Ready Handler (called by renderer when it's ready to listen)
+  ipcMain.on('renderer-ready', () => {
+    if (pendingDeepLink) {
+      mainWindow.webContents.send('deep-link', pendingDeepLink)
+      pendingDeepLink = null
+    }
+  })
+
   // Data Handlers (History, PB, etc)
   ipcMain.handle('data-get', (event, key) => dataStore.get(key))
   ipcMain.handle('data-set', (event, key, val) => dataStore.set(key, val))
@@ -137,12 +188,14 @@ app.whenReady().then(() => {
     if (win) win.close()
   })
 
-  // Auto-updater handlers
+  // Auto-updater Configuration
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+
   ipcMain.on('check-for-updates', () => {
     if (!is.dev) {
       autoUpdater.checkForUpdates()
     } else {
-      // In dev mode, simulate 'no updates available' to stop the spinner
       const win = BrowserWindow.getFocusedWindow()
       if (win) win.webContents.send('update-not-available')
     }
@@ -152,9 +205,9 @@ app.whenReady().then(() => {
     autoUpdater.quitAndInstall()
   })
 
-  autoUpdater.on('update-available', () => {
+  autoUpdater.on('update-available', (info) => {
     const win = BrowserWindow.getAllWindows()[0]
-    if (win) win.webContents.send('update-available')
+    if (win) win.webContents.send('update-available', info)
   })
 
   autoUpdater.on('update-not-available', () => {
@@ -162,12 +215,28 @@ app.whenReady().then(() => {
     if (win) win.webContents.send('update-not-available')
   })
 
+  autoUpdater.on('download-progress', (progressObj) => {
+    const win = BrowserWindow.getAllWindows()[0]
+    if (win) win.webContents.send('download-progress', progressObj.percent)
+  })
+
   autoUpdater.on('update-downloaded', () => {
     const win = BrowserWindow.getAllWindows()[0]
     if (win) win.webContents.send('update-downloaded')
   })
 
+  // Start checking for updates after 5 seconds of launch
+  setTimeout(() => {
+    if (!is.dev) autoUpdater.checkForUpdatesAndNotify()
+  }, 5000)
+
   createWindow()
+
+  // Handle launch URL on Windows/Linux Cold Boot
+  if (process.platform === 'win32' || process.platform === 'linux') {
+    const protocolUrl = process.argv.find(arg => arg.startsWith('typingzone://'))
+    if (protocolUrl) handleDeepLink(protocolUrl)
+  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
@@ -183,6 +252,12 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+// Deep Link handler for macOS
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  handleDeepLink(url)
 })
 
 // In this file you can include the rest of your app's specific main process

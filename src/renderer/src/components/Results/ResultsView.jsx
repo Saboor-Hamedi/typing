@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { RotateCcw, Play } from 'lucide-react'
 import TelemetryGraph from '../Analytics/TelemetryGraph'
+import './ResultsView.css'
 
 const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onReplay }) => {
   useEffect(() => {
@@ -19,44 +20,50 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="results-view glass-panel"
+      className="results-container glass-panel"
     >
-      <div className="results-top">
-        <div className="results-grid">
-          <div className="result-large">
-            <span className="label">wpm</span>
-            <span className="value">{results.wpm}</span>
+      <div className="results-content">
+        <div className="results-metrics-main">
+          <div className="metric-group-large">
+            <div className="metric-item">
+              <span className="label">wpm</span>
+              <span className="value-large">{results.wpm}</span>
+            </div>
+            <div className="metric-item">
+              <span className="label">acc</span>
+              <span className="value-large">{results.accuracy}%</span>
+            </div>
           </div>
-          <div className="result-large">
-            <span className="label">acc</span>
-            <span className="value">{results.accuracy}%</span>
+
+          <div className="results-graph-wrapper">
+            <TelemetryGraph data={telemetry} width={800} height={120} />
           </div>
         </div>
 
-        <TelemetryGraph data={telemetry} width={500} height={120} />
-      </div>
-
-      <div className="results-grid secondary">
-        <div className="result-small">
-          <span className="label">test type</span>
-          <span className="value">{testMode} {testLimit}</span>
-        </div>
-        <div className="result-small">
-          <span className="label">raw wpm</span>
-          <span className="value">{results.rawWpm}</span>
-        </div>
-        <div className="result-small">
-          <span className="label">errors</span>
-          <span className="value" style={{ color: 'var(--error-color)' }}>{results.errors}</span>
+        <div className="results-stats-bar">
+          <div className="stat-pill">
+            <span className="label">test type</span>
+            <span className="val">{testMode} {testLimit}</span>
+          </div>
+          <div className="stat-pill">
+            <span className="label">raw wpm</span>
+            <span className="val">{results.rawWpm}</span>
+          </div>
+          <div className="stat-pill">
+            <span className="label">errors</span>
+            <span className="val error">{results.errors}</span>
+          </div>
         </div>
       </div>
       
-      <div className="results-actions" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '20px' }}>
-        <button className="restart-btn" onClick={onReplay} title="Watch Replay">
+      <div className="results-actions">
+        <button className="action-btn secondary" onClick={onReplay} title="Watch Replay">
           <Play size={20} />
+          <span>Replay</span>
         </button>
-        <button className="restart-btn" onClick={onRestart} title="Restart">
+        <button className="action-btn primary" onClick={onRestart} title="Restart (Enter)">
           <RotateCcw size={20} />
+          <span>Next Test</span>
         </button>
       </div>
     </motion.div>

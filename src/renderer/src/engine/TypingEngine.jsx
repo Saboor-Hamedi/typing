@@ -56,7 +56,8 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret }) => {
     isGhostEnabled,
     setIsGhostEnabled,
     ghostPos,
-    isTyping
+    isTyping,
+    startTime
   } = engine
 
   // Auto-focus on mount or test start
@@ -79,7 +80,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret }) => {
       <div className="typing-container" ref={wordContainerRef}>
         {!isFinished ? (
           <>
-            {isGhostEnabled && ghostPos.left > 0 && !isFinished && (
+            {isGhostEnabled && startTime && !isFinished && (
                <motion.div 
                  className={`caret ghost blinking ${isTyping ? 'typing' : ''}`}
                  animate={{ x: ghostPos.left, y: ghostPos.top }}
@@ -93,12 +94,18 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret }) => {
             )}
             <motion.div 
               className={`caret blinking ${isTyping ? 'typing' : ''}`}
-              animate={{ x: caretPos.left, y: caretPos.top }}
+              initial={{ opacity: 0 }}
+              animate={{ 
+                x: caretPos.left, 
+                y: caretPos.top,
+                opacity: 1 
+              }}
               transition={isSmoothCaret ? { 
                 type: 'spring',
-                stiffness: 150,
-                damping: 20,
-                mass: 0.5
+                stiffness: 450,
+                damping: 35,
+                mass: 0.2,
+                restDelta: 0.001
               } : { 
                 type: 'spring',
                 stiffness: 1000,

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, ChevronDown, Wifi, Activity, LogOut } from 'lucide-react'
+import { AVATAR_MAP } from '../../assets/avatars'
 
-const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest }) => {
+const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [tempName, setTempName] = useState('')
@@ -15,14 +16,10 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <User size={16} />
-        <span className="trigger-name">{username}</span>
-        <motion.div 
-          animate={{ rotate: isDropdownOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronDown size={14} style={{ opacity: 0.5, marginLeft: '4px' }} />
-        </motion.div>
+        <div className="trigger-avatar">
+          <img src={AVATAR_MAP[selectedAvatarId]} alt="User" />
+          {isLoggedIn && <div className="online-indicator" />}
+        </div>
       </motion.div>
 
       <AnimatePresence mode="wait">
@@ -37,7 +34,15 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
               transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             >
               <div className="dropdown-header">
-                <span className="dropdown-title">Account & Status</span>
+                <div className="user-info-section">
+                   <div className="name-row">
+                      <span className="name-text">{username}</span>
+                      <span className={`identity-badge ${isLoggedIn ? 'cloud' : 'local'}`}>
+                         {isLoggedIn ? 'Logged In' : 'Guest'}
+                      </span>
+                   </div>
+                   <span className="dropdown-subtitle">Status & Account</span>
+                </div>
               </div>
 
               <div className="dropdown-section">
@@ -51,13 +56,17 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
                         value={tempName}
                         onChange={(e) => setTempName(e.target.value)}
                         onBlur={() => {
+                          if (tempName.trim() && tempName.trim() !== username) {
+                            setUsername(tempName.trim())
+                          }
                           setIsEditing(false)
-                          if (tempName.trim()) setUsername(tempName.trim())
                         }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
+                            if (tempName.trim() && tempName.trim() !== username) {
+                               setUsername(tempName.trim())
+                            }
                             setIsEditing(false)
-                            if (tempName.trim()) setUsername(tempName.trim())
                           }
                         }}
                         autoFocus
@@ -66,12 +75,9 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
                     ) : (
                       <div className="name-wrapper" onClick={() => { setIsEditing(true); setTempName(username); }}>
                         <div className="name-row">
-                          <span className="name-text">{username}</span>
-                          <span className={`identity-badge ${isLoggedIn ? 'cloud' : 'local'}`}>
-                            {isLoggedIn ? 'Cloud' : 'Local'}
-                          </span>
+                          <span className="name-text-sm">{username}</span>
                         </div>
-                        <span className="edit-hint">Click to edit</span>
+                        <span className="edit-hint">Click to change nickname</span>
                       </div>
                     )}
                   </div>

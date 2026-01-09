@@ -1,0 +1,118 @@
+.progress-graph-wrapper {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--round);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.graph-header-meta {
+  display: flex;
+  gap: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-item .label {
+  font-size: 0.6rem;
+  color: var(--sub-color);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.meta-item .value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--main-color);
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.meta-item .value small {
+  font-size: 0.8rem;
+  font-weight: 400;
+  opacity: 0.5;
+}
+
+.svg-container {
+  position: relative;
+  width: 100%;
+}
+
+.graph-tooltip-robust {
+  background: var(--bg-color);
+  border: 1px solid var(--sub-alt-color);
+  padding: 12px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+.tt-date {
+  font-size: 0.65rem;
+  color: var(--sub-color);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.tt-main {
+  display: flex;
+  justify-content: space-around;
+  gap: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.tt-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.tt-stat .label {
+  font-size: 0.55rem;
+  color: var(--sub-color);
+  text-transform: uppercase;
+}
+
+.tt-stat .val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--main-color);
+}
+
+.tt-mode {
+  font-size: 0.6rem;
+  color: var(--sub-color);
+  text-transform: uppercase;
+  opacity: 0.4;
+  letter-spacing: 1px;
+}
+
+.graph-x-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  font-size: 0.6rem;
+  color: var(--sub-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+}
+
+.progress-graph-empty {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub-color);
+  font-style: italic;
+  font-size: 0.9rem;
+  text-align: center;
+}

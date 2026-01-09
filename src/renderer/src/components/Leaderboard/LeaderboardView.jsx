@@ -69,6 +69,7 @@ const LeaderboardView = ({ currentUser }) => {
       }
     } catch (err) {
       console.error('Error fetching leaderboard:', err)
+      setScores([])
     } finally {
       setLoading(false)
     }

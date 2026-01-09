@@ -1,22 +1,35 @@
 import './DashboardView.css'
-import { motion } from 'framer-motion'
-import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity } from 'lucide-react'
+import ProgressGraph from '../Analytics/ProgressGraph'
 import dashboardBg from '../../assets/dashboard_bg.png'
-import avatar from '../../assets/avatar.png'
+import { calculateLevel } from '../../utils/Leveling'
+import { useState, useMemo } from 'react'
+import { Lock, Check } from 'lucide-react'
 
-const DashboardView = ({ stats, history = [], username }) => {
-  const latestWpm = history.length > 0 ? history[0].wpm : 0
-  const avgWpm = history.length > 0 
-    ? Math.round(history.reduce((acc, curr) => acc + curr.wpm, 0) / history.length) 
-    : 0
-  const bestWpm = stats.pb || 0
-  const totalTests = history.length
+// Avatar Registry
+import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
+
+const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, unlockedAvatars = [1], onUpdateAvatar }) => {
   
-  // Calculate Level (Experience points based on tests and WPM)
-  const totalWpm = history.reduce((acc, curr) => acc + curr.wpm, 0)
-  const experience = (totalWpm * 10) + (totalTests * 100)
-  const level = Math.floor(Math.sqrt(experience / 100)) || 1
-  const levelProgress = (experience % 1000) / 10
+  const { 
+    experience, level, levelProgress, xpToNext 
+  } = calculateLevel(history)
+
+  const statsCore = useMemo(() => {
+    if (history.length === 0) return { avgWpm: 0, avgAcc: 0, total: 0 }
+    
+    const sumWpm = history.reduce((acc, curr) => acc + curr.wpm, 0)
+    const sumAcc = history.reduce((acc, curr) => acc + curr.accuracy, 0)
+    
+    return {
+      avgWpm: Math.round(sumWpm / history.length),
+      avgAcc: Math.round(sumAcc / history.length),
+      total: history.length
+    }
+  }, [history])
+
+  const bestWpm = stats.pb || 0
   
   return (
     <div className="dashboard-container">
@@ -30,7 +43,7 @@ const DashboardView = ({ stats, history = [], username }) => {
             animate={{ x: 0, opacity: 1 }}
           >
             <div className="avatar-wrapper">
-              <img src={avatar} alt="Profile" className="profile-img" />
+              <img src={AVATAR_MAP[selectedAvatarId] || AVATAR_MAP[0]} alt="Profile" className="profile-img" />
               <div className="status-indicator online" />
             </div>
             <div className="profile-info">
@@ -39,7 +52,7 @@ const DashboardView = ({ stats, history = [], username }) => {
               <div className="level-progress-container">
                 <div className="level-progress-bar" style={{ width: `${levelProgress}%` }} />
               </div>
-              <p className="exp-text">{experience} XP • {1000 - (experience % 1000)} XP to next level</p>
+              <p className="exp-text">{experience} XP • {xpToNext} XP to next level</p>
             </div>
           </motion.div>
           
@@ -58,127 +71,174 @@ const DashboardView = ({ stats, history = [], username }) => {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <motion.div className="stat-card glass-panel" whileHover={{ y: -5 }}>
-          <div className="stat-header">
-            <TrendingUp size={18} className="icon-main" />
-            <span>Average Speed</span>
-          </div>
-          <div className="stat-body">
-            <span className="number">{avgWpm}</span>
-            <span className="unit">WPM</span>
-          </div>
-          <div className="stat-sparkline">
-            <svg viewBox="0 0 100 30" preserveAspectRatio="none">
-              <path 
-                d="M0,25 Q10,15 20,20 T40,10 T60,22 T80,18 L100,5" 
-                fill="none" 
-                stroke="var(--main-color)" 
-                strokeWidth="2" 
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-        </motion.div>
+      <div className="dashboard-main-grid">
+        {/* LEFT COLUMN: Deep Analytics & History */}
+        <div className="dashboard-column primary">
+          <section className="dashboard-card glass-panel section-graph">
+            <div className="section-header-main">
+              <Activity size={20} className="icon-main" />
+              <h2>Performance Trend</h2>
+            </div>
+            <ProgressGraph data={history} />
+          </section>
 
-        <motion.div className="stat-card glass-panel" whileHover={{ y: -5 }}>
-          <div className="stat-header">
-            <Flame size={18} className="icon-main" />
-            <span>Daily Streak</span>
-          </div>
-          <div className="stat-body">
-            <span className="number">7</span>
-            <span className="unit">DAYS</span>
-          </div>
-          <div className="progress-mini">
-            <div className="dot active" /><div className="dot active" /><div className="dot active" />
-            <div className="dot active" /><div className="dot active" /><div className="dot active" />
-            <div className="dot active" />
-          </div>
-        </motion.div>
-
-        <motion.div className="stat-card glass-panel" whileHover={{ y: -5 }}>
-          <div className="stat-header">
-            <Target size={18} className="icon-main" />
-            <span>Best Accuracy</span>
-          </div>
-          <div className="stat-body">
-            <span className="number">99</span>
-            <span className="unit">%</span>
-          </div>
-          <div className="stat-footer">Top 5% of all users</div>
-        </motion.div>
-
-        <motion.div className="stat-card glass-panel" whileHover={{ y: -5 }}>
-          <div className="stat-header">
-            <Zap size={18} className="icon-main" />
-            <span>Total Tests</span>
-          </div>
-          <div className="stat-body">
-            <span className="number">{totalTests}</span>
-            <span className="unit">RUNS</span>
-          </div>
-          <div className="stat-footer">{Math.round(totalTests * 0.5)} mins typed</div>
-        </motion.div>
-      </div>
-
-      <div className="dashboard-grid-secondary">
-        {/* Activity Section */}
-        <section className="dashboard-section glass-panel">
-          <div className="section-header">
-            <Calendar size={18} />
-            <span>Recent Activity</span>
-          </div>
-          <div className="activity-list">
-            {history.length > 0 ? history.slice(0, 1).map((test, i) => (
-              <div key={i} className="activity-row">
-                <div className="activity-icon"><Zap size={14} /></div>
-                <div className="activity-info">
-                  <span className="activity-mode">{test.mode} {test.limit}</span>
-                  <span className="activity-date">{new Date(test.date).toLocaleDateString()} • {new Date(test.date).toLocaleTimeString()}</span>
+          <section className="dashboard-card glass-panel section-activity">
+            <div className="section-header">
+              <Calendar size={18} />
+              <span>Activity Log</span>
+            </div>
+            <div className="activity-grid">
+              {history.length > 0 ? history.slice(0, 10).map((test, i) => (
+                <div key={i} className="session-card">
+                  <div className="session-time">
+                    <span className="date">{new Date(test.date).toLocaleDateString()}</span>
+                    <span className="time">{new Date(test.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div className="session-main">
+                    <div className="mode-badge">{test.mode} {test.limit || ''}</div>
+                    <div className="stats-row">
+                      <div className="stat-pill">
+                        <span className="label">WPM</span>
+                        <span className="value">{test.wpm}</span>
+                      </div>
+                      <div className="stat-pill">
+                        <span className="label">ACC</span>
+                        <span className="value">{test.accuracy}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <motion.div 
+                    className="session-marker" 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }}
+                    style={{ background: test.wpm >= 100 ? 'var(--main-color)' : 'rgba(255,255,255,0.1)' }}
+                  />
                 </div>
-                <div className="activity-result">
-                  <span className="res-wpm">{test.wpm} WPM</span>
-                  <span className="res-acc">{test.accuracy}%</span>
+              )) : (
+                <div className="empty-state">No sessions recorded yet. Get typing!</div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        {/* RIGHT COLUMN: Quick Stats & Milestones */}
+        <div className="dashboard-column secondary">
+          <div className="sidebar-stats-stack">
+            <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
+              <div className="m-header">
+                <TrendingUp size={16} />
+                <span>AVG SPEED</span>
+              </div>
+              <div className="m-body">
+                <span className="val">{statsCore.avgWpm}</span>
+                <span className="unit">WPM</span>
+              </div>
+            </motion.div>
+
+            <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
+              <div className="m-header">
+                <Target size={16} />
+                <span>ACCURACY</span>
+              </div>
+              <div className="m-body">
+                <span className="val">{statsCore.avgAcc}</span>
+                <span className="unit">%</span>
+              </div>
+            </motion.div>
+
+            <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
+              <div className="m-header">
+                <Zap size={16} />
+                <span>TOTAL RUNS</span>
+              </div>
+              <div className="m-body">
+                <span className="val">{statsCore.total}</span>
+                <span className="unit">TESTS</span>
+              </div>
+            </motion.div>
+          </div>
+
+          <section className="dashboard-card glass-panel section-wardrobe">
+            <div className="section-header">
+              <div className="icon-main-wrap"><Map size={18} /></div>
+              <span>Wardrobe</span>
+            </div>
+            <div className="wardrobe-grid">
+              {AVATAR_DEFS.map(av => {
+                const isUnlocked = unlockedAvatars.includes(av.id)
+                const isSelected = selectedAvatarId === av.id
+                
+                return (
+                  <div 
+                    key={av.id} 
+                    className={`wardrobe-item ${isUnlocked ? 'unlocked' : 'locked'} ${isSelected ? 'selected' : ''}`}
+                    onClick={() => {
+                      if (isUnlocked && !isSelected) {
+                        onUpdateAvatar(av.id)
+                      }
+                    }}
+                  >
+                    <div className="img-container">
+                      <img src={av.img} alt={av.name} />
+                      {!isUnlocked && (
+                        <div className="lock-overlay">
+                          <Lock size={12} />
+                        </div>
+                      )}
+                      {isSelected && (
+                        <div className="selected-glow" />
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
+          <section className="dashboard-card glass-panel section-milestones">
+            <div className="section-header">
+              <Trophy size={18} />
+              <span>Milestones</span>
+            </div>
+            <div className="milestones-list">
+              <div className={`milestone-item ${statsCore.total > 0 ? 'achieved' : 'locked'}`}>
+                <div className="m-icon"><Zap size={14} /></div>
+                <div className="m-info">
+                  <span className="m-title">First Blood</span>
+                  <span className="m-desc">Complete your first test</span>
                 </div>
               </div>
-            )) : (
-              <div className="empty-state">No tests completed yet. Start typing!</div>
-            )}
-          </div>
-        </section>
-
-        {/* Achievements Section */}
-        <section className="dashboard-section glass-panel">
-          <div className="section-header">
-            <Trophy size={18} />
-            <span>Milestones</span>
-          </div>
-          <div className="milestones-list">
-            <div className="milestone-item achieved">
-              <div className="m-icon"><Zap size={14} /></div>
-              <div className="m-info">
-                <span className="m-title">First Blood</span>
-                <span className="m-desc">Complete your first test</span>
+              <div className={`milestone-item ${bestWpm >= 80 ? 'achieved' : 'locked'}`}>
+                <div className="m-icon"><Flame size={14} /></div>
+                <div className="m-info">
+                  <span className="m-title">Speed Demon</span>
+                  <span className="m-desc">Reach 80 WPM</span>
+                </div>
+              </div>
+              <div className={`milestone-item ${bestWpm >= 120 ? 'achieved' : 'locked'}`}>
+                <div className="m-icon"><Flame size={14} /></div>
+                <div className="m-info">
+                  <span className="m-title">Elite</span>
+                  <span className="m-desc">Reach 120 WPM</span>
+                </div>
+              </div>
+              <div className={`milestone-item ${level >= 40 ? 'achieved' : 'locked'}`}>
+                <div className="m-icon"><Activity size={14} /></div>
+                <div className="m-info">
+                  <span className="m-title">Cyber Ghost</span>
+                  <span className="m-desc">Reach Level 40</span>
+                </div>
+              </div>
+              <div className={`milestone-item ${level >= 60 ? 'achieved' : 'locked'}`}>
+                <div className="m-icon"><Trophy size={14} /></div>
+                <div className="m-info">
+                  <span className="m-title">Ascended</span>
+                  <span className="m-desc">Reach Level 60</span>
+                </div>
               </div>
             </div>
-            <div className={`milestone-item ${bestWpm >= 100 ? 'achieved' : 'locked'}`}>
-              <div className="m-icon"><Flame size={14} /></div>
-              <div className="m-info">
-                <span className="m-title">Century Club</span>
-                <span className="m-desc">Reach 100 WPM speed</span>
-              </div>
-            </div>
-            <div className="milestone-item locked">
-              <div className="m-icon"><Target size={14} /></div>
-              <div className="m-info">
-                <span className="m-title">Sniper</span>
-                <span className="m-desc">100% accuracy on 50+ words</span>
-              </div>
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   )

@@ -66,22 +66,55 @@
 
 .user-trigger {
   background: var(--sub-alt-color);
-  padding: 6px 12px;
-  border-radius: var(--round);
+  padding: 4px; /* Tight for round avatar */
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
   color: var(--text-color);
-  font-size: 0.8rem;
-  font-weight: 600;
+  width: 36px;
+  height: 36px;
+  position: relative;
 }
 
 .user-trigger:hover, .user-trigger.active {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--main-color-rgb), 0.1);
   border-color: var(--main-color);
+  box-shadow: 0 0 15px rgba(var(--main-color-rgb), 0.2);
+}
+
+.trigger-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-color);
+  position: relative;
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: #00ff80;
+  border-radius: 50%;
+  border: 2px solid var(--sub-alt-color);
+  box-shadow: 0 0 5px #00ff80;
+  z-index: 2;
+}
+
+.trigger-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .trigger-name {
@@ -118,6 +151,21 @@
 .dropdown-header {
   padding: 12px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.user-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-subtitle {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sub-color);
+  font-weight: 500;
+  opacity: 0.8;
 }
 
 .dropdown-title {
@@ -220,6 +268,12 @@
 .name-text {
   font-size: 1.1rem;
   font-weight: 700;
+  color: var(--text-color);
+}
+
+.name-text-sm {
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--text-color);
 }
 

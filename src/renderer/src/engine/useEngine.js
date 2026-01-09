@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react'
 import { generateWords } from '../utils/words'
 import { soundEngine } from '../utils/SoundEngine'
 import { supabase } from '../utils/supabase'
@@ -15,6 +15,7 @@ export const useEngine = (testMode, testLimit) => {
   const [caretPos, setCaretPos] = useState({ left: 0, top: 0 })
   const [pb, setPb] = useState(0)
   const [telemetry, setTelemetry] = useState([]) // [{ sec, wpm, raw, errors }]
+  const [ghostSpeed, setGhostSpeed] = useState(1.0) // Multiplier for PB speed
 
   const wordContainerRef = useRef(null)
   const inputRef = useRef(null)
@@ -41,8 +42,9 @@ export const useEngine = (testMode, testLimit) => {
       window.api.settings.set('isGhostEnabled', isGhostEnabled)
       window.api.settings.set('isSoundEnabled', isSoundEnabled)
       window.api.settings.set('isHallEffect', isHallEffect)
+      window.api.settings.set('ghostSpeed', ghostSpeed)
     }
-  }, [soundProfile, isHallEffect, isGhostEnabled, isSoundEnabled, isStoreLoaded])
+  }, [soundProfile, isHallEffect, isGhostEnabled, isSoundEnabled, isStoreLoaded, ghostSpeed])
 
   // Load PB on mount
   useEffect(() => {
@@ -65,6 +67,9 @@ export const useEngine = (testMode, testLimit) => {
 
           const savedHall = await window.api.settings.get('isHallEffect')
           if (savedHall !== undefined) setIsHallEffect(savedHall)
+
+          const savedSpeed = await window.api.settings.get('ghostSpeed')
+          if (savedSpeed !== undefined) setGhostSpeed(savedSpeed)
 
           setIsStoreLoaded(true)
         }
@@ -150,7 +155,8 @@ export const useEngine = (testMode, testLimit) => {
 
   const resetGame = useCallback(() => {
     stopTimer()
-    setWords(generateWords(testMode === 'words' ? testLimit : 100))
+    const wordCount = testMode === 'words' ? testLimit : Math.max(100, testLimit * 4)
+    setWords(generateWords(wordCount))
     setUserInput('')
     setStartTime(null)
     startTimeRef.current = null
@@ -187,25 +193,34 @@ export const useEngine = (testMode, testLimit) => {
       setStartTime(now)
       startTimeRef.current = now
       
-      if (testMode === 'time') {
-        timerRef.current = setInterval(() => {
-          setTimeLeft(prev => {
-            const currentSec = testLimit - prev + 1
-            
-            // Record Telemetry snapshot
-            const durationInMin = currentSec / 60
-            const currentWpm = durationInMin > 0 ? Math.round((value.length / 5) / durationInMin) : 0
-            setTelemetry(t => [...t, { sec: currentSec, wpm: currentWpm }])
+      timerRef.current = setInterval(() => {
+        const elapsedSec = Math.round((performance.now() - startTimeRef.current) / 1000)
+        if (elapsedSec <= 0) return
 
+        const durationInMin = elapsedSec / 60
+        const currentInput = inputRef.current?.value || ''
+        const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0
+        
+        // Calculate Net WPM live
+        const targetText = words.join(' ')
+        let correctChars = 0
+        for (let i = 0; i < currentInput.length; i++) {
+           if (currentInput[i] === targetText[i]) correctChars++
+        }
+        const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0
+
+        setTelemetry(t => [...t, { sec: elapsedSec, wpm: currentWpm, raw: currentRaw }])
+
+        if (testMode === 'time') {
+          setTimeLeft(prev => {
             if (prev <= 1) {
-              const currentInput = inputRef.current?.value || value
-              finishTest(currentInput, performance.now())
+              finishTest(inputRef.current?.value || '', performance.now())
               return 0
             }
             return prev - 1
           })
-        }, 1000)
-      }
+        }
+      }, 1000)
     }
 
     setKeystrokes(prev => [...prev, { value, timestamp: now }])
@@ -279,8 +294,8 @@ export const useEngine = (testMode, testLimit) => {
     const totalChars = words.join(' ').length
     const interval = setInterval(() => {
       const elapsed = performance.now() - startTime
-      // (PB * 5 characters) / 60000 ms
-      const charsPerMs = (pb * 5) / 60000
+      // (PB * 5 characters * multiplier) / 60000 ms
+      const charsPerMs = (pb * 5 * ghostSpeed) / 60000
       const ghostCharIndex = Math.floor(elapsed * charsPerMs)
       
       if (ghostCharIndex >= totalChars) return 
@@ -308,17 +323,50 @@ export const useEngine = (testMode, testLimit) => {
     }, 0)
   }, [])
 
-  useEffect(() => {
+  // 1. Position & Scroll Logic (Synchronous for zero-latency feel)
+  const lastLineTop = useRef(-1)
+  
+  // Initial position mount or word refresh
+  useLayoutEffect(() => {
+    if (words.length > 0 && userInput.length === 0) {
+      const activeLetter = document.getElementById('char-0')
+      if (activeLetter) {
+        setCaretPos({ left: activeLetter.offsetLeft, top: activeLetter.offsetTop })
+      }
+    }
+  }, [words])
+
+  useLayoutEffect(() => {
     if (isFinished) return
     const charIndex = userInput.length
     const activeLetter = document.getElementById(`char-${charIndex}`)
+    
     if (activeLetter && wordContainerRef.current) {
-      const parentRect = wordContainerRef.current.getBoundingClientRect()
-      const rect = activeLetter.getBoundingClientRect()
-      setCaretPos({
-        left: rect.left - parentRect.left,
-        top: rect.top - parentRect.top
-      })
+      // INTRINSIC COORDINATES (Zero lag, scroll-stable)
+      const top = activeLetter.offsetTop
+      const left = activeLetter.offsetLeft
+      
+      const newPos = { left, top }
+      setCaretPos(newPos)
+
+      // SMOOTH LINE-BY-LINE HORIZON LOCK
+      if (top !== lastLineTop.current) {
+        const container = wordContainerRef.current
+        const containerHeight = container.clientHeight
+        
+        // Target: Keep the current line at a comfortable 40% "Horizon"
+        const targetScroll = top - (containerHeight * 0.4)
+        
+        container.scrollTo({
+          top: targetScroll,
+          behavior: 'smooth'
+        })
+        
+        lastLineTop.current = top
+      }
+    } else if (userInput.length === 0 && wordContainerRef.current) {
+      wordContainerRef.current.scrollTo({ top: 0, behavior: 'instant' })
+      lastLineTop.current = -1
     }
   }, [userInput, isFinished])
 
@@ -358,11 +406,14 @@ export const useEngine = (testMode, testLimit) => {
     ghostPos,
     isTyping,
     testHistory,
-    clearAllData
+    clearAllData,
+    ghostSpeed,
+    setGhostSpeed
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, caretPos, 
     timeLeft, resetGame, handleInput, runReplay, liveWpm, pb, 
     isSoundEnabled, soundProfile, isHallEffect, telemetry, 
-    isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData
+    isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
+    ghostSpeed
   ])
 }
