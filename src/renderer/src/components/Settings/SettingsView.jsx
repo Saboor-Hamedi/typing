@@ -116,8 +116,8 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
           <div className="setting-item">
             <div className="setting-info">
               <div className="setting-label">
-                <Map size={16} color="#00ff80" />
-                <span style={{ color: '#00ff80' }}>Kinetic Heatmaps</span>
+                <Map size={16} className="kinetic-accent" />
+                <span className="kinetic-accent">Kinetic Heatmaps</span>
               </div>
               <p className="setting-description">Track finger bottlenecks and transition speeds per key.</p>
             </div>

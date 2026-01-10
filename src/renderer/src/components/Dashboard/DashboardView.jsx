@@ -67,19 +67,6 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
               <p className="exp-text">{experience} XP • {xpToNext} XP to next level</p>
             </div>
           </motion.div>
-          
-          <div className="hero-stats">
-            <div className="hero-stat-card">
-              <span className="label">PERSONAL BEST</span>
-              <motion.span 
-                className="value"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-              >
-                {bestWpm} <small>WPM</small>
-              </motion.span>
-            </div>
-          </div>
         </div>
       </div>
 

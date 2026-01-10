@@ -202,6 +202,7 @@ export const STORAGE_KEYS = {
   THEME: 'theme',
   TEST_MODE: 'testMode',
   TEST_LIMIT: 'testLimit',
+  ACTIVE_TAB: 'activeTab',
   USERNAME: 'username',
   LOCAL_USERNAME: 'localUsername',
   CHAMELEON_ENABLED: 'isChameleonEnabled',

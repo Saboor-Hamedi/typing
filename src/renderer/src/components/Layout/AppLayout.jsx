@@ -37,7 +37,7 @@ import { useAccountManager } from '../../hooks/useAccountManager'
 import { useChameleonFlow } from '../../hooks/useChameleonFlow'
 import { useTheme, useSettings, useUser } from '../../contexts'
 import { soundEngine } from '../../utils/SoundEngine'
-import { ANIMATIONS, SUCCESS_MESSAGES, PROGRESSION } from '../../constants'
+import { ANIMATIONS, SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
 
 /**
@@ -73,7 +73,10 @@ const AppLayout = ({ addToast }) => {
   } = useUser()
 
   // Local UI state
-  const [activeTab, setActiveTab] = useState('typing')
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window === 'undefined') return 'typing'
+    return localStorage.getItem(STORAGE_KEYS.ACTIVE_TAB) || 'typing'
+  })
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
@@ -149,6 +152,12 @@ const AppLayout = ({ addToast }) => {
     setActiveTab('typing')
     engine.resetGame()
   }, [engine])
+
+  // Persist active tab across reloads
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab)
+  }, [activeTab])
 
   const handleClearAllData = useCallback(async () => {
     if (typeof clearAllData === 'function') {
@@ -247,6 +256,7 @@ const AppLayout = ({ addToast }) => {
             openLoginModal={() => toggleLoginModal(true)}
             onLogoutRequest={() => toggleLogoutModal(true)}
             selectedAvatarId={selectedAvatarId}
+            onNavigateDashboard={() => setActiveTab('dashboard')}
           />
         )}
 

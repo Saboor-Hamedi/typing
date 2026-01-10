@@ -1,26 +1,27 @@
 .dashboard-container {
-  padding: 1rem 2rem;
+  padding: 1rem 1.25rem 0 1.25rem;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 1200px;
+  box-sizing: border-box;
   animation: fadeIn 0.4s ease-out;
 }
 
 .dashboard-hero {
   position: relative;
-  height: 240px;
+  min-height: 220px;
   border-radius: 16px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   overflow: hidden;
   display: flex;
   align-items: center;
-  padding: 0 4rem;
+  padding: clamp(1.5rem, 3vw, 2.75rem) clamp(1.5rem, 4vw, 3rem);
   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-  background-attachment: fixed;
 }
 
 .hero-overlay {
@@ -33,7 +34,6 @@
   );
   z-index: 1;
 }
-
 .hero-content {
   position: relative;
   z-index: 2;
@@ -46,16 +46,7 @@
 .profile-section {
   display: flex;
   align-items: center;
-  gap: 2rem;
-}
-
-.profile-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 20px; /* Squircle style */
-  object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 1.5rem;
 }
 
 .avatar-wrapper {
@@ -64,6 +55,15 @@
   height: 110px;
   filter: drop-shadow(0 0 15px rgba(var(--main-color-rgb), 0.2));
   cursor: pointer;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .avatar-wrapper:hover .profile-img {
@@ -106,11 +106,11 @@
 }
 
 .profile-info h1 {
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   font-weight: 900;
   color: var(--text-color);
   letter-spacing: -0.5px;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 
 .level-badge {
@@ -125,6 +125,61 @@
   letter-spacing: 1.5px;
   text-transform: uppercase;
   box-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.4);
+}
+
+.hero-stat-card .value {
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--main-color);
+  text-shadow: 0 0 30px rgba(var(--main-color-rgb), 0.3);
+}
+
+@media (max-width: 900px) {
+  .dashboard-container {
+    padding: 1rem 1rem 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-hero {
+    height: auto;
+    padding: 1.5rem 1.25rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .hero-content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .profile-section {
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  .avatar-wrapper {
+    width: 88px;
+    height: 88px;
+  }
+
+  .profile-info h1 {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .level-badge {
+    margin-bottom: 0.5rem;
+  }
+  
+  .level-progress-container {
+    width: 100%;
+    max-width: 260px;
+  }
+
+  .hero-stat-card .value {
+    font-size: 3rem;
+  }
 }
 
 .level-progress-container {
@@ -339,36 +394,7 @@
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard-hero {
-    height: auto;
-    padding: 3rem 2rem;
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .hero-content {
-    flex-direction: column;
-    gap: 2.5rem;
-  }
-  
-  .profile-section {
-    flex-direction: column;
-  }
-  
-  .level-progress-container {
-    width: 100%;
-    max-width: 300px;
-  }
-
-  .hero-stat-card {
-    text-align: center;
-  }
-  
-  .hero-stat-card .value {
-    font-size: 2.5rem;
-  }
-}
+/* (Removed duplicate mobile styles) */
 
 /* Activity Grid & Session Cards */
 .activity-grid {

@@ -68,7 +68,6 @@ const Sidebar = memo(({
   }
 
   const menuItems = [
-    { id: 'dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { id: 'typing', icon: <Keyboard size={20} />, label: 'Typing' },
     { id: 'leaderboard', icon: <Globe size={20} />, label: 'Global' },
     { id: 'history', icon: <History size={20} />, label: 'History' },

@@ -3,7 +3,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 50px;
+  width: var(--sidebar-width);
   background: var(--bg-color);
   border-right: 1px solid var(--sub-alt-color);
   display: flex;
@@ -18,7 +18,7 @@
 
 @media (max-width: 768px) {
   .main-sidebar {
-    width: 50px; /* Consistent slim width */
+    width: var(--sidebar-width); /* Consistent slim width */
     padding: 0.5rem 0;
   }
 }

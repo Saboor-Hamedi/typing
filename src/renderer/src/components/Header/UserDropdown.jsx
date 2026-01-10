@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, ChevronDown, Wifi, Activity, LogOut } from 'lucide-react'
+import { User, Wifi, Activity, LogOut, LayoutDashboard } from 'lucide-react'
 import { AVATAR_MAP } from '../../assets/avatars'
 
-const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1 }) => {
+const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1, onNavigateDashboard }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [tempName, setTempName] = useState('')
@@ -24,6 +24,18 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('touchstart', handleClickOutside)
     }
+  }, [isDropdownOpen])
+
+  // Close on Escape
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (!isDropdownOpen) return
+      if (e.key === 'Escape') {
+        setIsDropdownOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
   }, [isDropdownOpen])
 
   return (
@@ -121,6 +133,19 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
                     <span className="status-text">Blazing Fast</span>
                   </div>
                 </div>
+
+                {typeof onNavigateDashboard === 'function' && (
+                  <div 
+                    className="dropdown-item clickable"
+                    onClick={() => { onNavigateDashboard(); setIsDropdownOpen(false); }}
+                  >
+                    <div className="item-icon"><LayoutDashboard size={14} /></div>
+                    <div className="item-content">
+                      <span className="label">Dashboard</span>
+                      <span className="status-text">View your stats</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="dropdown-footer">

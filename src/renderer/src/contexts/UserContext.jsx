@@ -123,9 +123,19 @@ export const UserProvider = ({ children, addToast }) => {
         // Load cloud profile
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
         if (profile) {
-          if (profile.selected_avatar_id !== undefined) setSelectedAvatarId(profile.selected_avatar_id)
-          if (profile.unlocked_avatars) {
-            setUnlockedAvatars([...new Set([...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...profile.unlocked_avatars])])
+          const cloudUnlocked = Array.isArray(profile.unlocked_avatars) ? profile.unlocked_avatars : []
+          const mergedUnlocked = [...new Set([...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...unlockedAvatars, ...cloudUnlocked])]
+
+          // Sync back to cloud if local has more unlocks than cloud
+          if (mergedUnlocked.length > cloudUnlocked.length) {
+            await supabase.from('profiles').update({ unlocked_avatars: mergedUnlocked }).eq('id', user.id)
+          }
+
+          setUnlockedAvatars(mergedUnlocked)
+
+          const cloudSelected = profile.selected_avatar_id
+          if (cloudSelected !== undefined && mergedUnlocked.includes(cloudSelected)) {
+            setSelectedAvatarId(cloudSelected)
           }
         }
 
