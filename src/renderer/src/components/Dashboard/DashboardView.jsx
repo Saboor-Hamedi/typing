@@ -12,7 +12,7 @@
  */
 import './DashboardView.css'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity } from 'lucide-react'
+import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity, Trash2 } from 'lucide-react'
 import ProgressGraph from '../Analytics/ProgressGraph'
 import dashboardBg from '../../assets/dashboard_bg.png'
 import { calculateLevel } from '../../utils/Leveling'
@@ -22,7 +22,7 @@ import { Lock, Check } from 'lucide-react'
 // Avatar Registry
 import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
 
-const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, unlockedAvatars = [1], onUpdateAvatar }) => {
+const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, unlockedAvatars = [1], onUpdateAvatar, isLoggedIn, onDeleteAccount }) => {
   
   const { 
     experience, level, levelProgress, xpToNext 
@@ -250,6 +250,17 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
               </div>
             </div>
           </section>
+
+          {isLoggedIn && (
+            <section className="dashboard-card glass-panel danger-card">
+              <div className="danger-header">
+                <Trash2 size={16} />
+                <span>Danger Zone</span>
+              </div>
+              <p className="danger-text">Delete your cloud account and all synced data. This cannot be undone.</p>
+              <button className="danger-btn" onClick={onDeleteAccount}>Delete Account</button>
+            </section>
+          )}
         </div>
       </div>
     </div>

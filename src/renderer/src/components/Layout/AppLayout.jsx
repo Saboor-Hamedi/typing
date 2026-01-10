@@ -38,6 +38,7 @@ import { useChameleonFlow } from '../../hooks/useChameleonFlow'
 import { useTheme, useSettings, useUser } from '../../contexts'
 import { soundEngine } from '../../utils/SoundEngine'
 import { ANIMATIONS, SUCCESS_MESSAGES, PROGRESSION } from '../../constants'
+import { deleteUserData } from '../../utils/supabase'
 
 /**
  * Main Application Layout
@@ -77,6 +78,7 @@ const AppLayout = ({ addToast }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false)
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false)
 
   // Engine hook
   const engine = useEngine(testMode, testLimit)
@@ -156,11 +158,32 @@ const AppLayout = ({ addToast }) => {
     }
   }, [clearAllData, addToast])
 
+  const handleDeleteAccount = useCallback(async () => {
+    if (!isLoggedIn) {
+      addToast?.('You need to be signed in to delete your account', 'warning')
+      setIsDeleteAccountModalOpen(false)
+      return
+    }
+
+    try {
+      await deleteUserData()
+      await clearAllData?.()
+      await handleLogout()
+      addToast?.('Account deleted and data removed from cloud', 'success')
+    } catch (err) {
+      console.error('Delete account failed:', err)
+      addToast?.('Failed to delete account. Please try again.', 'error')
+    } finally {
+      setIsDeleteAccountModalOpen(false)
+    }
+  }, [isLoggedIn, clearAllData, handleLogout, addToast])
+
   // Modal toggles
   const toggleThemeModal = useCallback((isOpen) => setIsThemeModalOpen(isOpen), [])
   const toggleLoginModal = useCallback((isOpen) => setIsLoginModalOpen(isOpen), [])
   const toggleLogoutModal = useCallback((isOpen) => setIsLogoutModalOpen(isOpen), [])
   const toggleClearModal = useCallback((isOpen) => setIsClearDataModalOpen(isOpen), [])
+  const toggleDeleteAccountModal = useCallback((isOpen) => setIsDeleteAccountModalOpen(isOpen), [])
 
   // Theme change handler
   const handleThemeChange = useCallback((newTheme) => {
@@ -258,6 +281,8 @@ const AppLayout = ({ addToast }) => {
                   unlockedAvatars={unlockedAvatars}
                   currentLevel={currentLevel}
                   onUpdateAvatar={updateAvatar}
+                  isLoggedIn={isLoggedIn}
+                  onDeleteAccount={() => toggleDeleteAccountModal(true)}
                 />
               ) : activeTab === 'leaderboard' ? (
                 <LeaderboardView currentUser={username} />
@@ -309,6 +334,15 @@ const AppLayout = ({ addToast }) => {
         title="Clear All Data"
         message="This will permanently delete your local history and PBs. This cannot be undone."
         confirmText="Clear All"
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteAccountModalOpen}
+        onClose={() => toggleDeleteAccountModal(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
+        message="This will delete your cloud account, email, profile, and scores permanently. This action cannot be undone."
+        confirmText="Delete Account"
       />
     </div>
   )
