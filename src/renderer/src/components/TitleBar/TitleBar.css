@@ -45,7 +45,7 @@
 .control-btn {
   border: none;
   background: transparent;
-  width: 46px;
+  width: 40px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -53,6 +53,15 @@
   color: var(--sub-color);
   cursor: pointer;
   transition: all 0.2s;
+  flex-shrink: 0;
+  min-height: 0; /* Important: Override global 44px rule */
+  min-width: 0;  /* Important: Override global 44px rule */
+}
+
+.control-btn svg {
+  width: 14px; /* Constrain icon size */
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .control-btn:hover {
@@ -63,4 +72,20 @@
 .control-btn.close:hover {
   background: #e81123;
   color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .titlebar {
+    left: 45px; /* Match smaller sidebar */
+  }
+  
+  .control-btn {
+    width: 36px; /* Smaller on mobile */
+  }
+  
+  .control-btn svg {
+    width: 12px;
+    height: 12px;
+  }
 }

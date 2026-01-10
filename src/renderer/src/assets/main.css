@@ -243,8 +243,15 @@ kbd {
 /* Global Responsive Overrides */
 @media (max-width: 900px) {
   .main-viewport {
-    margin-left: 60px;
+    margin-left: 50px;
     padding: 1rem 3vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-viewport {
+    margin-left: 45px;
+    padding: 1rem 2.5vw;
   }
 }
 
@@ -253,7 +260,7 @@ kbd {
     font-size: 14px;
   }
   .main-viewport {
-    margin-left: 50px;
+    margin-left: 45px;
     padding: 0.5rem 2vw;
   }
   .kb-hint {
@@ -272,4 +279,198 @@ kbd {
   .hint {
     font-size: 0.6rem;
   }
+}
+
+/* ============================================ */
+/* ACCESSIBILITY ENHANCEMENTS */
+/* ============================================ */
+
+/* Focus visible styles for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove focus outline for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Enhanced button focus */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--main-color-rgb), 0.2);
+}
+
+/* Skip to main content link (for screen readers) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--main-color);
+  color: var(--bg-color);
+  padding: 8px 16px;
+  text-decoration: none;
+  font-weight: 700;
+  z-index: 10000;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable spring animations */
+  .caret,
+  .ghost {
+    transition: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --sub-color: #ffffff;
+    --text-color: #ffffff;
+  }
+
+  button,
+  a,
+  input,
+  select {
+    border: 2px solid currentColor;
+  }
+
+  .glass-panel {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Ensure minimum touch target size (44x44px) */
+button,
+a,
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Exception for inline text links */
+a.inline-link {
+  min-width: auto;
+  min-height: auto;
+}
+
+/* Improve color contrast for sub-color text */
+.sub-color-text {
+  color: var(--sub-color);
+  /* Ensure at least 4.5:1 contrast ratio */
+}
+
+/* Focus trap for modals */
+.modal-open {
+  overflow: hidden;
+}
+
+/* Keyboard navigation hints */
+kbd {
+  background: var(--sub-alt-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-color);
+  font-size: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Improve clickable area for small icons */
+.icon-button {
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.icon-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.icon-button:active {
+  transform: scale(0.95);
+}
+
+/* Loading state for buttons */
+button:disabled,
+button[aria-busy="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Live region for screen readers */
+[aria-live] {
+  position: relative;
+}
+
+/* Ensure proper heading hierarchy */
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+h5 {
+  font-size: 1.1rem;
+}
+
+h6 {
+  font-size: 1rem;
 }

@@ -1,61 +1,84 @@
+/**
+ * SoundEngine - Custom Web Audio API synthesis for typing sounds
+ * Generates realistic mechanical keyboard sounds without external samples
+ */
 class SoundEngine {
   constructor() {
-    this.audioCtx = null;
-    this.profile = 'thocky'; 
-    this.hallEffect = true; 
-    this.reverbNode = null;
+    this.audioCtx = null
+    this.profile = 'thocky'
+    this.hallEffect = true
+    this.reverbNode = null
   }
 
+  /**
+   * Initialize AudioContext and reverb
+   * Must be called after user interaction due to browser autoplay policies
+   */
   init() {
     if (!this.audioCtx) {
       // Only create context if window is available and user interaction happened
       try {
-        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        this.createReverb();
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        this.createReverb()
       } catch (e) {
-        console.warn('AudioContext creation failed (silent if no gesture):', e);
-        return;
+        console.warn('AudioContext creation failed (silent if no gesture):', e)
+        return
       }
     }
     
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
+      this.audioCtx.resume()
     }
   }
 
-  // Pre-initialize everything to avoid first-key lag
+  /**
+   * Pre-initialize audio context to avoid first-key lag
+   * Should be called on first user interaction
+   */
   warmUp() {
-    this.init();
+    this.init()
   }
 
+  /**
+   * Create convolution reverb for hall effect
+   * Generates impulse response with exponential decay
+   */
   createReverb() {
-    const length = this.audioCtx.sampleRate * 2.5; 
-    const impulse = this.audioCtx.createBuffer(2, length, this.audioCtx.sampleRate);
-    const left = impulse.getChannelData(0);
-    const right = impulse.getChannelData(1);
+    const length = this.audioCtx.sampleRate * 2.5
+    const impulse = this.audioCtx.createBuffer(2, length, this.audioCtx.sampleRate)
+    const left = impulse.getChannelData(0)
+    const right = impulse.getChannelData(1)
 
     for (let i = 0; i < length; i++) {
-      const decay = Math.pow(1 - i / length, 3); 
-      left[i] = (Math.random() * 2 - 1) * decay;
-      right[i] = (Math.random() * 2 - 1) * decay;
+      const decay = Math.pow(1 - i / length, 3)
+      left[i] = (Math.random() * 2 - 1) * decay
+      right[i] = (Math.random() * 2 - 1) * decay
     }
 
-    this.reverbNode = this.audioCtx.createConvolver();
-    this.reverbNode.buffer = impulse;
+    this.reverbNode = this.audioCtx.createConvolver()
+    this.reverbNode.buffer = impulse
 
-    this.reverbGain = this.audioCtx.createGain();
-    this.reverbGain.gain.setValueAtTime(0.2, this.audioCtx.currentTime); 
+    this.reverbGain = this.audioCtx.createGain()
+    this.reverbGain.gain.setValueAtTime(0.2, this.audioCtx.currentTime)
     
-    this.reverbNode.connect(this.reverbGain);
-    this.reverbGain.connect(this.audioCtx.destination);
+    this.reverbNode.connect(this.reverbGain)
+    this.reverbGain.connect(this.audioCtx.destination)
   }
 
+  /**
+   * Set sound profile
+   * @param {string} profile - 'thocky', 'creamy', or 'clicky'
+   */
   setProfile(profile) {
-    this.profile = profile;
+    this.profile = profile
   }
 
+  /**
+   * Enable/disable hall effect reverb
+   * @param {boolean} enabled - Whether to enable reverb
+   */
   setHallEffect(enabled) {
-    this.hallEffect = enabled;
+    this.hallEffect = enabled
   }
 
   getNoiseBuffer() {

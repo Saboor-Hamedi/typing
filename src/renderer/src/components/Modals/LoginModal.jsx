@@ -1,6 +1,18 @@
+/**
+ * LoginModal
+ *
+ * Purpose:
+ * - Handles credential login and OAuth-in-browser (deep link back to Electron).
+ *
+ * UX Details:
+ * - Shows processing state per action; resets loading/error when modal closes.
+ * - Password flow closes modal immediately on success and calls `onLogin` with display name.
+ * - OAuth flow opens system browser; AppLayout observes `isLoggedIn` and auto-closes the modal
+ *   once the deep link establishes the Supabase session.
+ */
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Mail, Lock, User, Github, AlertCircle, Globe } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './LoginModal.css'
 
 import { supabase } from '../../utils/supabase'
@@ -10,6 +22,23 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   const [formData, setFormData] = useState({ email: '', password: '', username: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape' && isOpen) onClose()
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [isOpen, onClose])
+
+  // Reset transient state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setLoading(false)
+      setError(null)
+    }
+  }, [isOpen])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -58,18 +87,21 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       // Construction of the redirect URL that Supabase will use to send the tokens back to Electron
       const redirectTo = 'typingzone://auth'
       
-      // We trigger the OAuth flow using Supabase, which will open the default browser.
-      // This is the cleanest way to handle "Login via Website"
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'github', // Switched to GitHub as it's enabled in the UI
+        provider: 'github',
         options: {
           redirectTo,
-          skipBrowserRedirect: false // This will open the browser automatically
+          skipBrowserRedirect: true
         }
       })
 
       if (error) throw error
-      // The browser is now open, we wait for the deep link in AppLayout
+      
+      // Open the returned URL in the system browser
+      if (data?.url) {
+        window.api.openExternal(data.url)
+      }
+      
       setLoading(false)
     } catch (err) {
       setLoading(false)
@@ -93,12 +125,12 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+            onClick={(e) => e.stopPropagation()}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
-            <div className="modal-header">
+            <div className="modal-top-bar">
               <motion.h2 layout="position">
-                {mode === 'login' ? 'Welcome Back' : 'Join TypingZone'}
+                {mode === 'login' ? 'Authentication' : 'Registration'}
               </motion.h2>
               <button 
                 className="close-btn" 
@@ -106,33 +138,33 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                 type="button"
                 aria-label="Close modal"
               >
-                <X size={20} />
+                <X size={14} />
               </button>
             </div>
 
-            <motion.div layout className="auth-tabs">
-              <button 
-                type="button"
-                className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-                onClick={() => setMode('login')}
-              >
-                Log In
-              </button>
-              <button 
-                type="button"
-                className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
-                onClick={() => setMode('signup')}
-              >
-                Sign Up
-              </button>
-            </motion.div>
+            <div className="modal-inner-content">
+              <motion.div layout className="auth-tabs">
+                <button 
+                  type="button"
+                  className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
+                  onClick={() => setMode('login')}
+                >
+                  Log In
+                </button>
+                <button 
+                  type="button"
+                  className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
+                  onClick={() => setMode('signup')}
+                >
+                  Sign Up
+                </button>
+              </motion.div>
 
-            <motion.form 
-              layout
-              className="auth-form" 
-              onSubmit={handleSubmit}
-              style={{ minHeight: '300px' }}
-            >
+              <motion.form 
+                layout
+                className="auth-form" 
+                onSubmit={handleSubmit}
+              >
               <AnimatePresence mode="popLayout" initial={false}>
                 {mode === 'signup' && (
                   <motion.div 
@@ -141,7 +173,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                     exit={{ opacity: 0 }}
                     className="input-group"
                   >
-                    <User size={18} />
+                    <User size={16} />
                     <input 
                       type="text" 
                       placeholder="Username" 
@@ -154,7 +186,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               </AnimatePresence>
               
               <div className="input-group">
-                <Mail size={18} />
+                <Mail size={16} />
                 <input 
                   type="email" 
                   placeholder="Email" 
@@ -165,7 +197,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               </div>
 
               <div className="input-group">
-                <Lock size={18} />
+                <Lock size={16} />
                 <input 
                   type="password" 
                   placeholder="Password" 
@@ -203,16 +235,17 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               onClick={handleBrowserLogin}
               disabled={loading}
             >
-              <Globe size={18} />
+              <Globe size={16} />
               <span>Continue in Browser</span>
             </motion.button>
 
-            <motion.p layout className="auth-footer">
-              {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-              <span className="link" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
-                {mode === 'login' ? 'Sign up' : 'Log in'}
-              </span>
-            </motion.p>
+              <motion.p layout className="auth-footer">
+                {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+                <span className="link" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
+                  {mode === 'login' ? 'Sign up' : 'Log in'}
+                </span>
+              </motion.p>
+            </div>
           </motion.div>
         </motion.div>
       )}

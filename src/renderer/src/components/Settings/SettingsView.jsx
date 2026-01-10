@@ -1,23 +1,27 @@
 import './SettingsView.css'
 import { motion } from 'framer-motion'
 import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette } from 'lucide-react'
+import { useSettings } from '../../contexts'
 
-const SettingsView = ({ 
-  isGhostEnabled, 
-  setIsGhostEnabled,
-  isSoundEnabled,
-  setIsSoundEnabled,
-  isHallEffect,
-  setIsHallEffect,
-  isChameleonEnabled,
-  setIsChameleonEnabled,
-  isKineticEnabled,
-  setIsKineticEnabled,
-  onClearHistory,
-  openThemeModal,
-  ghostSpeed,
-  setGhostSpeed
-}) => {
+/**
+ * Settings View Component
+ * Allows users to customize app behavior and appearance
+ */
+const SettingsView = ({ onClearHistory, openThemeModal }) => {
+  const {
+    isGhostEnabled,
+    setIsGhostEnabled,
+    isSoundEnabled,
+    setIsSoundEnabled,
+    isHallEffect,
+    setIsHallEffect,
+    isChameleonEnabled,
+    setIsChameleonEnabled,
+    isKineticEnabled,
+    setIsKineticEnabled,
+    ghostSpeed,
+    setGhostSpeed
+  } = useSettings()
   return (
     <div className="settings-container">
       <div className="settings-header">

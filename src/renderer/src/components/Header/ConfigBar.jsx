@@ -1,16 +1,18 @@
 import { motion } from 'framer-motion'
 import { Palette, Clock, Type, Eye, EyeOff } from 'lucide-react'
+import { useTheme, useSettings } from '../../contexts'
 
-const ConfigBar = ({ 
-  testMode, 
-  setTestMode, 
-  testLimit, 
-  setTestLimit, 
-  theme, 
-  openThemeModal, 
-  isZenMode, 
-  setIsZenMode 
-}) => {
+const ConfigBar = ({ openThemeModal }) => {
+  const { theme } = useTheme()
+  const { 
+    testMode, 
+    setTestMode, 
+    testLimit, 
+    setTestLimit,
+    isZenMode,
+    setIsZenMode
+  } = useSettings()
+
   return (
     <motion.div 
       initial={{ y: 20, opacity: 0 }}
@@ -27,15 +29,17 @@ const ConfigBar = ({
       {/* Mode Selector */}
       <div className="config-group mode-switch">
         <button 
-          onClick={() => { setTestMode('time'); setTestLimit(30) }}
+          onClick={() => setTestMode('time')}
           className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
+          aria-label="Time mode"
         >
           <Clock size={16} />
           <span>time</span>
         </button>
         <button 
-          onClick={() => { setTestMode('words'); setTestLimit(25) }}
+          onClick={() => setTestMode('words')}
           className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
+          aria-label="Words mode"
         >
           <Type size={16} />
           <span>words</span>
@@ -51,6 +55,7 @@ const ConfigBar = ({
             key={v} 
             onClick={() => setTestLimit(v)}
             className={`config-btn ${testLimit === v ? 'active' : ''}`}
+            aria-label={`Set limit to ${v}`}
           >
             {v}
           </button>
@@ -63,6 +68,15 @@ const ConfigBar = ({
       <div 
         className={`zen-box ${isZenMode ? 'active' : ''}`}
         onClick={() => setIsZenMode(!isZenMode)}
+        role="button"
+        aria-label={`${isZenMode ? 'Disable' : 'Enable'} zen mode`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setIsZenMode(!isZenMode)
+          }
+        }}
       >
         {isZenMode ? <EyeOff size={16} /> : <Eye size={16} />}
         <span>zen</span>

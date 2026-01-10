@@ -21,3 +21,20 @@ export const calculateLevel = (history) => {
     nextLevelXP
   }
 }
+
+export const levelFromXP = (experience) => {
+  const level = Math.floor(Math.sqrt(experience / 100)) + 1
+  const currentLevelXP = Math.pow(level - 1, 2) * 100
+  const nextLevelXP = Math.pow(level, 2) * 100
+  const levelProgress = Math.max(2, Math.min(100, ((experience - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100))
+  const xpToNext = nextLevelXP - experience
+
+  return {
+    experience,
+    level,
+    levelProgress,
+    xpToNext,
+    currentLevelXP,
+    nextLevelXP
+  }
+}

@@ -13,7 +13,7 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  padding-bottom: 0.8rem;
+  padding-bottom: 0.4rem; /* Reduced from 0.8rem */
 }
 
 .branding {
@@ -25,13 +25,19 @@
 
 .logo-box {
   background: var(--sub-alt-color);
-  width: 32px; /* Smaller logo box */
-  height: 32px;
+  width: 30px; /* Reduced from 32px */
+  height: 30px; /* Reduced from 32px */
   border-radius: var(--round);
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.logo-box svg {
+  width: 16px; /* Constrain icon size further */
+  height: 16px;
 }
 
 .logo-text-group {
@@ -66,7 +72,7 @@
 
 .user-trigger {
   background: var(--sub-alt-color);
-  padding: 4px; /* Tight for round avatar */
+  padding: 0; /* Remove padding for perfect circle */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -75,9 +81,11 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
   color: var(--text-color);
-  width: 36px;
-  height: 36px;
+  width: 30px; /* Reduced from 36px */
+  height: 30px; /* Reduced from 36px */
   position: relative;
+  overflow: hidden; /* Ensure perfect circle */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .user-trigger:hover, .user-trigger.active {
@@ -87,8 +95,8 @@
 }
 
 .trigger-avatar {
-  width: 28px;
-  height: 28px;
+  width: 100%; /* Fill parent */
+  height: 100%; /* Fill parent */
   border-radius: 50%;
   overflow: hidden;
   display: flex;
@@ -357,6 +365,13 @@
   align-items: center;
   gap: 10px;
   color: var(--sub-color);
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.pb-box svg {
+  width: 14px; /* Constrain trophy icon */
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .trophy-icon {
@@ -432,15 +447,17 @@
   border: none;
   color: var(--sub-color);
   font-family: inherit;
-  font-size: 0.7rem; /* Smaller font */
+  font-size: 0.7rem;
   cursor: pointer;
-  padding: 3px 8px; /* Smaller padding */
+  padding: 4px 10px; /* Slightly more balanced padding */
   border-radius: var(--round);
   transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 6px;
   text-transform: lowercase;
+  min-height: 0; /* Override global 44px */
+  min-width: 0;  /* Override global 44px */
 }
 
 .config-btn:hover {
@@ -466,10 +483,12 @@
   gap: 6px;
   cursor: pointer;
   color: var(--sub-color);
-  font-size: 0.7rem; /* Smaller font */
-  padding: 3px 8px; /* Smaller padding */
+  font-size: 0.7rem;
+  padding: 4px 10px;
   border-radius: var(--round);
   transition: 0.2s;
+  min-height: 0;
+  min-width: 0;
 }
 
 .zen-box.active {
@@ -480,14 +499,17 @@
 .header-right {
   display: flex;
   justify-content: flex-end;
+  align-items: center; /* Center vertically */
 }
 
 .live-metric-card {
   text-align: right;
-  padding: 0.4rem 0.5rem;
+  padding: 0.3rem 0.4rem; /* Reduced padding */
   border-radius: var(--round);
-  min-width: 100px;
+  min-width: 80px; /* Reduced from 100px */
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent shrinking */
+  height: fit-content; /* Fit content */
 }
 
 .live-metric-card.active {
@@ -498,10 +520,10 @@
 
 .metric-number {
   display: block;
-  font-size: 1.6rem;
+  font-size: 0.95rem; /* Further reduced for better fit */
   font-weight: 900;
   color: var(--main-color);
-  line-height: 1.1;
+  line-height: 1; /* Tighter line height */
   letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.2);
@@ -514,6 +536,7 @@
   font-weight: 700;
   display: block;
   opacity: 0.6;
+  line-height: 1.2; /* Compact */
 }
 
 .zen-active {
@@ -554,6 +577,16 @@
 }
 
 @media (max-width: 600px) {
+  .main-header {
+    gap: 1rem; /* Reduced from 1.5rem */
+    margin-bottom: 1.5rem; /* Reduced from 2rem */
+  }
+  
+  .header-top-row {
+    padding-bottom: 0.5rem; /* Reduced padding */
+    gap: 0.5rem; /* Add gap between elements */
+  }
+  
   .logo-main {
     display: none;
   }
@@ -574,10 +607,6 @@
     padding: 4px 8px;
     border-radius: var(--round);
   }
-
-  .user-trigger {
-    padding: 6px 8px;
-  }
   
   .trigger-name {
     display: none;
@@ -586,17 +615,32 @@
 
 @media (max-width: 480px) {
   .main-header {
-    gap: 0.5rem;
-    padding: 0;
+    gap: 0.75rem; /* Further reduced */
+    padding: 0.25rem 0; /* Reduced padding */
+    margin-bottom: 1rem; /* Reduced margin */
+  }
+  
+  .header-top-row {
+    padding-bottom: 0.4rem;
   }
   
   .logo-box {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .logo-box svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .user-trigger {
+    width: 32px;
+    height: 32px;
   }
 
   .metric-number {
-    font-size: 1.5rem;
+    font-size: 1rem; /* Consistent with reduced desktop size */
   }
 
   .live-metric-card {
@@ -605,5 +649,10 @@
   
   .master-config {
     padding: 0.3rem 0.5rem;
+  }
+  
+  .pb-box svg {
+    width: 12px; /* Smaller on mobile */
+    height: 12px;
   }
 }

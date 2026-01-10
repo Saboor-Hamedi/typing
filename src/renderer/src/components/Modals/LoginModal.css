@@ -1,57 +1,79 @@
 .login-modal {
-  width: 400px;
+  width: 360px;
   max-width: 90vw;
-  padding: 2rem;
+  padding: 0 !important; /* Force no padding */
   background: var(--bg-color-glass);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08); 
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border-radius: 0 !important; /* Square corners like TitleBar */
 }
 
-.modal-header {
+.modal-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  position: relative;
+  height: 32px;
+  padding-left: 0.75rem; /* Only left padding */
+  padding-right: 0; /* No space on the right for the close button */
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.modal-header h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-color);
+.modal-top-bar h2 {
+  font-size: 0.65rem; /* Even smaller, more professional */
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 800;
+  color: var(--sub-color);
   margin: 0;
+  opacity: 0.8;
 }
+
+.modal-inner-content {
+  padding: 1.25rem;
+}
+
+/* Removed internal .modal-header as it's replaced by .modal-top-bar */
 
 .close-btn {
   background: none;
   border: none;
   color: var(--sub-color);
   cursor: pointer;
-  padding: 5px;
+  width: 40px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  border-radius: 4px;
+  transition: background 0.2s, color 0.2s; /* Limit transition to prevent layout shifts */
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0; /* Override global 44px rule */
+  min-height: 0; /* Override global 44px rule */
+  flex-shrink: 0;
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--main-color);
+  background: #ca4754;
+  color: white;
 }
 
 .auth-tabs {
   display: flex;
   gap: 1rem;
-  margin: 1.5rem 0;
+  margin: 0.75rem 0; /* Reduced from 1rem */
   border-bottom: 2px solid rgba(255, 255, 255, 0.05);
 }
 
 .auth-tab {
   background: none;
   border: none;
-  font-size: 1rem;
+  font-size: 0.85rem; /* Reduced from 1rem */
   font-weight: 600;
   color: var(--sub-color);
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
   cursor: pointer;
   position: relative;
   transition: color 0.2s;
@@ -74,7 +96,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem; /* Reduced from 0.75rem */
 }
 
 .input-group {
@@ -82,38 +104,55 @@
   align-items: center;
   gap: 10px;
   background: var(--sub-alt-color);
-  padding: 0.8rem 1rem;
-  border-radius: var(--round);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: border-color 0.2s;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px; /* Standard small radius */
+  border: 1px solid transparent !important; /* Force remove border */
+  transition: all 0.2s;
   color: var(--sub-color);
+  outline: none !important;
 }
 
 .input-group:focus-within {
-  border-color: var(--main-color);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--main-color);
+  box-shadow: none !important; /* Remove any global shadows */
+}
+
+.input-group svg {
+  transition: transform 0.2s;
+}
+
+.input-group:focus-within svg {
+  transform: scale(1.1);
 }
 
 .input-group input {
   background: transparent;
-  border: none;
-  outline: none;
+  border: none !important;
+  outline: none !important;
   color: var(--text-color);
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.9rem;
   width: 100%;
+}
+
+/* Remove browsers default focus indicators */
+.input-group input:focus {
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .submit-btn {
   background: var(--text-color);
   color: var(--bg-color);
   border: none;
-  padding: 0.8rem;
+  padding: 0.7rem; /* Reduced from 0.8rem */
   border-radius: var(--round);
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.2s;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
 }
 
 .submit-btn:hover {
@@ -123,9 +162,9 @@
 .auth-divider {
   display: flex;
   align-items: center;
-  margin: 1.5rem 0;
+  margin: 0.75rem 0; /* Reduced from 1rem */
   color: var(--sub-color);
-  font-size: 0.8rem;
+  font-size: 0.7rem; /* Reduced from 0.8rem */
 }
 
 .auth-divider::before,
@@ -146,13 +185,14 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-  padding: 0.8rem;
+  padding: 0.7rem; /* Reduced from 0.8rem */
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-color);
   border-radius: var(--round);
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 0.9rem;
 }
 
 .social-btn:hover {
@@ -169,9 +209,9 @@
 }
 
 .auth-footer {
-  margin-top: 1.5rem;
+  margin-top: 0.75rem; /* Reduced from 1rem */
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.75rem; /* Reduced from 0.8rem */
   color: var(--sub-color);
 }
 
@@ -180,3 +220,4 @@
   cursor: pointer;
   font-weight: 600;
 }
+

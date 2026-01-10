@@ -17,7 +17,8 @@ create table scores (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   wpm integer not null,
   accuracy numeric(5,2) not null, -- Stores up to 100.00
-  mode text not null, -- 'time 15', 'words 25', etc.
+  mode text not null, -- 'time' or 'words' (legacy: 'time 60')
+  test_limit integer, -- seconds for 'time' or word count for 'words'
   language text default 'english'
 );
 
@@ -60,3 +61,11 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- 7. Backfill/migration helpers
+-- Add column if not exists (safe for reruns)
+alter table if exists scores
+  add column if not exists test_limit integer;
+
+-- Optional index to accelerate leaderboard filters
+create index if not exists scores_mode_limit_idx on scores (mode, test_limit);

@@ -1,7 +1,28 @@
+/**
+ * useEngine
+ *
+ * Purpose:
+ * - Core typing game state machine and telemetry pipeline.
+ *
+ * State & Persistence:
+ * - Tracks words, userInput, timings, caretPos, PB, history, telemetry.
+ * - Loads/saves PB and history via Electron stores (`data`), and feature toggles via `settings`.
+ * - Saves each finished test to local history and inserts to Supabase when logged in.
+ *
+ * Caret & Scrolling:
+ * - Computes caret coordinates by measuring active letter spans.
+ * - Maintains a "horizon" scroll (≈40% of container height) when changing lines.
+ * - When the current target is a space, caret snaps to the previous glyph edge to avoid a visible gap.
+ *
+ * Returns:
+ * - A memoized bag with reactive fields and actions consumed by TypingEngine and UI.
+ */
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react'
 import { generateWords } from '../utils/words'
 import { soundEngine } from '../utils/SoundEngine'
 import { supabase } from '../utils/supabase'
+import { useGhostRacing } from '../hooks/useGhostRacing'
+import { useSettings } from '../contexts'
 
 export const useEngine = (testMode, testLimit) => {
   const [words, setWords] = useState([])
@@ -15,7 +36,6 @@ export const useEngine = (testMode, testLimit) => {
   const [caretPos, setCaretPos] = useState({ left: 0, top: 0 })
   const [pb, setPb] = useState(0)
   const [telemetry, setTelemetry] = useState([]) // [{ sec, wpm, raw, errors }]
-  const [ghostSpeed, setGhostSpeed] = useState(1.0) // Multiplier for PB speed
 
   const wordContainerRef = useRef(null)
   const inputRef = useRef(null)
@@ -25,11 +45,23 @@ export const useEngine = (testMode, testLimit) => {
   const [isSoundEnabled, setIsSoundEnabled] = useState(true)
   const [soundProfile, setSoundProfile] = useState('thocky')
   const [isHallEffect, setIsHallEffect] = useState(true)
-  const [isGhostEnabled, setIsGhostEnabled] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
-  const [ghostPos, setGhostPos] = useState({ left: 0, top: 0 })
   const [isStoreLoaded, setIsStoreLoaded] = useState(false)
   const typingTimeoutRef = useRef(null)
+
+  // Get ghost settings from context
+  const { isGhostEnabled, setIsGhostEnabled, ghostSpeed, setGhostSpeed } = useSettings()
+
+  // Use optimized ghost racing hook
+  const ghostPos = useGhostRacing(
+    isGhostEnabled,
+    !!startTime && !isFinished,
+    startTime,
+    pb,
+    ghostSpeed,
+    words,
+    wordContainerRef
+  )
 
   // Sync and Persistent Savings
   useEffect(() => {
@@ -132,12 +164,30 @@ export const useEngine = (testMode, testLimit) => {
       // Use getSession().session.user for a non-blocking check
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
-        await supabase.from('scores').insert({
+        // Prefer normalized columns: mode ('time'|'words') + test_limit (number)
+        const payload = {
           user_id: session.user.id,
           wpm,
           accuracy,
-          mode: `${testMode} ${testLimit}`
-        })
+          mode: testMode,
+          test_limit: testLimit,
+        }
+
+        let insertError = null
+        const { error } = await supabase.from('scores').insert(payload)
+        insertError = error
+
+        // Fallback for legacy schemas without `test_limit` column
+        if (insertError) {
+          console.warn('Primary cloud save failed, attempting legacy fallback:', insertError.message)
+          await supabase.from('scores').insert({
+            user_id: session.user.id,
+            wpm,
+            accuracy,
+            // Encode limit into mode string for older tables (e.g., "time 60")
+            mode: `${testMode} ${testLimit}`,
+          })
+        }
       }
     } catch (err) {
       console.warn('Cloud save skipped/failed (Offline or Sess Expired)');
@@ -276,6 +326,13 @@ export const useEngine = (testMode, testLimit) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Tab') {
+        // PROTECTION: Don't intercept Tab if user is typing in a modal or other input
+        const active = document.activeElement
+        const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
+        const isOurInput = active === inputRef.current
+        
+        if (isInput && !isOurInput) return
+
         e.preventDefault()
         resetGame()
       }
@@ -284,46 +341,7 @@ export const useEngine = (testMode, testLimit) => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [resetGame])
 
-  // Ghost Caret Logic
-  useEffect(() => {
-    if (!startTime || !isGhostEnabled || isFinished || pb <= 0) {
-      setGhostPos({ left: 0, top: 0 })
-      return
-    }
-
-    const totalChars = words.join(' ').length
-    const interval = setInterval(() => {
-      const elapsed = performance.now() - startTime
-      // (PB * 5 characters * multiplier) / 60000 ms
-      const charsPerMs = (pb * 5 * ghostSpeed) / 60000
-      const ghostCharIndex = Math.floor(elapsed * charsPerMs)
-      
-      if (ghostCharIndex >= totalChars) return 
-
-      const ghostLetter = document.getElementById(`char-${ghostCharIndex}`)
-      if (ghostLetter && wordContainerRef.current) {
-        const parentRect = wordContainerRef.current.getBoundingClientRect()
-        const rect = ghostLetter.getBoundingClientRect()
-        setGhostPos({
-          left: rect.left - parentRect.left,
-          top: rect.top - parentRect.top
-        })
-      }
-    }, 50) // Smoother updates (50ms)
-
-    return () => clearInterval(interval)
-  }, [startTime, isGhostEnabled, isFinished, pb, words])
-
-  // Ensure focus is maintained when toggling options
-  const toggleGhost = useCallback((val) => {
-    setIsGhostEnabled(val)
-    // Small timeout to allow UI update before refocusing
-    setTimeout(() => {
-      if (inputRef.current) inputRef.current.focus()
-    }, 0)
-  }, [])
-
-  // 1. Position & Scroll Logic (Synchronous for zero-latency feel)
+  // Position & Scroll Logic (Synchronous for zero-latency feel)
   const lastLineTop = useRef(-1)
   
   // Initial position mount or word refresh
@@ -342,9 +360,26 @@ export const useEngine = (testMode, testLimit) => {
     const activeLetter = document.getElementById(`char-${charIndex}`)
     
     if (activeLetter && wordContainerRef.current) {
-      // INTRINSIC COORDINATES (Zero lag, scroll-stable)
-      const top = activeLetter.offsetTop
-      const left = activeLetter.offsetLeft
+      // Prefer placing caret flush against the previous character
+      // when the current target is a space. This avoids a visible gap
+      // that looks like an extra space to the user.
+      let top
+      let left
+      if (activeLetter.textContent === ' ' && charIndex > 0) {
+        const prev = document.getElementById(`char-${charIndex - 1}`)
+        if (prev) {
+          top = prev.offsetTop
+          // Place caret flush to the previous glyph's trailing edge to visually ignore the space
+          left = prev.offsetLeft + prev.offsetWidth - 1
+        } else {
+          top = activeLetter.offsetTop
+          left = activeLetter.offsetLeft
+        }
+      } else {
+        // INTRINSIC COORDINATES (Zero lag, scroll-stable)
+        top = activeLetter.offsetTop
+        left = activeLetter.offsetLeft
+      }
       
       const newPos = { left, top }
       setCaretPos(newPos)
@@ -402,7 +437,7 @@ export const useEngine = (testMode, testLimit) => {
     setIsHallEffect,
     telemetry,
     isGhostEnabled,
-    setIsGhostEnabled: toggleGhost, // Use the smart toggle
+    setIsGhostEnabled, // From context
     ghostPos,
     isTyping,
     testHistory,

@@ -1,3 +1,15 @@
+/**
+ * DashboardView
+ *
+ * Purpose:
+ * - Presents profile summary (avatar, level, PB), analytics graph, recent activity, and wardrobe.
+ *
+ * Highlights:
+ * - Leveling: derives `experience`, `level`, and progress via `calculateLevel(history)`.
+ * - Wardrobe: shows `AVATAR_DEFS` with lock overlay based on `unlockedAvatars`, and calls
+ *   `onUpdateAvatar` when selecting an unlocked, non-selected avatar.
+ * - Activity: renders recent sessions with WPM/ACC badges and visual markers.
+ */
 import './DashboardView.css'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity } from 'lucide-react'

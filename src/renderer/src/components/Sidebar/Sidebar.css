@@ -50,6 +50,13 @@
   color: var(--sub-color);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 0;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.nav-item svg {
+  width: 20px; /* Constrain icon size */
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .nav-item:hover {
@@ -65,7 +72,7 @@
 .nav-item.toggle-active {
   color: var(--main-color);
   text-shadow: 0 0 15px rgba(var(--main-color-rgb), 0.6);
-  transform: scale(1.1);
+  transform: scale(1.05); /* Reduced scale to prevent overflow */
 }
 
 .active-indicator {
@@ -150,13 +157,34 @@
   box-shadow: 0 0 5px #00ff80;
 }
 
+@media (max-width: 768px) {
+  .nav-item {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .nav-item svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
 @media (max-width: 480px) {
   .main-sidebar {
-    width: 50px;
+    width: 45px;
   }
   
   .nav-item {
-    width: 36px;
-    height: 36px;
+    width: 45px;
+    height: 45px;
+  }
+  
+  .nav-item svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .nav-item.toggle-active {
+    transform: scale(1); /* No scale on small screens */
   }
 }

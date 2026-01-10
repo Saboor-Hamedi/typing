@@ -1,3 +1,15 @@
+/**
+ * LeaderboardView
+ *
+ * Purpose:
+ * - Displays global top scores with basic filters and resolves usernames from `profiles`.
+ *
+ * Query Model:
+ * - `scores.mode` is normalized to 'time' or 'words' (duration is not stored), so filters map to
+ *   `eq('mode', 'time'|'words')` and then sort by WPM to derive unique top entries per user.
+ * - Joins user display names with a second query to `profiles` for readability.
+ * - Robust error state so backend failures aren't mistaken for infinite loading.
+ */
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Trophy, Clock, Zap, Globe, User } from 'lucide-react'
@@ -7,25 +19,29 @@ import './LeaderboardView.css'
 const LeaderboardView = ({ currentUser }) => {
   const [scores, setScores] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all') // 'all', '15', '60', 'words'
+  const [error, setError] = useState(null)
+  const [filter, setFilter] = useState('all') // 'all', 'time', 'words', '15', '60'
 
   useEffect(() => {
     fetchScores()
-  }, [filter])
+  }, [filter, currentUser])
 
   const fetchScores = async () => {
     setLoading(true)
     try {
+      setError(null)
       let query = supabase
         .from('scores')
-        .select('id, wpm, accuracy, created_at, mode, user_id')
+        .select('id, wpm, accuracy, created_at, mode, user_id, test_limit')
         .order('wpm', { ascending: false })
 
       if (filter !== 'all') {
         if (filter === 'words') {
-           query = query.ilike('mode', 'words%')
+          // Include both normalized and legacy strings like 'words 25'
+          query = query.like('mode', 'words%')
         } else {
-           query = query.ilike('mode', `% ${filter}`)
+          // Include both normalized and legacy strings like 'time 60'
+          query = query.like('mode', 'time%')
         }
       }
 
@@ -33,6 +49,19 @@ const LeaderboardView = ({ currentUser }) => {
       if (scoresError) throw scoresError
 
       // Step 2: Extract Top Unique Scores per user
+      let filtered = scoresData || []
+
+      // Graceful fallback for legacy records without `test_limit`
+      if ((filter === '15' || filter === '60') && filtered.length > 0) {
+        filtered = filtered.filter(s => {
+          // Prefer explicit column
+          if (typeof s.test_limit === 'number') return s.test_limit === Number(filter)
+          // Legacy: parse limit from mode string like 'time 60' or 'time60'
+          const match = String(s.mode).match(/time\s*(\d+)/i)
+          return match ? Number(match[1]) === Number(filter) : false
+        })
+      }
+
       const uniqueScores = []
       const seenUsers = new Set()
       
@@ -70,14 +99,30 @@ const LeaderboardView = ({ currentUser }) => {
     } catch (err) {
       console.error('Error fetching leaderboard:', err)
       setScores([])
+      setError(err.message || 'Failed to load leaderboard')
     } finally {
       setLoading(false)
     }
   }
 
   const getModeIcon = (mode) => {
-    if (mode.includes('time')) return <Clock size={14} />
+    if (String(mode).includes('time')) return <Clock size={14} />
     return <Zap size={14} />
+  }
+
+  const formatModeLabel = (score) => {
+    // Use normalized columns when available
+    const mode = String(score.mode)
+    const tl = score.test_limit
+    if (mode === 'time') {
+      const seconds = typeof tl === 'number' ? tl : (mode.match(/time\s*(\d+)/i)?.[1] ? Number(mode.match(/time\s*(\d+)/i)[1]) : null)
+      return seconds ? `time ${seconds}s` : 'time'
+    }
+    if (mode === 'words') {
+      const words = typeof tl === 'number' ? tl : (mode.match(/words\s*(\d+)/i)?.[1] ? Number(mode.match(/words\s*(\d+)/i)[1]) : null)
+      return words ? `words ${words}` : 'words'
+    }
+    return mode
   }
 
   return (
@@ -107,9 +152,11 @@ const LeaderboardView = ({ currentUser }) => {
         </div>
 
         <div className="lb-list">
-          {loading ? (
+           {loading ? (
              <div className="lb-loading">Loading top scores...</div>
-          ) : scores.length === 0 ? (
+           ) : error ? (
+             <div className="lb-empty">{error}</div>
+           ) : scores.length === 0 ? (
              <div className="lb-empty">No scores yet. Be the first!</div>
           ) : (
             scores.map((score, index) => (
@@ -127,9 +174,9 @@ const LeaderboardView = ({ currentUser }) => {
                 </span>
                 <span className="wpm-col highlight">{score.wpm}</span>
                 <span className="acc-col">{score.accuracy}%</span>
-                <span className="mode-col">
-                   {getModeIcon(score.mode)} {score.mode}
-                </span>
+                 <span className="mode-col">
+                   {getModeIcon(score.mode)} {formatModeLabel(score)}
+                 </span>
                 <span className="date-col">
                   {new Date(score.created_at).toLocaleDateString()}
                 </span>

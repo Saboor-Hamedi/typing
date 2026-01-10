@@ -2,6 +2,7 @@ import './Sidebar.css'
 import { Keyboard, History, Settings, Info, Trophy, Command, Volume2, VolumeX, Ghost, LayoutDashboard, Zap, RefreshCw, ArrowUpCircle, Globe, MousePointer } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, memo } from 'react'
+import { useSettings } from '../../contexts'
 
 const Sidebar = memo(({ 
   activeTab, 
@@ -12,12 +13,9 @@ const Sidebar = memo(({
   setIsSoundEnabled,
   isHallEffect,
   setIsHallEffect,
-  isSmoothCaret,
-  setIsSmoothCaret,
-  isGhostEnabled,
-  setIsGhostEnabled,
   onNotification
 }) => {
+  const { isSmoothCaret, setIsSmoothCaret, isGhostEnabled, setIsGhostEnabled } = useSettings()
   const [updateStatus, setUpdateStatus] = useState('idle')
   const [downloadProgress, setDownloadProgress] = useState(0)
 

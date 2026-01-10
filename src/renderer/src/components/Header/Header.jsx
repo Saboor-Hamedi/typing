@@ -1,20 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Zap, Trophy } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSettings } from '../../contexts'
 import ConfigBar from './ConfigBar'
 import UserDropdown from './UserDropdown'
 import './Header.css'
 
 const Header = ({ 
   testStarted, 
-  isZenMode, 
-  theme, 
-  setTheme, 
-  testMode, 
-  setTestMode, 
-  testLimit, 
-  setTestLimit, 
-  setIsZenMode,
   displayValue,
   pb,
   username,
@@ -28,6 +21,7 @@ const Header = ({
   selectedAvatarId
 }) => {
   const [version, setVersion] = useState('0.0.0')
+  const { isZenMode, testMode } = useSettings()
 
   useEffect(() => {
     const fetchVersion = async () => {
@@ -49,7 +43,7 @@ const Header = ({
             whileHover={{ rotate: 15, scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <Zap size={22} fill="var(--main-color)" />
+            <Zap size={18} fill="var(--main-color)" />
           </motion.div>
           <div className="logo-text-group">
             <span className="logo-main">TYPINGZONE</span>
@@ -90,14 +84,7 @@ const Header = ({
         <div className="header-center">
           {(!testStarted && activeTab === 'typing') && (
             <ConfigBar 
-              testMode={testMode}
-              setTestMode={setTestMode}
-              testLimit={testLimit}
-              setTestLimit={setTestLimit}
-              theme={theme}
               openThemeModal={openThemeModal}
-              isZenMode={isZenMode}
-              setIsZenMode={setIsZenMode}
             />
           )}
         </div>

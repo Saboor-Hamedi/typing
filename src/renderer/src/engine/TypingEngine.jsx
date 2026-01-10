@@ -1,5 +1,27 @@
+/**
+ * TypingEngine
+ *
+ * Purpose:
+ * - Interactive typing surface: renders words/letters, caret(s), captures input, and shows results.
+ *
+ * Key Mechanics:
+ * - Hidden input field receives keystrokes; focus is auto-managed (window focus + keydown guards).
+ * - Letters are rendered as addressable spans (`#char-{index}`) to compute caret coordinates.
+ * - Caret animation uses Framer Motion:
+ *   - Smooth mode: spring params defined in UI constants for buttery motion.
+ *   - Instant mode: `duration: 0` to avoid bounce or lag.
+ * - Ghost caret (optional) replays PB pace for racing, with reduced opacity.
+ * - GPU Hint: `.caret` uses `will-change` to improve transform/opacity performance.
+ *
+ * Props:
+ * - `engine`: reactive state/actions from `useEngine` (positions, results, telemetry, etc.).
+ * - `isSmoothCaret`: UX toggle; also read from Settings context as a safe fallback.
+ * - `isOverlayActive`: disables focus stealing when modals are open.
+ */
 import { useRef, memo, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useSettings } from '../contexts'
+import { UI } from '../constants'
 import ResultsView from '../components/Results/ResultsView'
 import './TypingEngine.css'
 
@@ -39,7 +61,10 @@ const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
   )
 })
 
-const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret }) => {
+const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayActive }) => {
+  // Fallback to context in case prop wiring fails
+  const { isSmoothCaret: ctxSmoothCaret } = useSettings()
+  const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   const {
     words,
     userInput,
@@ -60,13 +85,54 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret }) => {
     startTime
   } = engine
 
-  // Auto-focus on mount or test start
+  // Auto-focus logic to ensure user can type immediately
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [testMode, testLimit])
+    if (isOverlayActive) return // Don't steal focus if a modal is open
+
+    const focusTimer = setTimeout(() => {
+      inputRef.current?.focus()
+    }, 100)
+    
+    // Also focus when the window regained focus
+    const handleWindowFocus = () => {
+      if (!isOverlayActive) inputRef.current?.focus()
+    }
+    window.addEventListener('focus', handleWindowFocus)
+    
+    // Robust focus: if any key is pressed and not in an input, focus the typing input
+    const handleGlobalKeyDown = (e) => {
+      if (isOverlayActive) return // Don't steal focus if modal is open
+
+      // Don't intercept if user is trying to use command palette or other shortcuts
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      
+      // If we're not focused on the input, and it's a typing key, focus it
+      const active = document.activeElement
+      const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
+      
+      if (active !== inputRef.current && !isInput) {
+        // Simple check for "printable" characters or start typing
+        if (e.key.length === 1 || e.key === 'Backspace') {
+          inputRef.current?.focus()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown)
+
+    return () => {
+      clearTimeout(focusTimer)
+      window.removeEventListener('focus', handleWindowFocus)
+      window.removeEventListener('keydown', handleGlobalKeyDown)
+    }
+  }, [testMode, testLimit, words, isFinished, isOverlayActive])
 
   return (
-    <div className="typing-canvas" onClick={() => inputRef.current?.focus()}>
+    <div 
+      className="typing-canvas" 
+      onClick={() => {
+        if (!isOverlayActive) inputRef.current?.focus()
+      }}
+    >
       <input 
         ref={inputRef}
         type="text" 
@@ -100,17 +166,14 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret }) => {
                 y: caretPos.top,
                 opacity: 1 
               }}
-              transition={isSmoothCaret ? { 
+              transition={smoothCaretEnabled ? {
                 type: 'spring',
-                stiffness: 450,
-                damping: 35,
-                mass: 0.2,
-                restDelta: 0.001
+                stiffness: UI.CARET_STIFFNESS_SMOOTH,
+                damping: UI.CARET_DAMPING_SMOOTH,
+                mass: UI.CARET_MASS_SMOOTH,
+                restDelta: 0.01
               } : { 
-                type: 'spring',
-                stiffness: 1000,
-                damping: 28,
-                mass: 0.1
+                duration: 0 
               }}
               style={{ left: 0, top: 0 }}
             />

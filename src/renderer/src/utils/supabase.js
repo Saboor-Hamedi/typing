@@ -1,3 +1,17 @@
+/**
+ * utils/supabase
+ *
+ * Purpose:
+ * - Initializes a Supabase client for auth and data operations in the renderer.
+ *
+ * Configuration:
+ * - Uses Vite env overrides (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) when present,
+ *   falling back to project defaults for development builds.
+ *
+ * Helpers:
+ * - `getCurrentUser` returns the active authenticated user (or null).
+ * - `signOut` ends the Supabase session safely.
+ */
 
 import { createClient } from '@supabase/supabase-js'
 

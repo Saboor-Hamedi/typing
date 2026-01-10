@@ -1,0 +1,203 @@
+.error-boundary-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg-color);
+  padding: 2rem;
+}
+
+.error-boundary-content {
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh; /* Ensure it fits in small windows */
+  overflow-y: auto; /* Enable vertical scrolling */
+  text-align: center;
+  padding: 2rem;
+  background: rgba(var(--bg-color-rgb), 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Custom Scrollbar for ErrorBoundary content */
+.error-boundary-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.error-boundary-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.error-boundary-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.error-icon {
+  color: var(--error-color);
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.error-boundary-content h1 {
+  font-size: 2rem;
+  color: #ff6b6b;
+  margin-bottom: 1rem; /* Reduced from 1.5rem */
+  display: flex;
+  justify-content: center;
+  filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.3));
+}
+
+.error-title {
+  font-size: 1.5rem; /* Reduced from 2rem */
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.75rem; /* Reduced */
+}
+
+.error-message {
+  color: var(--sub-color);
+  font-size: 0.9rem; /* Reduced from 1rem */
+  margin-bottom: 1.5rem; /* Reduced from 2rem */
+  line-height: 1.5;
+}
+
+.error-details {
+  margin-top: 1.5rem; /* Reduced from 2rem */
+  text-align: left;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem; /* Reduced from 1rem */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.error-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--sub-color);
+  font-size: 0.8rem; /* Reduced from 0.9rem */
+  padding: 0.5rem;
+  user-select: none;
+}
+
+.error-details summary:hover {
+  color: var(--text-color);
+}
+
+.error-stack {
+  margin-top: 0.75rem; /* Reduced from 1rem */
+  padding: 0.75rem; /* Reduced from 1rem */
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.75rem; /* Reduced from 0.85rem */
+  line-height: 1.4;
+  color: #ff6b6b;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error-stack strong {
+  color: var(--main-color);
+}
+
+.error-actions {
+  display: flex;
+  gap: 0.75rem; /* Reduced from 1rem */
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem; /* Reduced from 2rem */
+}
+
+.error-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem; /* Reduced */
+  padding: 0.4rem 0.75rem; /* Much smaller */
+  border: none;
+  border-radius: 6px; /* Smaller radius */
+  font-size: 12px; /* Fixed 12px */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  font-family: var(--font-family);
+  outline: none; /* Remove focus border */
+}
+
+.error-btn:focus {
+  outline: none; /* Ensure no focus outline */
+}
+
+.error-btn svg {
+  width: 14px; /* Smaller icons */
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.error-btn.primary {
+  background: var(--main-color);
+  color: var(--bg-color);
+}
+
+.error-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--main-color-rgb), 0.4);
+}
+
+.error-btn.secondary {
+  background: var(--sub-alt-color);
+  color: var(--text-color);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.error-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.error-btn.copy {
+  background: rgba(0, 255, 128, 0.1);
+  color: #00ff80;
+  border: 1px solid rgba(0, 255, 128, 0.2);
+}
+
+.error-btn.copy:hover {
+  background: rgba(0, 255, 128, 0.2);
+  transform: translateY(-2px);
+}
+
+.error-btn:active {
+  transform: scale(0.98);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .error-boundary-content {
+    padding: 1.5rem 1rem;
+  }
+  
+  .error-title {
+    font-size: 1.25rem;
+  }
+  
+  .error-message {
+    font-size: 0.85rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .error-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

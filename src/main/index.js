@@ -1,3 +1,16 @@
+/**
+ * Electron Main Process
+ *
+ * Purpose:
+ * - Creates and manages the BrowserWindow, registers protocol/deep-link handling, and wires IPC bridges.
+ *
+ * Highlights:
+ * - Single-instance lock with deep-link forwarding to the first window.
+ * - Frameless window with devtools toggle in dev; loads Vite dev server or bundled HTML.
+ * - Electron-Store backed settings/data with a migration step from legacy `config.json`.
+ * - Auto-updater events forwarded to renderer; background check after launch.
+ * - Preload exposes `api` bridge used across the renderer for settings/data/update/deep-link.
+ */
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -11,9 +24,15 @@ function handleDeepLink(url) {
   if (!url || typeof url !== 'string') return
   if (!url.startsWith('typingzone://')) return
 
-  if (mainWindow && mainWindow.webContents) {
-    // If window is ready, send immediately
-    mainWindow.webContents.send('deep-link', url)
+  if (mainWindow) {
+    // Force window to front
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+    
+    if (mainWindow.webContents) {
+      mainWindow.webContents.send('deep-link', url)
+    }
   } else {
     // Otherwise buffer it for later
     pendingDeepLink = url
@@ -32,9 +51,9 @@ if (!gotTheLock) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.focus()
     }
-    // Command line contains the URL on Windows
-    const url = commandLine.pop()
-    handleDeepLink(url)
+    // On Windows, the deep link URL can be anywhere in the command line
+    const url = commandLine.find(arg => arg.startsWith('typingzone://'))
+    if (url) handleDeepLink(url)
   })
 }
 
@@ -54,6 +73,7 @@ function createWindow() {
   })
 
   mainWindow.on('ready-to-show', () => {
+    mainWindow.maximize() // Start maximized
     mainWindow.show()
   })
   
@@ -92,12 +112,14 @@ app.whenReady().then(() => {
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   // Handle Deep Linking / Custom Protocol
+  const protocol = 'typingzone'
+  const path = require('path')
   if (process.defaultApp) {
     if (process.argv.length >= 2) {
-      app.setAsDefaultProtocolClient('typingzone', process.execPath, [join(__dirname, '../../')])
+      app.setAsDefaultProtocolClient(protocol, process.execPath, [path.resolve('.')])
     }
   } else {
-    app.setAsDefaultProtocolClient('typingzone')
+    app.setAsDefaultProtocolClient(protocol)
   }
 
   app.on('browser-window-created', (_, window) => {
@@ -167,6 +189,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle('get-version', () => {
     return app.getVersion()
+  })
+
+  ipcMain.on('open-external', (event, url) => {
+    shell.openExternal(url)
   })
 
   // Window Controls Handlers

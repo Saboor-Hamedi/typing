@@ -1,3 +1,16 @@
+/**
+ * Preload Bridge
+ *
+ * Purpose:
+ * - Safely exposes a curated API from the Electron main process to the renderer via `contextBridge`.
+ *
+ * Exposed Namespaces:
+ * - `api.settings` / `api.data` / `api.store`: async get/set IPC handlers for settings and data stores.
+ * - `api.update`: auto-updater event subscriptions and commands.
+ * - `api.window`: window control commands (minimize/maximize/close).
+ * - `onDeepLink` + `rendererReady`: deep-link event wiring for OAuth and protocol handling.
+ * - `openExternal`: opens a URL in the system browser.
+ */
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
@@ -16,6 +29,7 @@ const api = {
     set: (key, val) => ipcRenderer.invoke('store-set', key, val)
   },
   getVersion: () => ipcRenderer.invoke('get-version'),
+  openExternal: (url) => ipcRenderer.send('open-external', url),
   window: {
     minimize: () => ipcRenderer.send('window-minimize'),
     maximize: () => ipcRenderer.send('window-maximize'),

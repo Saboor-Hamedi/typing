@@ -1,3 +1,10 @@
+/**
+ * Renderer Entrypoint
+ *
+ * Purpose:
+ * - Bootstraps the React app, applies global CSS, and initializes web polyfills when not in Electron.
+ * - Uses React 18 `createRoot` with `StrictMode` for development ergonomics.
+ */
 import './assets/main.css'
 
 import { StrictMode } from 'react'

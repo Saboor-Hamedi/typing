@@ -1,40 +1,33 @@
+/**
+ * useAccountManager
+ *
+ * Purpose:
+ * - Harmonizes local engine history with cloud history and PB via Supabase.
+ *
+ * Flow:
+ * - When logged in: push any local-only scores to cloud, then fetch cloud history.
+ * - Stability: only overwrite local view when cloud returns rows; otherwise keep local and retry.
+ * - `mergedHistory`: de-duplicates by date and sorts newest-first for analytics & leveling.
+ *
+ * Notes:
+ * - Includes `testHistory` in effect dependencies so recalculation happens after store loads.
+ * - Does not clear local history after sync to avoid temporary level drops.
+ */
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { supabase, signOut } from '../utils/supabase'
-import { calculateLevel } from '../utils/Leveling'
-
-const safeGetStr = (key, fallback) => {
-  let val = localStorage.getItem(key)
-  if (!val) return fallback
-  
-  // Recursively unquote and parse if it's a JSON string
-  // This handles nested escaping issues like "\"\\\"Guest\\\"\""
-  while (typeof val === 'string' && val.startsWith('"') && val.endsWith('"')) {
-    try {
-      const parsed = JSON.parse(val)
-      if (typeof parsed !== 'string') break // Not a string anymore, stop
-      val = parsed
-    } catch {
-      // If it's just a string that looks like JSON but isn't valid, slice it
-      val = val.slice(1, -1)
-    }
-  }
-  return val || fallback
-}
+import { supabase } from '../utils/supabase'
+import { calculateLevel, levelFromXP } from '../utils/Leveling'
+import { STORAGE_KEYS } from '../constants'
+import { useUser } from '../contexts'
 
 export const useAccountManager = (engine, addToast) => {
-  const { testHistory, pb, setPb, clearAllData } = engine
+  const { testHistory, pb, setPb } = engine
+  const { isLoggedIn } = useUser()
 
-  const [username, setUsername] = useState(() => safeGetStr('username', 'Guest'))
-  const [localUsername, setLocalUsername] = useState(() => safeGetStr('localUsername', 'Guest'))
-  const [selectedAvatarId, setSelectedAvatarId] = useState(1)
-  const [unlockedAvatars, setUnlockedAvatars] = useState([0, 1])
-  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [fullHistory, setFullHistory] = useState([])
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false)
   
   const isFirstAuthCheck = useRef(true)
-  const lastNotifiedUser = useRef(null)
-  const isLoggingOut = useRef(false)
+  const isSyncing = useRef(false)
 
   const fetchCloudHistory = useCallback(async (userId = null) => {
     try {
@@ -66,7 +59,8 @@ export const useAccountManager = (engine, addToast) => {
   }, [])
 
   const syncLocalToCloud = useCallback(async (userId) => {
-    if (!userId || testHistory.length === 0) return
+    if (!userId || testHistory.length === 0 || isSyncing.current) return
+    isSyncing.current = true
     
     try {
       const cloudData = await fetchCloudHistory(userId)
@@ -76,7 +70,10 @@ export const useAccountManager = (engine, addToast) => {
         return !cloudDateSet.has(new Date(score.date).getTime())
       })
 
-      if (newLocalScores.length === 0) return
+      if (newLocalScores.length === 0) {
+        isSyncing.current = false
+        return
+      }
 
       const scoresToPush = newLocalScores.map(score => ({
         user_id: userId,
@@ -88,193 +85,67 @@ export const useAccountManager = (engine, addToast) => {
 
       const { error } = await supabase.from('scores').insert(scoresToPush)
       if (!error) {
-        addToast(`Synced ${newLocalScores.length} new tests!`, 'success')
-        if (typeof clearAllData === 'function') await clearAllData()
+        addToast?.(`Synced ${newLocalScores.length} new tests!`, 'success')
+        // DON'T clear data here - it will be cleared after cloud history loads
+        // if (typeof clearAllData === 'function') await clearAllData()
       }
     } catch (err) {
       console.error('Sync failed:', err)
-    }
-  }, [testHistory, fetchCloudHistory, addToast, clearAllData])
-
-  const handleLogout = useCallback(async () => {
-    if (isLoggingOut.current) return
-    isLoggingOut.current = true
-
-    setIsLoggedIn(false)
-    setUsername(localUsername)
-    setFullHistory([])
-    
-    if (typeof clearAllData === 'function') await clearAllData()
-
-    setUnlockedAvatars([0, 1])
-    setSelectedAvatarId(1)
-    
-    localStorage.removeItem('typingzone-manual-logout') // Clear flag just in case
-    localStorage.setItem('typingzone-manual-logout', 'true')
-    
-    // Explicitly wipe Supabase storage keys to prevent auto-recovery
-    Object.keys(localStorage).forEach(key => {
-      if (key.includes('auth-token')) localStorage.removeItem(key)
-    })
-
-    try {
-      await signOut()
-      addToast('Signed out successfully', 'info')
-    } catch (err) {
-      console.error('Logout error:', err)
     } finally {
-      setTimeout(() => { isLoggingOut.current = false }, 2500)
+      isSyncing.current = false
     }
-  }, [localUsername, addToast, clearAllData])
+  }, [testHistory, fetchCloudHistory, addToast])
 
-  const checkUnlocks = useCallback(async (level) => {
-    const milestones = [
-      { id: 2, level: 5, name: 'The Pulse' },
-      { id: 3, level: 10, name: 'Tactical Edge' },
-      { id: 4, level: 20, name: 'Expert Shards' },
-      { id: 5, level: 30, name: 'Dark Master' },
-      { id: 6, level: 40, name: 'Neon Specter' },
-      { id: 7, level: 50, name: 'Void Walker' },
-      { id: 8, level: 60, name: 'Ascended Zero' }
-    ]
-
-    let newlyUnlocked = []
-    milestones.forEach(m => {
-      if (level >= m.level && !unlockedAvatars.includes(m.id) && !isLoggingOut.current && level > 1) {
-        newlyUnlocked.push(m.id)
-      }
-    })
-
-    if (newlyUnlocked.length > 0) {
-      const updatedList = [...new Set([...unlockedAvatars, ...newlyUnlocked])]
-      setUnlockedAvatars(updatedList)
-      
-      if (window.api?.settings) await window.api.settings.set('unlockedAvatars', updatedList)
-
+  // EFFECT: Reactive Cloud Data Loading
+  useEffect(() => {
+    // Load stored XP for level floor (prevents visible drops during sync)
+    const loadStoredXp = async () => {
+      try {
+        if (window.api?.data) {
+          const xp = await window.api.data.get(STORAGE_KEYS.DATA.XP)
+          if (typeof xp === 'number' && xp > 0) {
+            storedXpRef.current = xp
+            lastStableLevelRef.current = levelFromXP(xp).level
+          }
+        }
+      } catch {}
+    }
+    loadStoredXp()
+    const loadAccountData = async () => {
       if (isLoggedIn) {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
-          await supabase.from('profiles').update({ unlocked_avatars: updatedList }).eq('id', session.user.id)
+          // Push any local-only scores first
+          await syncLocalToCloud(session.user.id)
+
+          // Fetch cloud history
+          const cloudData = await fetchCloudHistory(session.user.id)
+
+          // Only overwrite local view if cloud has data; otherwise, keep current until retry
+          if (cloudData && cloudData.length > 0) {
+            setFullHistory(cloudData)
+            const cloudPb = Math.max(...cloudData.map(d => d.wpm))
+            if (cloudPb > pb && typeof setPb === 'function') setPb(cloudPb)
+          } else {
+            // Retry shortly — allows DB to reflect newly inserted rows
+            setTimeout(async () => {
+              const retry = await fetchCloudHistory(session.user.id)
+              if (retry && retry.length > 0) {
+                setFullHistory(retry)
+                const retryPb = Math.max(...retry.map(d => d.wpm))
+                if (retryPb > pb && typeof setPb === 'function') setPb(retryPb)
+              }
+            }, 800)
+          }
         }
+      } else {
+        setFullHistory([])
       }
-
-      newlyUnlocked.forEach(id => {
-        const item = milestones.find(m => m.id === id)
-        addToast(`New Avatar: ${item.name}!`, 'success')
-      })
+      setIsSettingsLoaded(true)
     }
-  }, [unlockedAvatars, isLoggedIn, addToast])
 
-  const handleUpdateNickname = useCallback(async (newName) => {
-    const trimmed = newName.trim()
-    if (!trimmed) return
-
-    setUsername(trimmed)
-    setLocalUsername(trimmed)
-    
-    if (window.api?.settings) window.api.settings.set('localUsername', trimmed)
-
-    if (isLoggedIn) {
-       try {
-         const { error } = await supabase.auth.updateUser({ data: { username: trimmed } })
-         if (error) throw error
-         addToast('Cloud profile updated', 'success')
-       } catch (err) {
-         addToast('Cloud sync failed', 'warning')
-       }
-    } else {
-       addToast('Local nickname saved', 'success')
-    }
-  }, [isLoggedIn, addToast])
-
-  const updateSelectedAvatar = useCallback(async (avatarId) => {
-    setSelectedAvatarId(avatarId)
-    if (window.api?.settings) await window.api.settings.set('selectedAvatarId', avatarId)
-    
-    if (isLoggedIn) {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        await supabase.from('profiles').update({ selected_avatar_id: avatarId }).eq('id', session.user.id)
-      }
-    }
-  }, [isLoggedIn])
-
-  // Auth Listener
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (isLoggingOut.current) return 
-      
-      const user = session?.user
-      const isManualLogout = localStorage.getItem('typingzone-manual-logout') === 'true'
-
-      // PROTECTION: If user manually logged out, ignore background recoveries
-      if (user && isManualLogout && event !== 'SIGNED_IN') {
-        console.log('Blocking auto-recovery due to manual logout flag')
-        await supabase.auth.signOut()
-        return
-      }
-
-      const name = user?.user_metadata?.username || user?.email
-
-      if (user) {
-         // If we are here via a fresh manual login, clear the protection flag
-         if (event === 'SIGNED_IN') {
-           localStorage.removeItem('typingzone-manual-logout')
-         }
-         
-         setUsername(name)
-         setIsLoggedIn(true)
-         
-         const loadCloudData = async () => {
-           syncLocalToCloud(user.id)
-           const cloudData = await fetchCloudHistory(user.id)
-           if (cloudData.length > 0) {
-              setFullHistory(cloudData)
-              const cloudPb = Math.max(...cloudData.map(d => d.wpm))
-              if (cloudPb > pb && typeof setPb === 'function') setPb(cloudPb)
-           }
-           
-           const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-           if (profile) {
-              if (profile.selected_avatar_id !== undefined) setSelectedAvatarId(profile.selected_avatar_id)
-              if (profile.unlocked_avatars) setUnlockedAvatars([...new Set([0, 1, ...profile.unlocked_avatars])])
-           }
-         }
-         loadCloudData()
-
-         if (event === 'SIGNED_IN' && !isFirstAuthCheck.current && lastNotifiedUser.current !== name) {
-            addToast(`Welcome back, ${name}!`, 'success')
-         }
-         lastNotifiedUser.current = name
-      } else if (event === 'SIGNED_OUT' || (!user && isLoggedIn)) {
-         setUsername(localUsername)
-         setIsLoggedIn(false)
-         lastNotifiedUser.current = null
-         setFullHistory([]) 
-         setUnlockedAvatars([0, 1])
-         setSelectedAvatarId(1)
-         if (event === 'SIGNED_OUT' && !isFirstAuthCheck.current) addToast('Signed out', 'info')
-      }
-    })
-
-    const timer = setTimeout(() => { isFirstAuthCheck.current = false }, 2000)
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(timer)
-    }
-  }, [localUsername, pb, setPb, syncLocalToCloud, fetchCloudHistory, addToast])
-
-  // Settings Sync
-  useEffect(() => {
-    localStorage.setItem('localUsername', localUsername)
-    localStorage.setItem('username', username)
-    if (window.api?.settings && isSettingsLoaded) {
-      window.api.settings.set('username', username)
-      window.api.settings.set('localUsername', localUsername)
-      window.api.settings.set('selectedAvatarId', selectedAvatarId)
-      window.api.settings.set('unlockedAvatars', unlockedAvatars)
-    }
-  }, [username, localUsername, selectedAvatarId, unlockedAvatars, isSettingsLoaded])
+    loadAccountData()
+  }, [isLoggedIn, syncLocalToCloud, fetchCloudHistory, pb, setPb, testHistory])
 
   const mergedHistory = useMemo(() => {
     const combined = [...fullHistory, ...testHistory];
@@ -283,32 +154,39 @@ export const useAccountManager = (engine, addToast) => {
     return Array.from(unique.values()).sort((a, b) => new Date(b.date) - new Date(a.date))
   }, [fullHistory, testHistory])
 
-  const currentLevel = useMemo(() => calculateLevel(mergedHistory).level, [mergedHistory])
-
+  // Avoid transient drops by caching the last non-empty level and persisting XP
+  const lastStableLevelRef = useRef(1)
+  const storedXpRef = useRef(0)
+  // Initialize last stable level from local history if present
   useEffect(() => {
-    if (isSettingsLoaded) checkUnlocks(currentLevel)
-  }, [currentLevel, isSettingsLoaded, checkUnlocks])
+    if (testHistory && testHistory.length > 0) {
+      lastStableLevelRef.current = calculateLevel(testHistory).level
+    }
+  }, [testHistory])
+  const currentLevel = useMemo(() => {
+    const stats = calculateLevel(mergedHistory)
+    const lvl = stats.level
+    const xp = stats.experience
+
+    if (mergedHistory.length > 0) {
+      lastStableLevelRef.current = lvl
+      // Persist only when XP increases; never overwrite with 0
+      if (typeof xp === 'number' && xp > storedXpRef.current) {
+        storedXpRef.current = xp
+        window.api?.data?.set(STORAGE_KEYS.DATA.XP, xp)
+      }
+      return lvl
+    }
+
+    // If history is empty, use the last stable level derived from stored XP/local
+    return lastStableLevelRef.current
+  }, [mergedHistory])
 
   return {
-    isLoggedIn,
-    setIsLoggedIn,
-    username,
-    setUsername,
-    localUsername,
-    setLocalUsername,
     fullHistory,
     setFullHistory,
-    unlockedAvatars,
-    setUnlockedAvatars,
-    selectedAvatarId,
-    setSelectedAvatarId,
     isSettingsLoaded,
-    setIsSettingsLoaded,
-    handleLogout,
-    handleUpdateNickname,
-    updateSelectedAvatar,
     mergedHistory,
-    currentLevel,
-    isLoggingOut
+    currentLevel
   }
 }
