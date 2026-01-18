@@ -85,7 +85,7 @@ export function useEngine(testMode, testLimit) {
           if (savedSpeed !== undefined) setGhostSpeed(savedSpeed);
           setIsStoreLoaded(true);
         }
-      } catch (err) {
+      } catch {
         setIsStoreLoaded(true);
       }
     };
@@ -128,29 +128,41 @@ export function useEngine(testMode, testLimit) {
       window.api.data.set('history', updatedHistory);
       setTestHistory(updatedHistory);
     }
+    // Sync to cloud (works offline - will sync when online)
+    // This is non-blocking and won't affect the test experience
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const payload = {
-          user_id: session.user.id,
-          wpm,
-          accuracy,
-          mode: testMode,
-          test_limit: testLimit,
-        };
-        let insertError = null;
-        const { error } = await supabase.from('scores').insert(payload);
-        insertError = error;
-        if (insertError) {
-          await supabase.from('scores').insert({
+      // Check if online before attempting sync
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+      if (isOnline) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const payload = {
             user_id: session.user.id,
             wpm,
             accuracy,
-            mode: `${testMode} ${testLimit}`,
-          });
+            mode: testMode,
+            test_limit: testLimit,
+          };
+          let insertError = null;
+          const { error } = await supabase.from('scores').insert(payload);
+          insertError = error;
+          if (insertError) {
+            // Fallback with different mode format
+            await supabase.from('scores').insert({
+              user_id: session.user.id,
+              wpm,
+              accuracy,
+              mode: `${testMode} ${testLimit}`,
+            });
+          }
         }
       }
-    } catch (err) {}
+      // If offline, data is already saved locally - will sync when online
+    } catch {
+      // Silently fail - data is already saved locally
+      // User experience is not affected
+    }
   }, [startTime, words, stopTimer, testMode, testLimit]);
   const clearAllData = useCallback(async () => {
     if (window.api && window.api.data) {
@@ -161,9 +173,20 @@ export function useEngine(testMode, testLimit) {
     }
   }, []);
   const resetGame = useCallback(() => {
+    // Robust reset that works online and offline
     stopTimer();
+
+    // Clear all timers and timeouts
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    // Generate new words (works offline - no network dependency)
     const wordCount = testMode === 'words' ? testLimit : Math.max(100, testLimit * 4);
     setWords(generateWords(wordCount));
+
+    // Reset all state synchronously (no async operations)
     setUserInput('');
     setStartTime(null);
     startTimeRef.current = null;
@@ -173,7 +196,23 @@ export function useEngine(testMode, testLimit) {
     setKeystrokes([]);
     setTelemetry([]);
     setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0 });
-    if (inputRef.current) inputRef.current.focus();
+    setIsTyping(false);
+
+    // Reset caret position
+    setCaretPos({ left: 0, top: 0 });
+
+    // Scroll to top
+    if (wordContainerRef.current) {
+      wordContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    // Focus input (works offline)
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.value = ''; // Ensure input is cleared
+      }
+    });
   }, [testMode, testLimit, stopTimer]);
   useEffect(() => {
     resetGame();

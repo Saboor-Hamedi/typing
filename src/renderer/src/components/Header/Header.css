@@ -3,13 +3,11 @@
   flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 0;
-  transition: opacity 0.5s ease;
   padding: 0.5rem 0;
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(var(--bg-color-rgb), 0.9);
-  backdrop-filter: blur(12px);
+  background: var(--bg-color);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   width: 100%;
   left: 0;
@@ -164,11 +162,10 @@
   top: calc(100% + 10px);
   right: 0;
   width: 240px;
-  background: rgba(var(--bg-color-rgb), 0.96);
-  backdrop-filter: blur(16px) saturate(130%);
+  background: var(--bg-color);
   border: 1px solid rgba(var(--main-color-rgb), 0.16);
   border-radius: 12px;
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(var(--main-color-rgb), 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 1002;
   overflow: hidden;
   padding: 0;
@@ -177,7 +174,7 @@
 .dropdown-header {
   padding: 12px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(var(--bg-color-rgb), 0.7);
+  background: var(--sub-alt-color);
 }
 
 .user-info-section {
@@ -205,7 +202,7 @@
 
 .dropdown-section {
   padding: 8px;
-  background: rgba(var(--bg-color-rgb), 0.55);
+  background: var(--bg-color);
 }
 
 .dropdown-item {
@@ -326,7 +323,7 @@
 .dropdown-footer {
   padding: 8px;
   border-top: 1px solid rgba(var(--main-color-rgb), 0.15);
-  background: rgba(var(--bg-color-rgb), 0.65);
+  background: var(--sub-alt-color);
 }
 
 .logout-btn {
@@ -405,8 +402,7 @@
   padding: 0.6rem 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  background: rgba(var(--bg-color-rgb), 0.6);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  background: var(--sub-alt-color);
 }
 
 .pb-box svg {
@@ -452,7 +448,6 @@
   border-radius: var(--round);
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: var(--sub-alt-color);
-  box-shadow: var(--shadow);
 }
 
 .glass-panel {

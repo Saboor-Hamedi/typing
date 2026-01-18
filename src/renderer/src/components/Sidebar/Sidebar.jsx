@@ -1,21 +1,14 @@
 import './Sidebar.css'
-import { Keyboard, History, Settings, Info, Trophy, Command, Volume2, VolumeX, Ghost, LayoutDashboard, Zap, RefreshCw, ArrowUpCircle, Globe, MousePointer } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Keyboard, History, Settings, Info, Trophy, Command, Globe, ArrowUpCircle, RefreshCw } from 'lucide-react'
 import { useState, useEffect, memo } from 'react'
-import { useSettings } from '../../contexts'
 
 const Sidebar = memo(({ 
   activeTab, 
   setActiveTab, 
   testStarted, 
   isZenMode,
-  isSoundEnabled,
-  setIsSoundEnabled,
-  isHallEffect,
-  setIsHallEffect,
   onNotification
 }) => {
-  const { isSmoothCaret, setIsSmoothCaret, isGhostEnabled, setIsGhostEnabled } = useSettings()
   const [updateStatus, setUpdateStatus] = useState('idle')
   const [downloadProgress, setDownloadProgress] = useState(0)
 
@@ -75,10 +68,8 @@ const Sidebar = memo(({
   ]
 
   return (
-    <motion.aside 
+    <aside 
       className={`main-sidebar ${testStarted && isZenMode ? 'zen-active' : ''}`}
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
     >
       <div className="sidebar-top">
         <div className="sidebar-divider" />
@@ -95,48 +86,11 @@ const Sidebar = memo(({
             <div className="icon-wrapper">
               {item.icon}
             </div>
-            <AnimatePresence>
-              {activeTab === item.id && (
-                <motion.div 
-                  layoutId="active-indicator"
-                  className="active-indicator"
-                />
-              )}
-            </AnimatePresence>
+            {activeTab === item.id && (
+              <div className="active-indicator" />
+            )}
           </div>
         ))}
-        
-        <div className="engine-controls">
-          <div 
-            className={`nav-item ${isSoundEnabled ? 'toggle-active' : ''}`} 
-            onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-            title="Toggle Sound"
-          >
-            {isSoundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-          </div>
-          <div 
-            className={`nav-item ${isHallEffect ? 'toggle-active' : ''}`} 
-            onClick={() => setIsHallEffect(!isHallEffect)}
-            title="Hall Effect"
-          >
-            <Zap size={20} />
-          </div>
-          <div 
-            className={`nav-item ${isSmoothCaret ? 'toggle-active' : ''}`} 
-            onClick={() => setIsSmoothCaret(!isSmoothCaret)}
-            title="Smooth Caret"
-          >
-            <MousePointer size={20} />
-          </div>
-          <div 
-            className={`nav-item ${isGhostEnabled ? 'toggle-active' : ''}`} 
-            onClick={() => setIsGhostEnabled(!isGhostEnabled)}
-            title="Ghost Caret (Race PB)"
-          >
-            <Ghost size={20} />
-          </div>
-        </div>
-        
         <div className="nav-item secondary" title="Commands Help" onClick={() => onNotification('Press Ctrl + Shift + P for commands', 'info')}>
           <Command size={20} />
         </div>
@@ -172,19 +126,16 @@ const Sidebar = memo(({
             title="Settings"
           >
             <Settings size={20} />
-            <AnimatePresence>
-              {activeTab === 'settings' && (
-                <motion.div 
-                  layoutId="active-indicator"
-                  className="active-indicator"
-                />
-              )}
-            </AnimatePresence>
+            {activeTab === 'settings' && (
+              <div className="active-indicator" />
+            )}
           </div>
         </div>
       </div>
-    </motion.aside>
+    </aside>
   )
 })
+
+Sidebar.displayName = 'Sidebar'
 
 export default Sidebar

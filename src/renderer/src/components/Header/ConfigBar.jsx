@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion'
+import { memo } from 'react'
 import { Palette, Clock, Type, Eye, EyeOff } from 'lucide-react'
 import { useTheme, useSettings } from '../../contexts'
 
-const ConfigBar = ({ openThemeModal }) => {
+const ConfigBar = memo(({ openThemeModal }) => {
   const { theme } = useTheme()
   const { 
     testMode, 
@@ -14,11 +14,7 @@ const ConfigBar = ({ openThemeModal }) => {
   } = useSettings()
 
   return (
-    <motion.div 
-      initial={{ y: 20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="master-config glass-panel"
-    >
+    <div className="master-config glass-panel">
       <div className="config-group themes clickable" onClick={openThemeModal}>
         <Palette size={14} />
         <span className="current-theme-label">{theme}</span>
@@ -81,8 +77,10 @@ const ConfigBar = ({ openThemeModal }) => {
         {isZenMode ? <EyeOff size={16} /> : <Eye size={16} />}
         <span>zen</span>
       </div>
-    </motion.div>
+    </div>
   )
-}
+})
+
+ConfigBar.displayName = 'ConfigBar'
 
 export default ConfigBar

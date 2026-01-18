@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { Zap, Trophy } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../../contexts'
 import ConfigBar from './ConfigBar'
 import UserDropdown from './UserDropdown'
 import './Header.css'
 
-const Header = ({ 
+const Header = memo(({ 
   testStarted, 
   displayValue,
   pb,
@@ -40,13 +39,9 @@ const Header = ({
         {/* Top Layer: Branding & User Dropdown */}
         <div className="header-top-row">
           <div className="branding" onClick={onReload}>
-            <motion.div 
-              className="logo-box"
-              whileHover={{ rotate: 15, scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
+            <div className="logo-box">
               <Zap size={18} fill="var(--main-color)" />
-            </motion.div>
+            </div>
             <div className="logo-text-group">
               <span className="logo-main">TYPINGZONE</span>
               <span className="logo-version">v{version}</span>
@@ -71,17 +66,13 @@ const Header = ({
         <div className="header-main-row">
           <div className="header-left">
              {!testStarted && activeTab !== 'dashboard' && (
-               <motion.div 
-                 initial={{ x: -20, opacity: 0 }}
-                 animate={{ x: 0, opacity: 1 }}
-                 className="pb-box"
-               >
+               <div className="pb-box">
                   <Trophy size={14} className="trophy-icon" />
                   <div className="pb-data">
                     <span className="pb-label">PERSONAL BEST</span>
                     <span className="pb-value">{pb} <small>WPM</small></span>
                   </div>
-               </motion.div>
+               </div>
              )}
           </div>
 
@@ -95,16 +86,9 @@ const Header = ({
 
           <div className="header-right">
             <div className={`live-metric-card ${testStarted ? 'active' : ''}`}>
-              <AnimatePresence mode="wait">
-                <motion.span 
-                  key={displayValue}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="metric-number"
-                >
-                  {displayValue}
-                </motion.span>
-              </AnimatePresence>
+              <span className="metric-number">
+                {displayValue}
+              </span>
               <span className="metric-unit">
                 {testStarted ? (testMode === 'time' ? 'SECONDS' : 'WPM') : ''}
               </span>
@@ -115,6 +99,8 @@ const Header = ({
       </div>
     </header>
   )
-}
+})
+
+Header.displayName = 'Header'
 
 export default Header

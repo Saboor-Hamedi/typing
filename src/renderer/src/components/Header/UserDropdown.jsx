@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useRef, memo } from 'react'
 import { User, Wifi, Activity, LogOut, LayoutDashboard } from 'lucide-react'
 import { AVATAR_MAP } from '../../assets/avatars'
 
-const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1, onNavigateDashboard }) => {
+const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1, onNavigateDashboard }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [tempName, setTempName] = useState('')
@@ -40,29 +39,20 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
 
   return (
     <div className="dropdown-container" ref={dropdownRef}>
-      <motion.div 
+      <div 
         className={`user-trigger ${isDropdownOpen ? 'active' : ''}`}
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
       >
         <div className="trigger-avatar">
           <img src={AVATAR_MAP[selectedAvatarId]} alt="User" />
           {isLoggedIn && <div className="online-indicator" />}
         </div>
-      </motion.div>
+      </div>
 
-      <AnimatePresence mode="wait">
-        {isDropdownOpen && (
-          <>
-            <div className="dropdown-overlay" onClick={() => setIsDropdownOpen(false)} />
-            <motion.div 
-              className="user-dropdown glass-panel"
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            >
+      {isDropdownOpen && (
+        <>
+          <div className="dropdown-overlay" onClick={() => setIsDropdownOpen(false)} />
+          <div className="user-dropdown glass-panel">
               <div className="dropdown-header">
                 <div className="user-info-section">
                    <div className="name-row">
@@ -161,12 +151,13 @@ const UserDropdown = ({ username, isLoggedIn, setUsername, openLoginModal, onLog
                   </button>
                 )}
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          </div>
+        </>
+      )}
     </div>
   )
-}
+})
+
+UserDropdown.displayName = 'UserDropdown'
 
 export default UserDropdown

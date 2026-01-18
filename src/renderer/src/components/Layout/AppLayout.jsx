@@ -18,17 +18,11 @@
  * - `handleGlobalInteraction` warms up the SoundEngine on first user gesture.
  * - History clear confirmation uses `engine.clearAllData()` and toasts the outcome.
  */
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react'
 import Header from '../Header/Header'
 import TitleBar from '../TitleBar/TitleBar'
 import Sidebar from '../Sidebar/Sidebar'
 import TypingEngine from '../../engine/TypingEngine'
-import HistoryView from '../History/HistoryView'
-import SettingsView from '../Settings/SettingsView'
-import DashboardView from '../Dashboard/DashboardView'
-import LeaderboardView from '../Leaderboard/LeaderboardView'
-import NotFound from '../Views/NotFound'
 import ThemeModal from '../Modals/ThemeModal'
 import LoginModal from '../Modals/LoginModal'
 import ConfirmationModal from '../Modals/ConfirmationModal'
@@ -37,8 +31,16 @@ import { useAccountManager } from '../../hooks/useAccountManager'
 import { useChameleonFlow } from '../../hooks/useChameleonFlow'
 import { useTheme, useSettings, useUser } from '../../contexts'
 import { soundEngine } from '../../utils/SoundEngine'
-import { ANIMATIONS, SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
+import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
+import { LoadingSpinner } from '../Common'
+
+// Lazy load views for code splitting
+const HistoryView = lazy(() => import('../History/HistoryView'))
+const SettingsView = lazy(() => import('../Settings/SettingsView'))
+const DashboardView = lazy(() => import('../Dashboard/DashboardView'))
+const LeaderboardView = lazy(() => import('../Leaderboard/LeaderboardView'))
+const NotFound = lazy(() => import('../Views/NotFound'))
 
 /**
  * Main Application Layout
@@ -233,10 +235,6 @@ const AppLayout = ({ addToast }) => {
         setActiveTab={setActiveTab}
         testStarted={!!startTime && !isFinished}
         isZenMode={isZenMode}
-        isSoundEnabled={isSoundEnabled}
-        setIsSoundEnabled={setIsSoundEnabled}
-        isHallEffect={isHallEffect}
-        setIsHallEffect={setIsHallEffect}
         onNotification={addToast}
       />
 
@@ -261,49 +259,43 @@ const AppLayout = ({ addToast }) => {
         )}
 
         <main className="content-area">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              {...ANIMATIONS.PAGE_TRANSITION}
-              style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
-            >
-              {activeTab === 'typing' ? (
-                <TypingEngine
-                  engine={engine}
-                  testMode={testMode}
-                  testLimit={testLimit}
-                  isSmoothCaret={isSmoothCaret}
-                  isOverlayActive={isOverlayActive}
-                />
-              ) : activeTab === 'history' ? (
-                <HistoryView data={mergedHistory} />
-              ) : activeTab === 'settings' ? (
-                <SettingsView
-                  onClearHistory={() => toggleClearModal(true)}
-                  openThemeModal={() => toggleThemeModal(true)}
-                />
-              ) : activeTab === 'dashboard' ? (
-                <DashboardView
-                  stats={{ pb }}
-                  history={mergedHistory}
-                  username={username}
-                  selectedAvatarId={selectedAvatarId}
-                  unlockedAvatars={unlockedAvatars}
-                  currentLevel={currentLevel}
-                  onUpdateAvatar={updateAvatar}
-                  isLoggedIn={isLoggedIn}
-                  onDeleteAccount={() => toggleDeleteAccountModal(true)}
-                />
-              ) : activeTab === 'leaderboard' ? (
-                <LeaderboardView currentUser={username} />
-              ) : (
-                <NotFound 
-                  activeTab={activeTab} 
-                  onBackHome={() => setActiveTab('typing')} 
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+          <Suspense fallback={<LoadingSpinner />}>
+            {activeTab === 'typing' ? (
+              <TypingEngine
+                engine={engine}
+                testMode={testMode}
+                testLimit={testLimit}
+                isSmoothCaret={isSmoothCaret}
+                isOverlayActive={isOverlayActive}
+              />
+            ) : activeTab === 'history' ? (
+              <HistoryView data={mergedHistory} />
+            ) : activeTab === 'settings' ? (
+              <SettingsView
+                onClearHistory={() => toggleClearModal(true)}
+                openThemeModal={() => toggleThemeModal(true)}
+              />
+            ) : activeTab === 'dashboard' ? (
+              <DashboardView
+                stats={{ pb }}
+                history={mergedHistory}
+                username={username}
+                selectedAvatarId={selectedAvatarId}
+                unlockedAvatars={unlockedAvatars}
+                currentLevel={currentLevel}
+                onUpdateAvatar={updateAvatar}
+                isLoggedIn={isLoggedIn}
+                onDeleteAccount={() => toggleDeleteAccountModal(true)}
+              />
+            ) : activeTab === 'leaderboard' ? (
+              <LeaderboardView currentUser={username} />
+            ) : (
+              <NotFound 
+                activeTab={activeTab} 
+                onBackHome={() => setActiveTab('typing')} 
+              />
+            )}
+          </Suspense>
         </main>
 
         <footer className={(!!startTime && !isFinished) && isZenMode ? 'zen-active' : ''}>

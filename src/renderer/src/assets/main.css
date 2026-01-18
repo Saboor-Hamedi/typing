@@ -145,7 +145,6 @@ body {
   max-width: 1000px;
   margin: 0 auto;
   padding: 1rem 1.5rem 2rem 1.5rem;
-  animation: viewEntry 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 @media (max-width: 900px) {
@@ -157,10 +156,6 @@ body {
   }
 }
 
-@keyframes viewEntry {
-  from { opacity: 0; transform: translateY(10px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 .placeholder-view {
   padding: 4rem;

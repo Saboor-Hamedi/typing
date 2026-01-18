@@ -10,7 +10,6 @@
   flex-direction: column;
   padding: 0;
   z-index: 10000; /* Above TitleBar */
-  transition: opacity 0.5s ease;
   min-width: 50px;
   flex-shrink: 0;
 }
@@ -48,7 +47,7 @@
   justify-content: center;
   cursor: pointer;
   color: var(--sub-color);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 0.2s ease, background 0.2s ease;
   border-radius: 0;
   flex-shrink: 0; /* Prevent shrinking */
 }
