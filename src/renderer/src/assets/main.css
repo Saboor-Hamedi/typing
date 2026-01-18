@@ -128,6 +128,7 @@ body {
   flex-grow: 1;
   margin-left: var(--sidebar-width);
   padding: 0;
+  padding-bottom: 22px; /* Space for fixed status bar */
   display: flex;
   flex-direction: column;
   overflow-y: overlay; /* Soft scroll */
@@ -135,15 +136,45 @@ body {
   position: relative;
 }
 
+.config-bar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--bg-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
 .content-area {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
   position: relative;
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
+  padding: 1rem 1.5rem 2rem 1.5rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Typing view should be centered */
+.content-area:has(.typing-canvas) {
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+/* Dashboard and other views should start from top, full width */
+.content-area:has(.dashboard-container),
+.content-area:has(.history-container),
+.content-area:has(.settings-container) {
+  justify-content: flex-start;
+  max-width: 100%;
   padding: 1rem 1.5rem 2rem 1.5rem;
 }
 
@@ -221,21 +252,78 @@ main {
   justify-content: center;
 }
 
-footer {
-  margin-top: auto;
-  text-align: center;
-  color: var(--sub-color);
-  padding: 2rem 0;
-  font-size: 0.8rem;
+/* VS Code-style Status Bar */
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 0;
+  height: 22px;
+  font-size: 0.75rem;
+  color: var(--text-color);
   user-select: none;
+  z-index: 1000;
+}
+
+.status-bar-left,
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 100%;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  height: 100%;
+  color: var(--text-color);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  border: none;
+  background: transparent;
+}
+
+.status-item.clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.status-item.clickable:hover {
+  opacity: 0.7;
+}
+
+.status-label {
+  color: var(--sub-color);
+  margin-right: 4px;
+}
+
+.status-value {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.version-item {
+  color: var(--sub-color);
+  font-size: 0.7rem;
 }
 
 kbd {
-  background: var(--sub-alt-color);
-  padding: 2px 6px;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
   color: var(--text-color);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  font-family: 'Consolas', 'Monaco', monospace;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-panel {

@@ -21,7 +21,9 @@ class SoundEngine {
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)()
         this.createReverb()
       } catch (e) {
-        console.warn('AudioContext creation failed (silent if no gesture):', e)
+        if (import.meta.env.DEV) {
+          console.warn('AudioContext creation failed (silent if no gesture):', e)
+        }
         return
       }
     }

@@ -37,8 +37,17 @@ const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
       {word.split('').map((letter, i) => {
         const charIndex = startIndex + i
         let status = ''
-        if (i < chunk.length) {
-          status = chunk[i] === letter ? 'correct' : 'incorrect'
+        // Only mark as correct/incorrect if user has typed this character
+        // Make sure we're comparing within the word bounds (not including the space)
+        if (i < chunk.length && i < word.length) {
+          const chunkChar = chunk[i]
+          const targetChar = letter
+          // Direct character comparison
+          if (chunkChar === targetChar) {
+            status = 'correct'
+          } else {
+            status = 'incorrect'
+          }
         }
         return (
           <Letter
@@ -55,7 +64,7 @@ const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
         char={' '}
         status={chunk.length > word.length ?
           (chunk[word.length] === ' ' ? 'correct' : 'incorrect') : ''}
-        active={isCurrent && chunk.length === word.length}
+        active={isCurrent && chunk.length === word.length + 1 && chunk[word.length] === ' '}
       />
     </div>
   )
@@ -155,7 +164,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         autoFocus
       />
 
-      <div className="typing-container" ref={wordContainerRef}>
+      <div className={`typing-container ${testMode === 'time' ? 'time-mode' : 'words-mode'}`} ref={wordContainerRef}>
         {!isFinished ? (
           <>
             {isGhostEnabled && startTime && !isFinished && (
@@ -192,9 +201,13 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
             <div className="word-wrapper">
               <span id="char--1" style={{position: 'absolute', left: 0, top: 0, width: 0, height: 0, pointerEvents: 'none'}} />
               {words.map((word, i) => {
-                const startIndex = words.slice(0, i).join(' ').length + (i > 0 ? 1 : 0)
+                // Calculate startIndex: sum of previous words + spaces between them
+                const startIndex = i === 0
+                  ? 0
+                  : words.slice(0, i).join(' ').length + 1
                 const isCurrent = userInput.length >= startIndex && userInput.length <= startIndex + word.length + 1
-                const chunk = userInput.slice(startIndex, startIndex + word.length + 1)
+                // Extract the chunk for this word (word + space)
+                const chunk = userInput.slice(startIndex, Math.min(startIndex + word.length + 1, userInput.length))
                 return (
                   <Word
                     key={i}

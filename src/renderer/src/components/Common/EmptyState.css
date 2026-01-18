@@ -4,6 +4,18 @@
   justify-content: center;
   min-height: 400px;
   padding: 3rem 2rem;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .empty-state-content {
@@ -21,6 +33,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: scaleIn 0.3s ease-out 0.1s both;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0.4;
+    transform: scale(1);
+  }
 }
 
 .empty-state-icon svg {
@@ -45,6 +69,16 @@
 
 .empty-state-action {
   margin-top: 1rem;
+  animation: fadeIn 0.3s ease-out 0.3s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Responsive */

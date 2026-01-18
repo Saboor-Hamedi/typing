@@ -23,6 +23,7 @@ import { soundEngine } from '../utils/SoundEngine';
 import { supabase } from '../utils/supabase';
 import { useGhostRacing } from '../hooks/useGhostRacing';
 import { useSettings } from '../contexts';
+import { createCountdownTimer, createElapsedTimer } from '../utils/timer';
 
 export function useEngine(testMode, testLimit) {
   const [words, setWords] = useState([]);
@@ -40,7 +41,10 @@ export function useEngine(testMode, testLimit) {
   const inputRef = useRef(null);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
+  const countdownTimerRef = useRef(null);
+  const elapsedTimerRef = useRef(null);
   const [timeLeft, setTimeLeft] = useState(testLimit);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [soundProfile, setSoundProfile] = useState('thocky');
   const [isHallEffect, setIsHallEffect] = useState(true);
@@ -95,6 +99,14 @@ export function useEngine(testMode, testLimit) {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    if (countdownTimerRef.current) {
+      countdownTimerRef.current.stop();
+      countdownTimerRef.current = null;
+    }
+    if (elapsedTimerRef.current) {
+      elapsedTimerRef.current.stop();
+      elapsedTimerRef.current = null;
     }
   }, []);
   const finishTest = useCallback(async (finalInput, endTime) => {
@@ -191,12 +203,21 @@ export function useEngine(testMode, testLimit) {
     setStartTime(null);
     startTimeRef.current = null;
     setTimeLeft(testLimit);
+    setElapsedTime(0);
     setIsFinished(false);
     setIsReplaying(false);
     setKeystrokes([]);
     setTelemetry([]);
     setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0 });
     setIsTyping(false);
+
+    // Reset timers
+    if (countdownTimerRef.current) {
+      countdownTimerRef.current.reset(testLimit);
+    }
+    if (elapsedTimerRef.current) {
+      elapsedTimerRef.current.reset();
+    }
 
     // Reset caret position
     setCaretPos({ left: 0, top: 0 });
@@ -231,30 +252,71 @@ export function useEngine(testMode, testLimit) {
     if (!startTime) {
       setStartTime(now);
       startTimeRef.current = now;
-      timerRef.current = setInterval(() => {
-        const elapsedSec = Math.round((performance.now() - startTimeRef.current) / 1000)
-        if (elapsedSec <= 0) return
 
-        const durationInMin = elapsedSec / 60
-        const currentInput = inputRef.current?.value || ''
-        const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0
+      // Create robust countdown timer for time mode
+      if (testMode === 'time') {
+        // Set initial time immediately
+        setTimeLeft(testLimit);
+
+        countdownTimerRef.current = createCountdownTimer(
+          testLimit,
+          (remaining, elapsed) => {
+            // Update time display only when value changes (prevents shaking)
+            setTimeLeft(remaining);
+
+            // Calculate telemetry (only if elapsed > 0 to avoid division by zero)
+            if (elapsed > 0) {
+              const durationInMin = elapsed / 60;
+              const currentInput = inputRef.current?.value || '';
+              const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0;
+
+              // Calculate Net WPM live
+              const targetText = words.join(' ');
+              let correctChars = 0;
+              for (let i = 0; i < currentInput.length; i++) {
+                if (currentInput[i] === targetText[i]) correctChars++;
+              }
+              const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
+              setTelemetry(t => [...t, { sec: elapsed, wpm: currentWpm, raw: currentRaw }]);
+            }
+          },
+          () => {
+            // Timer finished
+            finishTest(inputRef.current?.value || '', performance.now());
+          }
+        );
+        countdownTimerRef.current.start();
+      }
+
+      // Create elapsed timer for words mode and telemetry
+      elapsedTimerRef.current = createElapsedTimer((elapsed) => {
+        // Update elapsed time for display
+        setElapsedTime(elapsed);
+
+        const durationInMin = elapsed / 60;
+        const currentInput = inputRef.current?.value || '';
+        const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0;
 
         // Calculate Net WPM live
-        const targetText = words.join(' ')
-        let correctChars = 0
+        const targetText = words.join(' ');
+        let correctChars = 0;
         for (let i = 0; i < currentInput.length; i++) {
           if (currentInput[i] === targetText[i]) correctChars++;
         }
         const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
-        setTelemetry(t => [...t, { sec: elapsedSec, wpm: currentWpm, raw: currentRaw }]);
-        if (testMode === 'time') {
-          setTimeLeft(prev => {
-            if (prev <= 1) {
-              finishTest(inputRef.current?.value || '', performance.now());
-              return 0;
-            }
-            return prev - 1;
-          });
+        setTelemetry(t => [...t, { sec: elapsed, wpm: currentWpm, raw: currentRaw }]);
+      });
+      elapsedTimerRef.current.start();
+
+      // Legacy interval for backward compatibility (can be removed later)
+      timerRef.current = setInterval(() => {
+        const elapsedSec = Math.round((performance.now() - startTimeRef.current) / 1000);
+        if (elapsedSec <= 0) return;
+
+        // Only update telemetry if not using new timer
+        if (testMode !== 'time' && elapsedTimerRef.current) {
+          // Already handled by elapsedTimerRef
+          return;
         }
       }, 1000);
     }
@@ -437,6 +499,7 @@ export function useEngine(testMode, testLimit) {
     wordContainerRef,
     inputRef,
     timeLeft,
+    elapsedTime,
     resetGame,
     handleInput,
     runReplay,
@@ -459,7 +522,7 @@ export function useEngine(testMode, testLimit) {
     setGhostSpeed
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, caretPos,
-    timeLeft, resetGame, handleInput, runReplay, liveWpm, pb,
+    timeLeft, elapsedTime, resetGame, handleInput, runReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
     ghostSpeed

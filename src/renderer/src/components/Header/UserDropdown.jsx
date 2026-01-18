@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, memo } from 'react'
-import { User, Wifi, Activity, LogOut, LayoutDashboard } from 'lucide-react'
+import { User, Activity, LogOut, LayoutDashboard } from 'lucide-react'
 import { AVATAR_MAP } from '../../assets/avatars'
 
-const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1, onNavigateDashboard }) => {
+const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1, onNavigateDashboard, wpm }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [tempName, setTempName] = useState('')
@@ -102,28 +102,15 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                     )}
                   </div>
                 </div>
-
-                <div 
-                  className={`dropdown-item ${!isLoggedIn ? 'clickable' : ''}`}
-                  onClick={() => !isLoggedIn && openLoginModal()}
-                >
-                  <div className="item-icon">
-                    <Wifi size={14} className={isLoggedIn ? "connected" : ""} />
+                {wpm !== undefined && (
+                  <div className="dropdown-item">
+                    <div className="item-icon"><Activity size={14} /></div>
+                    <div className="item-content">
+                      <span className="label">Typing Speed</span>
+                      <span className="status-text">{wpm} WPM</span>
+                    </div>
                   </div>
-                  <div className="item-content">
-                    <span className="label">Cloud Sync</span>
-                    <span className="status-text">{isLoggedIn ? 'Active' : 'Offline (Click to login)'}</span>
-                  </div>
-                </div>
-
-                <div className="dropdown-item">
-                  <div className="item-icon"><Activity size={14} className="pulse" /></div>
-                  <div className="item-content">
-                    <span className="label">Engine State</span>
-                    <span className="status-text">Blazing Fast</span>
-                  </div>
-                </div>
-
+                )}
                 {typeof onNavigateDashboard === 'function' && (
                   <div 
                     className="dropdown-item clickable"
@@ -132,7 +119,7 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                     <div className="item-icon"><LayoutDashboard size={14} /></div>
                     <div className="item-content">
                       <span className="label">Dashboard</span>
-                      <span className="status-text">View your stats</span>
+                      <span className="status-text">View profile & stats</span>
                     </div>
                   </div>
                 )}

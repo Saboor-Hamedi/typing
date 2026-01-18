@@ -1,15 +1,9 @@
-import { motion } from 'framer-motion'
 import { Home, Compass, AlertCircle } from 'lucide-react'
 import './NotFound.css'
 
 const NotFound = ({ activeTab, onBackHome }) => {
   return (
-    <motion.div 
-      className="not-found-container glass-panel"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className="not-found-container glass-panel">
       <div className="not-found-icon">
         <AlertCircle size={64} className="pulse-icon" />
       </div>
@@ -34,7 +28,7 @@ const NotFound = ({ activeTab, onBackHome }) => {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

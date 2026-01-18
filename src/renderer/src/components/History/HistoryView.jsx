@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import './HistoryView.css'
-import { motion, AnimatePresence } from 'framer-motion'
 import { History, ChevronDown } from 'lucide-react'
 import SessionCard from './SessionCard'
 
@@ -36,28 +35,22 @@ const HistoryView = ({ data }) => {
       </div>
 
       <div className="history-sessions-grid">
-        <AnimatePresence initial={false}>
-          {visibleData.map((item, i) => (
-            <SessionCard 
-                key={`${item.date}-${i}`} 
-                session={item} 
-                index={i} 
-            />
-          ))}
-        </AnimatePresence>
+        {visibleData.map((item, i) => (
+          <SessionCard 
+              key={`${item.date}-${i}`} 
+              session={item} 
+              index={i} 
+          />
+        ))}
       </div>
 
       {hasMore && (
-        <motion.div 
-          className="load-more-container"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
+        <div className="load-more-container">
           <button className="load-more-btn glass-btn" onClick={handleLoadMore}>
             <ChevronDown size={18} />
             <span>Load Older Sessions</span>
           </button>
-        </motion.div>
+        </div>
       )}
     </div>
   )

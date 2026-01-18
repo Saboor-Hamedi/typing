@@ -19,6 +19,8 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
     setIsChameleonEnabled,
     isKineticEnabled,
     setIsKineticEnabled,
+    isSmoothCaret,
+    setIsSmoothCaret,
     ghostSpeed,
     setGhostSpeed
   } = useSettings()
@@ -126,6 +128,24 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
                 type="checkbox" 
                 checked={isKineticEnabled} 
                 onChange={() => setIsKineticEnabled(!isKineticEnabled)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Zap size={16} />
+                <span>Smooth Caret</span>
+              </div>
+              <p className="setting-description">Enable smooth animation for the typing caret movement.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={isSmoothCaret} 
+                onChange={() => setIsSmoothCaret(!isSmoothCaret)} 
               />
               <span className="slider"></span>
             </label>

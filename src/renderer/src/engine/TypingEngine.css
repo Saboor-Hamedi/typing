@@ -5,6 +5,10 @@
   position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 
 .typing-container {
@@ -12,11 +16,25 @@
   width: 100%;
   max-width: 1000px; 
   margin: 0 auto;
-  font-size: 1.8rem;
-  max-height: 28rem;
   overflow-y: auto;
   padding: 0 0.5rem;
   transition: all 0.3s ease;
+  /* Center content when shorter than max-height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Words mode: shorter content, smaller max-height, larger font */
+.typing-container.words-mode {
+  max-height: min(50vh, 25rem);
+  font-size: 1.8rem;
+}
+
+/* Time mode: longer content, larger max-height, smaller font to prevent hiding */
+.typing-container.time-mode {
+  max-height: min(65vh, 40rem);
+  font-size: 1.4rem;
 }
 
 /* Allow expansion for results */
@@ -36,10 +54,19 @@
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 0 0; /* Avoid extra spacing beyond actual space glyph */
-  font-size: 1.8rem;
   line-height: 1.5;
   user-select: none;
-  padding: 0 0 10rem 0; /* Removed top padding to prevent startup jump */
+  padding: 1rem 0 10rem 0; /* Small top padding for visual balance */
+  min-height: fit-content;
+}
+
+/* Inherit font size from container */
+.words-mode .word-wrapper {
+  font-size: 1.8rem;
+}
+
+.time-mode .word-wrapper {
+  font-size: 1.4rem;
 }
 
 .word {

@@ -22,6 +22,7 @@ import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react'
 import Header from '../Header/Header'
 import TitleBar from '../TitleBar/TitleBar'
 import Sidebar from '../Sidebar/Sidebar'
+import ConfigBar from '../Header/ConfigBar'
 import TypingEngine from '../../engine/TypingEngine'
 import ThemeModal from '../Modals/ThemeModal'
 import LoginModal from '../Modals/LoginModal'
@@ -49,6 +50,7 @@ const NotFound = lazy(() => import('../Views/NotFound'))
 const AppLayout = ({ addToast }) => {
   const isElectron = !!window.api
   const isWeb = !isElectron
+  const [version, setVersion] = useState('0.0.0')
 
   // Get context values
   const { theme, setTheme } = useTheme()
@@ -93,6 +95,7 @@ const AppLayout = ({ addToast }) => {
     results,
     liveWpm,
     timeLeft,
+    elapsedTime,
     pb,
     isSoundEnabled,
     setIsSoundEnabled,
@@ -210,6 +213,17 @@ const AppLayout = ({ addToast }) => {
     }
   }, [isLoggedIn, isLoginModalOpen, addToast])
 
+  // Fetch version for status bar
+  useEffect(() => {
+    const fetchVersion = async () => {
+      if (window.api && window.api.getVersion) {
+        const v = await window.api.getVersion()
+        setVersion(v)
+      }
+    }
+    fetchVersion()
+  }, [])
+
   // Display value for header
   const displayValue = (() => {
     if (startTime) return testMode === 'time' ? timeLeft : liveWpm
@@ -241,21 +255,25 @@ const AppLayout = ({ addToast }) => {
       <div className="main-viewport">
         {!isOverlayActive && (
           <Header
-            activeTab={activeTab}
             testStarted={!!startTime && !isFinished}
-            isZenMode={isZenMode}
-            displayValue={displayValue}
-            pb={pb}
             username={username}
             isLoggedIn={isLoggedIn}
             setUsername={updateUsername}
-            onReload={handleReload}
-            openThemeModal={() => toggleThemeModal(true)}
             openLoginModal={() => toggleLoginModal(true)}
             onLogoutRequest={() => toggleLogoutModal(true)}
             selectedAvatarId={selectedAvatarId}
             onNavigateDashboard={() => setActiveTab('dashboard')}
+            liveWpm={liveWpm}
           />
+        )}
+
+        {/* Config Bar - Outside header, below it */}
+        {!isOverlayActive && activeTab !== 'dashboard' && !(!!startTime && !isFinished) && activeTab === 'typing' && (
+          <div className="config-bar-container">
+            <ConfigBar 
+              openThemeModal={() => toggleThemeModal(true)}
+            />
+          </div>
         )}
 
         <main className="content-area">
@@ -298,10 +316,51 @@ const AppLayout = ({ addToast }) => {
           </Suspense>
         </main>
 
-        <footer className={(!!startTime && !isFinished) && isZenMode ? 'zen-active' : ''}>
-          <div className="hint">
-            <kbd>tab</kbd> to restart |
-            <span className="kb-hint"> Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> for command palette</span>
+        <footer className="status-bar">
+          <div className="status-bar-left">
+            <div className="status-item">
+              <span className="status-label">WPM</span>
+              <span className="status-value">{(!!startTime && !isFinished) ? liveWpm : (isFinished ? results.wpm : '—')}</span>
+            </div>
+            {testMode === 'time' && (
+              <div className="status-item">
+                <span className="status-label">Time</span>
+                <span className="status-value">
+                  {(() => {
+                    const displayTime = (!!startTime && !isFinished) ? (timeLeft ?? testLimit) : testLimit
+                    return `${Math.max(0, Math.round(displayTime))}s`
+                  })()}
+                </span>
+              </div>
+            )}
+            {testMode === 'words' && (
+              <div className="status-item">
+                <span className="status-label">Time</span>
+                <span className="status-value">
+                  {(() => {
+                    if (!!startTime && !isFinished) {
+                      const mins = Math.floor(elapsedTime / 60)
+                      const secs = elapsedTime % 60
+                      if (mins > 0) {
+                        return `${mins}:${String(secs).padStart(2, '0')}`
+                      }
+                      return `${elapsedTime}s`
+                    }
+                    return '0s'
+                  })()}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="status-bar-right">
+            <div className="status-item clickable" onClick={handleReload} title="Restart test">
+              <kbd>Tab</kbd> to restart
+            </div>
+            {window.api && window.api.getVersion && (
+              <div className="status-item version-item clickable" title={`Version ${version}`}>
+                v{version}
+              </div>
+            )}
           </div>
         </footer>
       </div>

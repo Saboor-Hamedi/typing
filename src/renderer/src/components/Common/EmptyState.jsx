@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import './EmptyState.css'
 
 /**
@@ -12,22 +11,12 @@ import './EmptyState.css'
  */
 const EmptyState = ({ icon, title, description, action }) => {
   return (
-    <motion.div
-      className="empty-state-container"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className="empty-state-container">
       <div className="empty-state-content">
         {icon && (
-          <motion.div
-            className="empty-state-icon"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-          >
+          <div className="empty-state-icon">
             {icon}
-          </motion.div>
+          </div>
         )}
         
         <h2 className="empty-state-title">{title}</h2>
@@ -37,17 +26,12 @@ const EmptyState = ({ icon, title, description, action }) => {
         )}
         
         {action && (
-          <motion.div
-            className="empty-state-action"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
+          <div className="empty-state-action">
             {action}
-          </motion.div>
+          </div>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 

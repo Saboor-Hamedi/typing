@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { RotateCcw, Play } from 'lucide-react'
 import TelemetryGraph from '../Analytics/TelemetryGraph'
 import './ResultsView.css'
@@ -16,12 +15,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
   }, [onRestart])
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="results-container glass-panel"
-    >
+    <div className="results-container glass-panel">
       <div className="results-content">
         <div className="results-metrics-main">
           <div className="metric-group-large">
@@ -66,7 +60,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
           <span>Next Test</span>
         </button>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

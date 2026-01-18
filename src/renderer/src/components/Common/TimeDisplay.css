@@ -1,0 +1,24 @@
+/**
+ * TimeDisplay Styles
+ * 
+ * Purpose: Stable, no-shake styling for time display
+ * - Uses will-change for performance
+ * - Prevents layout shifts
+ * - Smooth transitions
+ */
+
+.time-display {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  will-change: contents;
+  min-width: 2.5ch;
+  text-align: right;
+  transition: none; /* No transitions to prevent shaking */
+}
+
+/* Ensure consistent width to prevent layout shifts */
+.time-display[data-seconds] {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
+  letter-spacing: 0.02em;
+}

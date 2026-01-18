@@ -56,7 +56,9 @@ export const ThemeProvider = ({ children }) => {
    */
   const changeTheme = useCallback((newTheme) => {
     if (!THEMES.AVAILABLE.includes(newTheme)) {
-      console.warn(`Invalid theme: ${newTheme}`)
+      if (import.meta.env.DEV) {
+        console.warn(`Invalid theme: ${newTheme}`)
+      }
       return false
     }
     setTheme(newTheme)

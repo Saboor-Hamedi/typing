@@ -287,40 +287,6 @@ export const SUCCESS_MESSAGES = {
   AVATAR_UNLOCKED: 'New Avatar',
 }
 
-// ============================================
-// ANIMATION VARIANTS
-// ============================================
-
-export const ANIMATIONS = {
-  // Page transition
-  PAGE_TRANSITION: {
-    initial: { opacity: 0, scale: 0.98, y: 10 },
-    animate: { opacity: 1, scale: 1, y: 0 },
-    exit: { opacity: 0, scale: 1.02, y: -10 },
-    transition: { duration: 0.3, ease: [0.19, 1, 0.22, 1] },
-  },
-  
-  // Fade in
-  FADE_IN: {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-  },
-  
-  // Slide up
-  SLIDE_UP: {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  },
-  
-  // Scale
-  SCALE: {
-    initial: { scale: 0.8, opacity: 0 },
-    animate: { scale: 1, opacity: 1 },
-    exit: { scale: 0.8, opacity: 0 },
-  },
-}
 
 // ============================================
 // ACCESSIBILITY

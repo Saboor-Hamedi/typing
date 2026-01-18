@@ -176,7 +176,9 @@ export const UserProvider = ({ children, addToast }) => {
       } else {
         addToast?.('Received unknown protocol: ' + cleanUrl.substring(0, 15), 'warning')
       }
-      console.log('Deep link received:', cleanUrl)
+      if (import.meta.env.DEV) {
+        console.log('Deep link received:', cleanUrl)
+      }
 
       // Robust token extraction using Regex (Case Insensitive)
       const accessTokenMatch = cleanUrl.match(/access_token=([^&#\s?]+)/i)
@@ -209,14 +211,18 @@ export const UserProvider = ({ children, addToast }) => {
             setUsername(name)
             setIsLoggedIn(true)
             addToast?.(`Verified: Logged in as ${name}`, 'success')
-            console.log('Login successful for:', name)
+            if (import.meta.env.DEV) {
+              console.log('Login successful for:', name)
+            }
           }
         } catch (err) {
           console.error('Deep link catch error:', err)
           addToast?.('Error syncing session', 'error')
         }
       } else {
-        console.warn('No tokens found in URL:', cleanUrl)
+        if (import.meta.env.DEV) {
+          console.warn('No tokens found in URL:', cleanUrl)
+        }
         addToast?.('No login tokens detected in link', 'warning')
       }
     })

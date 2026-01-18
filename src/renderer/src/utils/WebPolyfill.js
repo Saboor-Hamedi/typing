@@ -4,7 +4,9 @@
 export const initWebPolyfill = () => {
   if (window.api) return; // Electron is present, do nothing
 
-  console.log('🌐 Applying Web Polyfill for Browser Environment');
+  if (import.meta.env.DEV) {
+    console.log('🌐 Applying Web Polyfill for Browser Environment');
+  }
 
   const getStorage = (key, defaultVal) => {
     try {
