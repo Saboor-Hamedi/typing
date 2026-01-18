@@ -41,19 +41,19 @@ const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
           status = chunk[i] === letter ? 'correct' : 'incorrect'
         }
         return (
-          <Letter 
-            key={i} 
+          <Letter
+            key={i}
             id={`char-${charIndex}`}
-            char={letter} 
-            status={status} 
+            char={letter}
+            status={status}
             active={isCurrent && chunk.length === i}
           />
         )
       })}
-      <Letter 
+      <Letter
         id={`char-${startIndex + word.length}`}
-        char={' '} 
-        status={chunk.length > word.length ? 
+        char={' '}
+        status={chunk.length > word.length ?
           (chunk[word.length] === ' ' ? 'correct' : 'incorrect') : ''}
         active={isCurrent && chunk.length === word.length}
       />
@@ -92,24 +92,24 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     const focusTimer = setTimeout(() => {
       inputRef.current?.focus()
     }, 100)
-    
+
     // Also focus when the window regained focus
     const handleWindowFocus = () => {
       if (!isOverlayActive) inputRef.current?.focus()
     }
     window.addEventListener('focus', handleWindowFocus)
-    
+
     // Robust focus: if any key is pressed and not in an input, focus the typing input
     const handleGlobalKeyDown = (e) => {
       if (isOverlayActive) return // Don't steal focus if modal is open
 
       // Don't intercept if user is trying to use command palette or other shortcuts
       if (e.ctrlKey || e.metaKey || e.altKey) return
-      
+
       // If we're not focused on the input, and it's a typing key, focus it
       const active = document.activeElement
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
-      
+
       if (active !== inputRef.current && !isInput) {
         // Simple check for "printable" characters or start typing
         if (e.key.length === 1 || e.key === 'Backspace') {
@@ -126,16 +126,28 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     }
   }, [testMode, testLimit, words, isFinished, isOverlayActive])
 
+  // --- FIX: Place invisible char--1 span absolutely at the left of the first letter ---
+  // Find the first word's first letter span after render and align char--1 to its left/top
+  // This ensures caret is visually before the first letter, not at (0,0)
+  useEffect(() => {
+    const firstLetter = document.getElementById('char-0');
+    const startSpan = document.getElementById('char--1');
+    if (firstLetter && startSpan) {
+      startSpan.style.left = firstLetter.offsetLeft + 'px';
+      startSpan.style.top = firstLetter.offsetTop + 'px';
+    }
+  }, [words]);
+
   return (
-    <div 
-      className="typing-canvas" 
+    <div
+      className="typing-canvas"
       onClick={() => {
         if (!isOverlayActive) inputRef.current?.focus()
       }}
     >
-      <input 
+      <input
         ref={inputRef}
-        type="text" 
+        type="text"
         className="hidden-input"
         value={userInput}
         onChange={handleInput}
@@ -147,10 +159,10 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         {!isFinished ? (
           <>
             {isGhostEnabled && startTime && !isFinished && (
-               <motion.div 
+               <motion.div
                  className={`caret ghost blinking ${isTyping ? 'typing' : ''}`}
                  animate={{ x: ghostPos.left, y: ghostPos.top }}
-                  transition={{ 
+                  transition={{
                     type: 'spring',
                     stiffness: 700,
                     damping: 30
@@ -158,13 +170,13 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
                  style={{ opacity: 0.2, background: 'var(--sub-color)', left: 0, top: 0 }}
                />
             )}
-            <motion.div 
+            <motion.div
               className={`caret blinking ${isTyping ? 'typing' : ''}`}
               initial={{ opacity: 0 }}
-              animate={{ 
-                x: caretPos.left, 
+              animate={{
+                x: caretPos.left,
                 y: caretPos.top,
-                opacity: 1 
+                opacity: 1
               }}
               transition={smoothCaretEnabled ? {
                 type: 'spring',
@@ -172,18 +184,19 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
                 damping: UI.CARET_DAMPING_SMOOTH,
                 mass: UI.CARET_MASS_SMOOTH,
                 restDelta: 0.01
-              } : { 
-                duration: 0 
+              } : {
+                duration: 0
               }}
               style={{ left: 0, top: 0 }}
             />
             <div className="word-wrapper">
+              <span id="char--1" style={{position: 'absolute', left: 0, top: 0, width: 0, height: 0, pointerEvents: 'none'}} />
               {words.map((word, i) => {
                 const startIndex = words.slice(0, i).join(' ').length + (i > 0 ? 1 : 0)
-                const isCurrent = userInput.length >= startIndex && userInput.length <= startIndex + word.length
+                const isCurrent = userInput.length >= startIndex && userInput.length <= startIndex + word.length + 1
                 const chunk = userInput.slice(startIndex, startIndex + word.length + 1)
                 return (
-                  <Word 
+                  <Word
                     key={i}
                     word={word}
                     chunk={chunk}
@@ -195,7 +208,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
             </div>
           </>
         ) : (
-          <ResultsView 
+          <ResultsView
             results={results}
             telemetry={telemetry}
             testMode={testMode}
