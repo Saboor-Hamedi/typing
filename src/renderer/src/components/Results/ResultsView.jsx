@@ -1,9 +1,56 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { RotateCcw, Play } from 'lucide-react'
 import TelemetryGraph from '../Analytics/TelemetryGraph'
 import './ResultsView.css'
 
 const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onReplay }) => {
+  // Calculate additional statistics
+  const stats = useMemo(() => {
+    if (!telemetry || telemetry.length === 0) {
+      return {
+        consistency: 0,
+        bestSecond: 0,
+        worstSecond: 0,
+        averageWpm: 0
+      }
+    }
+
+    const wpmValues = telemetry.map(t => t.wpm).filter(w => w > 0)
+    if (wpmValues.length === 0) {
+      return {
+        consistency: 0,
+        bestSecond: 0,
+        worstSecond: 0,
+        averageWpm: 0
+      }
+    }
+
+    const averageWpm = Math.round(wpmValues.reduce((a, b) => a + b, 0) / wpmValues.length)
+    const bestSecond = Math.max(...wpmValues)
+    const worstSecond = Math.min(...wpmValues)
+    
+    // Consistency: standard deviation as percentage of average
+    const variance = wpmValues.reduce((acc, wpm) => acc + Math.pow(wpm - averageWpm, 2), 0) / wpmValues.length
+    const stdDev = Math.sqrt(variance)
+    const consistency = averageWpm > 0 ? Math.max(0, Math.round(100 - (stdDev / averageWpm) * 100)) : 0
+
+    return {
+      consistency,
+      bestSecond,
+      worstSecond,
+      averageWpm
+    }
+  }, [telemetry])
+
+  // Screen reader announcement
+  useEffect(() => {
+    const announcement = `Test completed. ${results.wpm} words per minute, ${results.accuracy}% accuracy, ${results.errors} errors.`
+    const announcer = document.getElementById('sr-announcer')
+    if (announcer) {
+      announcer.textContent = announcement
+    }
+  }, [results])
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Enter' || e.key === 'Escape') {
@@ -47,6 +94,22 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
             <span className="label">errors</span>
             <span className="val error">{results.errors}</span>
           </div>
+          {stats.consistency > 0 && (
+            <>
+              <div className="stat-pill">
+                <span className="label">consistency</span>
+                <span className="val">{stats.consistency}%</span>
+              </div>
+              <div className="stat-pill">
+                <span className="label">best</span>
+                <span className="val">{stats.bestSecond} wpm</span>
+              </div>
+              <div className="stat-pill">
+                <span className="label">avg</span>
+                <span className="val">{stats.averageWpm} wpm</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
       

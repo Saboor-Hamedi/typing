@@ -34,7 +34,7 @@ import { useTheme, useSettings, useUser } from '../../contexts'
 import { soundEngine } from '../../utils/SoundEngine'
 import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
-import { LoadingSpinner } from '../Common'
+import { LoadingSpinner, KeyboardShortcutsModal } from '../Common'
 
 // Lazy load views for code splitting
 const HistoryView = lazy(() => import('../History/HistoryView'))
@@ -86,6 +86,7 @@ const AppLayout = ({ addToast }) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false)
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false)
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false)
 
   // Engine hook
   const engine = useEngine(testMode, testLimit)
@@ -224,15 +225,57 @@ const AppLayout = ({ addToast }) => {
     fetchVersion()
   }, [])
 
+  // Detect if any modal/overlay is currently active
+  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't intercept if user is typing in an input/textarea
+      const active = document.activeElement
+      const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
+      if (isInput && active.type !== 'text' && active.type !== 'password') return
+
+      // Don't intercept if a modal is open (except shortcuts modal)
+      if (isOverlayActive && !isShortcutsModalOpen) return
+
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey
+
+      // Ctrl/Cmd + R: Restart test
+      if (ctrlKey && e.key === 'r' && !e.shiftKey) {
+        e.preventDefault()
+        if (engine.resetGame) {
+          engine.resetGame()
+        }
+        return
+      }
+
+      // Ctrl/Cmd + ,: Open settings
+      if (ctrlKey && e.key === ',') {
+        e.preventDefault()
+        setActiveTab('settings')
+        return
+      }
+
+      // ?: Show keyboard shortcuts
+      if (e.key === '?' && !isInput) {
+        e.preventDefault()
+        setIsShortcutsModalOpen(true)
+        return
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOverlayActive, isShortcutsModalOpen, engine])
+
   // Display value for header
   const displayValue = (() => {
     if (startTime) return testMode === 'time' ? timeLeft : liveWpm
     if (isFinished) return results.wpm
     return testMode === 'time' ? testLimit : '—'
   })()
-
-  // Detect if any modal/overlay is currently active
-  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen
 
   return (
     <div 
@@ -404,6 +447,11 @@ const AppLayout = ({ addToast }) => {
         title="Delete Account"
         message="This will delete your cloud account, email, profile, and scores permanently. This action cannot be undone."
         confirmText="Delete Account"
+      />
+
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
       />
     </div>
   )

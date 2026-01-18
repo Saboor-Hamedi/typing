@@ -1,74 +1,119 @@
 /**
- * TypingEngine
+ * TypingEngine Component
  *
- * Purpose:
- * - Interactive typing surface: renders words/letters, caret(s), captures input, and shows results.
+ * Interactive typing surface that renders words/letters, caret(s), captures input, and shows results.
  *
- * Key Mechanics:
- * - Hidden input field receives keystrokes; focus is auto-managed (window focus + keydown guards).
- * - Letters are rendered as addressable spans (`#char-{index}`) to compute caret coordinates.
- * - Caret animation uses Framer Motion:
- *   - Smooth mode: spring params defined in UI constants for buttery motion.
- *   - Instant mode: `duration: 0` to avoid bounce or lag.
- * - Ghost caret (optional) replays PB pace for racing, with reduced opacity.
- * - GPU Hint: `.caret` uses `will-change` to improve transform/opacity performance.
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.engine - Engine state and actions from useEngine hook
+ * @param {string[]} props.engine.words - Array of words to type
+ * @param {string} props.engine.userInput - Current user input
+ * @param {boolean} props.engine.isFinished - Whether the test is finished
+ * @param {boolean} props.engine.isReplaying - Whether replay is active
+ * @param {Object} props.engine.results - Test results (wpm, accuracy, errors)
+ * @param {Object} props.engine.caretPos - Caret position {left, top}
+ * @param {React.RefObject} props.engine.wordContainerRef - Ref to word container
+ * @param {React.RefObject} props.engine.inputRef - Ref to hidden input
+ * @param {Function} props.engine.resetGame - Function to reset the game
+ * @param {Function} props.engine.handleInput - Function to handle input changes
+ * @param {Function} props.engine.runReplay - Function to run replay
+ * @param {Array} props.engine.telemetry - Telemetry data array
+ * @param {boolean} props.engine.isGhostEnabled - Whether ghost caret is enabled
+ * @param {Object} props.engine.ghostPos - Ghost caret position {left, top}
+ * @param {boolean} props.engine.isTyping - Whether user is currently typing
+ * @param {number|null} props.engine.startTime - Test start timestamp
+ * @param {string} props.testMode - Test mode: 'time' or 'words'
+ * @param {number} props.testLimit - Test limit (seconds or word count)
+ * @param {boolean} [props.isSmoothCaret] - Enable smooth caret animation (optional)
+ * @param {boolean} [props.isOverlayActive] - Whether a modal/overlay is active (optional)
  *
- * Props:
- * - `engine`: reactive state/actions from `useEngine` (positions, results, telemetry, etc.).
- * - `isSmoothCaret`: UX toggle; also read from Settings context as a safe fallback.
- * - `isOverlayActive`: disables focus stealing when modals are open.
+ * @example
+ * ```jsx
+ * <TypingEngine
+ *   engine={engineState}
+ *   testMode="words"
+ *   testLimit={25}
+ *   isOverlayActive={false}
+ * />
+ * ```
  */
-import { useRef, memo, useEffect } from 'react'
+import { memo, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useSettings } from '../contexts'
 import { UI } from '../constants'
 import ResultsView from '../components/Results/ResultsView'
 import './TypingEngine.css'
 
+/**
+ * Letter Component
+ * Renders a single character with visual feedback for typing status
+ * @param {Object} props - Component props
+ * @param {string} props.char - The character to display
+ * @param {string} props.status - Status: 'correct', 'incorrect', or ''
+ * @param {boolean} props.active - Whether this is the active caret position
+ * @param {string} props.id - Unique DOM ID for caret positioning
+ */
 const Letter = memo(({ char, status, active, id }) => (
-  <span id={id} className={`letter ${status} ${active ? 'active' : ''}`}>
+  <span id={id} className={`letter ${status} ${active ? 'active' : ''}`} aria-label={active ? 'Current typing position' : undefined}>
     {char}
   </span>
 ))
+Letter.displayName = 'Letter'
 
+/**
+ * Word Component
+ * Renders a word with individual letter feedback and space character
+ * @param {Object} props - Component props
+ * @param {string} props.word - The target word to display
+ * @param {string} props.chunk - User input for this word (may include trailing space)
+ * @param {boolean} props.isCurrent - Whether this is the currently active word
+ * @param {number} props.startIndex - Starting character index in the full text
+ */
 const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
+  // Memoize letter statuses to avoid recalculation
+  const letterStatuses = useMemo(() => {
+    return word.split('').map((letter, i) => {
+      let status = ''
+      if (i < chunk.length && i < word.length) {
+        status = chunk[i] === letter ? 'correct' : 'incorrect'
+      }
+      return { letter, status, charIndex: startIndex + i, isActive: isCurrent && chunk.length === i }
+    })
+  }, [word, chunk, isCurrent, startIndex])
+
+  // Memoize space status
+  const spaceStatus = useMemo(() => {
+    if (chunk.length > word.length) {
+      return chunk[word.length] === ' ' ? 'correct' : 'incorrect'
+    }
+    return ''
+  }, [chunk, word.length])
+
+  const isSpaceActive = useMemo(() => {
+    return isCurrent && chunk.length === word.length + 1 && chunk[word.length] === ' '
+  }, [isCurrent, chunk.length, word.length, chunk])
+
   return (
-    <div className={`word ${isCurrent ? 'current' : ''}`}>
-      {word.split('').map((letter, i) => {
-        const charIndex = startIndex + i
-        let status = ''
-        // Only mark as correct/incorrect if user has typed this character
-        // Make sure we're comparing within the word bounds (not including the space)
-        if (i < chunk.length && i < word.length) {
-          const chunkChar = chunk[i]
-          const targetChar = letter
-          // Direct character comparison
-          if (chunkChar === targetChar) {
-            status = 'correct'
-          } else {
-            status = 'incorrect'
-          }
-        }
-        return (
-          <Letter
-            key={i}
-            id={`char-${charIndex}`}
-            char={letter}
-            status={status}
-            active={isCurrent && chunk.length === i}
-          />
-        )
-      })}
+    <div className={`word ${isCurrent ? 'current' : ''}`} role="text" aria-label={isCurrent ? `Current word: ${word}` : undefined}>
+      {letterStatuses.map(({ letter, status, charIndex, isActive }, i) => (
+        <Letter
+          key={i}
+          id={`char-${charIndex}`}
+          char={letter}
+          status={status}
+          active={isActive}
+        />
+      ))}
       <Letter
         id={`char-${startIndex + word.length}`}
         char={' '}
-        status={chunk.length > word.length ?
-          (chunk[word.length] === ' ' ? 'correct' : 'incorrect') : ''}
-        active={isCurrent && chunk.length === word.length + 1 && chunk[word.length] === ' '}
+        status={spaceStatus}
+        active={isSpaceActive}
       />
     </div>
   )
 })
+Word.displayName = 'Word'
 
 const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayActive }) => {
   // Fallback to context in case prop wiring fails
@@ -88,7 +133,6 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     runReplay,
     telemetry,
     isGhostEnabled,
-    setIsGhostEnabled,
     ghostPos,
     isTyping,
     startTime
@@ -162,9 +206,18 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         onChange={handleInput}
         disabled={isReplaying}
         autoFocus
+        aria-label="Typing input field"
+        aria-live="polite"
+        aria-atomic="true"
       />
 
-      <div className={`typing-container ${testMode === 'time' ? 'time-mode' : 'words-mode'}`} ref={wordContainerRef}>
+      <div
+        className={`typing-container ${testMode === 'time' ? 'time-mode' : 'words-mode'}`}
+        ref={wordContainerRef}
+        role="textbox"
+        aria-label={`Typing test: ${testMode} mode, ${testLimit} ${testMode === 'time' ? 'seconds' : 'words'}`}
+        aria-live="polite"
+      >
         {!isFinished ? (
           <>
             {isGhostEnabled && startTime && !isFinished && (
@@ -192,7 +245,8 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
                 stiffness: UI.CARET_STIFFNESS_SMOOTH,
                 damping: UI.CARET_DAMPING_SMOOTH,
                 mass: UI.CARET_MASS_SMOOTH,
-                restDelta: 0.01
+                restDelta: 0.005, // Finer precision for smoother settling
+                velocity: 0 // Start from rest for smoother initial movement
               } : {
                 duration: 0
               }}

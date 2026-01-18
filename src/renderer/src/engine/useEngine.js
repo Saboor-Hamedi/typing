@@ -1,21 +1,37 @@
 /**
- * useEngine
+ * useEngine Hook
  *
- * Purpose:
- * - Core typing game state machine and telemetry pipeline.
+ * Core typing game state machine and telemetry pipeline.
+ * Manages typing state, word generation, input handling, timing, results calculation, and caret positioning.
  *
- * State & Persistence:
- * - Tracks words, userInput, timings, caretPos, PB, history, telemetry.
- * - Loads/saves PB and history via Electron stores (`data`), and feature toggles via `settings`.
- * - Saves each finished test to local history and inserts to Supabase when logged in.
+ * @param {string} testMode - Test mode: 'time' or 'words'
+ * @param {number} testLimit - Test limit (seconds for time mode, word count for words mode)
+ * @returns {Object} Engine state and actions
+ * @returns {string[]} returns.words - Array of words to type
+ * @returns {string} returns.userInput - Current user input
+ * @returns {number|null} returns.startTime - Test start timestamp
+ * @returns {boolean} returns.isFinished - Whether the test is finished
+ * @returns {boolean} returns.isReplaying - Whether replay is active
+ * @returns {Object} returns.results - Test results {wpm, rawWpm, accuracy, errors}
+ * @returns {Array} returns.keystrokes - Keystroke history
+ * @returns {Array} returns.testHistory - Test history array
+ * @returns {Object} returns.caretPos - Caret position {left, top}
+ * @returns {number} returns.pb - Personal best WPM
+ * @returns {Array} returns.telemetry - Telemetry data array
+ * @returns {React.RefObject} returns.wordContainerRef - Ref to word container
+ * @returns {React.RefObject} returns.inputRef - Ref to hidden input
+ * @returns {Function} returns.resetGame - Function to reset the game
+ * @returns {Function} returns.handleInput - Function to handle input changes
+ * @returns {Function} returns.runReplay - Function to run replay
+ * @returns {Function} returns.clearAllData - Function to clear all data
+ * @returns {number} returns.timeLeft - Remaining time (for time mode)
+ * @returns {number} returns.elapsedTime - Elapsed time (for words mode)
  *
- * Caret & Scrolling:
- * - Computes caret coordinates by measuring active letter spans.
- * - Maintains a "horizon" scroll (≈40% of container height) when changing lines.
- * - When the current target is a space, caret snaps to the previous glyph edge to avoid a visible gap.
- *
- * Returns:
- * - A memoized bag with reactive fields and actions consumed by TypingEngine and UI.
+ * @example
+ * ```jsx
+ * const engine = useEngine('words', 25)
+ * // Use engine.words, engine.userInput, engine.handleInput, etc.
+ * ```
  */
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
 import { generateWords } from '../utils/words';
@@ -24,6 +40,7 @@ import { supabase } from '../utils/supabase';
 import { useGhostRacing } from '../hooks/useGhostRacing';
 import { useSettings } from '../contexts';
 import { createCountdownTimer, createElapsedTimer } from '../utils/timer';
+import { CircularBuffer } from '../utils/helpers';
 
 export function useEngine(testMode, testLimit) {
   const [words, setWords] = useState([]);
@@ -37,6 +54,7 @@ export function useEngine(testMode, testLimit) {
   const [caretPos, setCaretPos] = useState({ left: 0, top: 0 });
   const [pb, setPb] = useState(0);
   const [telemetry, setTelemetry] = useState([]);
+  const telemetryBufferRef = useRef(new CircularBuffer(50)); // Optimized circular buffer
   const wordContainerRef = useRef(null);
   const inputRef = useRef(null);
   const startTimeRef = useRef(null);
@@ -109,71 +127,113 @@ export function useEngine(testMode, testLimit) {
       elapsedTimerRef.current = null;
     }
   }, []);
+  /**
+   * Finishes the typing test and calculates results
+   * @param {string} finalInput - Final user input
+   * @param {number} endTime - End timestamp
+   */
   const finishTest = useCallback(async (finalInput, endTime) => {
-    stopTimer();
-    const finalStartTime = startTimeRef.current || startTime;
-    const durationInMinutes = (endTime - finalStartTime) / 60000;
-    const targetText = words.join(' ');
-    let correctChars = 0;
-    let errors = 0;
-    for (let i = 0; i < finalInput.length; i++) {
-      if (finalInput[i] === targetText[i]) {
-        correctChars++;
-      } else {
-        errors++;
-      }
-    }
-    const wpm = Math.max(0, Math.round((correctChars / 5) / durationInMinutes));
-    const rawWpm = Math.max(0, Math.round((finalInput.length / 5) / durationInMinutes));
-    const accuracy = finalInput.length > 0 ? Math.round((correctChars / finalInput.length) * 100) : 100;
-    setResults({ wpm, rawWpm, accuracy, errors });
-    setIsFinished(true);
-    if (window.api && window.api.data) {
-      const currentPb = await window.api.data.get('pb') || 0;
-      if (wpm > currentPb) {
-        window.api.data.set('pb', wpm);
-        setPb(wpm);
-      }
-      const currentHistory = await window.api.data.get('history') || [];
-      const newEntry = { wpm, accuracy, mode: testMode, limit: testLimit, date: new Date().toISOString() };
-      const updatedHistory = [newEntry, ...currentHistory].slice(0, 50);
-      window.api.data.set('history', updatedHistory);
-      setTestHistory(updatedHistory);
-    }
-    // Sync to cloud (works offline - will sync when online)
-    // This is non-blocking and won't affect the test experience
     try {
-      // Check if online before attempting sync
-      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      stopTimer();
+      const finalStartTime = startTimeRef.current || startTime;
 
-      if (isOnline) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const payload = {
-            user_id: session.user.id,
-            wpm,
-            accuracy,
-            mode: testMode,
-            test_limit: testLimit,
-          };
-          let insertError = null;
-          const { error } = await supabase.from('scores').insert(payload);
-          insertError = error;
-          if (insertError) {
-            // Fallback with different mode format
-            await supabase.from('scores').insert({
+      if (!finalStartTime || endTime <= finalStartTime) {
+        console.warn('Invalid timing data, using fallback');
+        return;
+      }
+
+      const durationInMinutes = (endTime - finalStartTime) / 60000;
+      const targetText = words.join(' ');
+      let correctChars = 0;
+      let errors = 0;
+
+      for (let i = 0; i < finalInput.length; i++) {
+        if (finalInput[i] === targetText[i]) {
+          correctChars++;
+        } else {
+          errors++;
+        }
+      }
+
+      const wpm = Math.max(0, Math.round((correctChars / 5) / durationInMinutes));
+      const rawWpm = Math.max(0, Math.round((finalInput.length / 5) / durationInMinutes));
+      const accuracy = finalInput.length > 0 ? Math.round((correctChars / finalInput.length) * 100) : 100;
+
+      setResults({ wpm, rawWpm, accuracy, errors });
+      setIsFinished(true);
+
+      // Save to local storage
+      if (window.api && window.api.data) {
+        try {
+          const currentPb = (await window.api.data.get('pb')) || 0;
+          if (wpm > currentPb) {
+            await window.api.data.set('pb', wpm);
+            setPb(wpm);
+          }
+          const currentHistory = (await window.api.data.get('history')) || [];
+          const newEntry = { wpm, accuracy, mode: testMode, limit: testLimit, date: new Date().toISOString() };
+          const updatedHistory = [newEntry, ...currentHistory].slice(0, 50);
+          await window.api.data.set('history', updatedHistory);
+          setTestHistory(updatedHistory);
+        } catch (storageError) {
+          console.error('Failed to save test results locally:', storageError);
+          // Continue - results are still displayed
+        }
+      }
+
+      // Sync to cloud (non-blocking, works offline)
+      try {
+        const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+        if (isOnline) {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+          if (sessionError) {
+            if (import.meta.env.DEV) {
+              console.warn('Session check failed:', sessionError);
+            }
+            return; // Exit early if session check fails
+          }
+
+          if (session?.user) {
+            const payload = {
               user_id: session.user.id,
               wpm,
               accuracy,
-              mode: `${testMode} ${testLimit}`,
-            });
+              mode: testMode,
+              test_limit: testLimit,
+            };
+
+            const { error: insertError } = await supabase.from('scores').insert(payload);
+
+            if (insertError) {
+              // Fallback with different mode format
+              const fallbackPayload = {
+                user_id: session.user.id,
+                wpm,
+                accuracy,
+                mode: `${testMode} ${testLimit}`,
+              };
+              const { error: fallbackError } = await supabase.from('scores').insert(fallbackPayload);
+
+              if (fallbackError && import.meta.env.DEV) {
+                console.warn('Failed to sync score to cloud:', fallbackError);
+              }
+            }
           }
         }
+        // If offline, data is already saved locally - will sync when online
+      } catch (syncError) {
+        // Silently fail - data is already saved locally
+        // User experience is not affected
+        if (import.meta.env.DEV) {
+          console.warn('Cloud sync failed (non-critical):', syncError);
+        }
       }
-      // If offline, data is already saved locally - will sync when online
-    } catch {
-      // Silently fail - data is already saved locally
-      // User experience is not affected
+    } catch (error) {
+      console.error('Error finishing test:', error);
+      // Still mark as finished and show results even if calculation fails
+      setIsFinished(true);
     }
   }, [startTime, words, stopTimer, testMode, testLimit]);
   const clearAllData = useCallback(async () => {
@@ -207,6 +267,7 @@ export function useEngine(testMode, testLimit) {
     setIsFinished(false);
     setIsReplaying(false);
     setKeystrokes([]);
+    telemetryBufferRef.current.clear();
     setTelemetry([]);
     setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0 });
     setIsTyping(false);
@@ -277,7 +338,9 @@ export function useEngine(testMode, testLimit) {
                 if (currentInput[i] === targetText[i]) correctChars++;
               }
               const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
-              setTelemetry(t => [...t, { sec: elapsed, wpm: currentWpm, raw: currentRaw }]);
+              // Use circular buffer for efficient telemetry updates
+              telemetryBufferRef.current.push({ sec: elapsed, wpm: currentWpm, raw: currentRaw });
+              setTelemetry(telemetryBufferRef.current.toArray());
             }
           },
           () => {
@@ -304,7 +367,9 @@ export function useEngine(testMode, testLimit) {
           if (currentInput[i] === targetText[i]) correctChars++;
         }
         const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
-        setTelemetry(t => [...t, { sec: elapsed, wpm: currentWpm, raw: currentRaw }]);
+        // Use circular buffer for efficient telemetry updates
+        telemetryBufferRef.current.push({ sec: elapsed, wpm: currentWpm, raw: currentRaw });
+        setTelemetry(telemetryBufferRef.current.toArray());
       });
       elapsedTimerRef.current.start();
 

@@ -2,6 +2,20 @@ import { memo } from 'react'
 import { Palette, Clock, Type, Eye, EyeOff } from 'lucide-react'
 import { useTheme, useSettings } from '../../contexts'
 
+/**
+ * ConfigBar Component
+ * 
+ * Configuration bar for test settings: theme, mode (time/words), limits, and zen mode.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.openThemeModal - Function to open the theme selection modal
+ * 
+ * @example
+ * ```jsx
+ * <ConfigBar openThemeModal={() => setThemeModalOpen(true)} />
+ * ```
+ */
 const ConfigBar = memo(({ openThemeModal }) => {
   const { theme } = useTheme()
   const { 
@@ -27,7 +41,6 @@ const ConfigBar = memo(({ openThemeModal }) => {
         <button 
           onClick={() => setTestMode('time')}
           className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
-          aria-label="Time mode"
         >
           <Clock size={16} />
           <span>time</span>
@@ -35,7 +48,6 @@ const ConfigBar = memo(({ openThemeModal }) => {
         <button 
           onClick={() => setTestMode('words')}
           className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
-          aria-label="Words mode"
         >
           <Type size={16} />
           <span>words</span>
@@ -46,12 +58,11 @@ const ConfigBar = memo(({ openThemeModal }) => {
 
       {/* Limit Selector */}
       <div className="config-group limit-options">
-        {(testMode === 'time' ? [15, 30, 60, 120] : [10, 25, 50, 100]).map(v => (
+        {(testMode === 'time' ? [15, 30, 60] : [10, 25, 50]).map(v => (
           <button 
             key={v} 
             onClick={() => setTestLimit(v)}
             className={`config-btn ${testLimit === v ? 'active' : ''}`}
-            aria-label={`Set limit to ${v}`}
           >
             {v}
           </button>
@@ -64,15 +75,6 @@ const ConfigBar = memo(({ openThemeModal }) => {
       <div 
         className={`zen-box ${isZenMode ? 'active' : ''}`}
         onClick={() => setIsZenMode(!isZenMode)}
-        role="button"
-        aria-label={`${isZenMode ? 'Disable' : 'Enable'} zen mode`}
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            setIsZenMode(!isZenMode)
-          }
-        }}
       >
         {isZenMode ? <EyeOff size={16} /> : <Eye size={16} />}
         <span>zen</span>

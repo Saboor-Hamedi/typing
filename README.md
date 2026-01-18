@@ -1,88 +1,78 @@
-# ⚡ TypingZone
+# TypingZone
 
-**TypingZone** is a next-generation, high-performance typing speed trainer built with **Electron** and **React**. Designed for enthusiasts who demand aesthetics, responsiveness, and deep analytics.
+A minimalistic, high-performance typing application built with Electron and React.
 
-## ✨ Key Features
+## Features
 
-### 🎨 Immersive Visuals
+- **Fast & Clean Interface**: Minimalistic design focused on typing performance
+- **Multiple Test Modes**: Time-based (15s, 30s, 60s, 120s) and word-based (10, 25, 50 words)
+- **Real-time Feedback**: Visual feedback for correct/incorrect characters
+- **Smooth Caret Animation**: Configurable smooth or instant caret movement
+- **Zen Mode**: Distraction-free typing experience
+- **Cloud Sync**: Sync scores and progress with Supabase (optional)
+- **Local-First**: Works offline, syncs when online
+- **Accessibility**: Full keyboard navigation and screen reader support
 
-- **Chameleon Flow**: The UI color dynamically "heats up" from your theme's base color to a blazing hot red as you approach your Personal Best (PB).
-- **Zen Mode**: Toggle a distraction-free environment that fades out everything except the active word.
-- **Theme System**: Includes curated themes like **Carbon**, **Nord**, **Dracula**, **Serika Blue**, **Matrix**, and **Lavender**.
-
-### 🎮 Gamified Mechanics
-
-- **Ghost Caret**: Race against a visual "ghost" replay of your Personal Best speed in real-time.
-- **Hall Effect Audio**: Toggle high-fidelity mechanical switch sounds with an optional "Hall Reverb" for a spacious, satisfying clack.
-
-### 📊 Deep Analytics
-
-- **Telemetry Graphs**: Real-time visual plotting of your WPM throughout the test duration.
-- **Kinetic Heatmaps**: Track finger-specific bottlenecks and transition speeds (Coming Soon).
-- **Comprehensive Stats**: Tracks WPM, Raw WPM, Accuracy, Consistency, and Error History.
-
-### 💾 Robust Architecture
-
-- **Dual-Layer Persistence**: Settings and User Data are logically separated into `settings.json` and `data.json`.
-- **Zero-Flash Load**: State-of-the-art synchronous theme caching ensures your preferred theme loads instantly on startup—no white flashes.
-
----
-
-## 🛠️ Technology Stack
-
-- **Core**: Electron, React 19, Node.js
-- **Styling**: Vanilla CSS (Variables & Glassmorphism), Framer Motion
-- **State & Storage**: React Hooks, Electron-Store, LocalStorage sync
-- **Icons**: Lucide React
-
----
-
-## 🚀 Getting Started
+## Development
 
 ### Prerequisites
 
-- Node.js (v18+)
+- Node.js 18+
 - npm or yarn
 
-### Installation
+### Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/Saboor-Hamedi/TypingZone.git
-
-# Navigate to project
-cd TypingZone
-
 # Install dependencies
 npm install
-```
 
-### Running Locally
-
-```bash
-# Start development server (Hot Reload enabled)
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Build for specific platform
+npm run build:win    # Windows
+npm run build:mac    # macOS
+npm run build:linux  # Linux
 ```
 
-### Building for Production
+## Project Structure
+
+```
+src/
+├── main/           # Electron main process
+├── preload/        # Preload scripts (bridge)
+└── renderer/       # React application
+    ├── components/ # React components
+    ├── contexts/   # React contexts (Theme, Settings, User)
+    ├── engine/    # Typing engine (useEngine, TypingEngine)
+    ├── hooks/     # Custom React hooks
+    ├── utils/     # Utility functions
+    └── assets/     # Static assets
+```
+
+## Key Components
+
+- **TypingEngine**: Main typing interface component
+- **useEngine**: Core typing logic hook
+- **AppLayout**: Main application layout orchestrator
+- **ConfigBar**: Test configuration controls
+- **UserDropdown**: User profile and account management
+
+## Testing
 
 ```bash
-# Build for Windows
-npm run build:win
-
-# Build for macOS
-npm run build:mac
-
-# Build for Linux
-npm run build:linux
+# Run tests (when implemented)
+npm test
 ```
 
-## 📄 License
+## Documentation
 
-Distributed under the MIT License. See `LICENSE` for more information.
+- Component documentation is available via JSDoc comments
+- Run `npm run build` to generate type definitions (if using TypeScript)
 
----
+## License
 
-<p align="center">
-  Built with ❤️ by <a href="https://github.com/Saboor-Hamedi">Saboor Hamedi</a>
-</p>
+MIT

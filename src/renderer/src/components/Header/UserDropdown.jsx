@@ -2,6 +2,33 @@ import { useState, useEffect, useRef, memo } from 'react'
 import { User, Activity, LogOut, LayoutDashboard } from 'lucide-react'
 import { AVATAR_MAP } from '../../assets/avatars'
 
+/**
+ * UserDropdown Component
+ * 
+ * User profile dropdown menu with account info, typing speed, and navigation options.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.username - Current username
+ * @param {boolean} props.isLoggedIn - Whether user is logged in
+ * @param {Function} props.setUsername - Function to update username
+ * @param {Function} props.openLoginModal - Function to open login modal
+ * @param {Function} props.onLogoutRequest - Function to handle logout
+ * @param {number} [props.selectedAvatarId=1] - Selected avatar ID
+ * @param {Function} [props.onNavigateDashboard] - Function to navigate to dashboard
+ * @param {number} [props.wpm] - Current typing speed in WPM
+ * 
+ * @example
+ * ```jsx
+ * <UserDropdown 
+ *   username="John" 
+ *   isLoggedIn={true}
+ *   setUsername={setUsername}
+ *   onLogoutRequest={handleLogout}
+ *   wpm={75}
+ * />
+ * ```
+ */
 const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1, onNavigateDashboard, wpm }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -39,20 +66,24 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
 
   return (
     <div className="dropdown-container" ref={dropdownRef}>
-      <div 
+      <button 
         className={`user-trigger ${isDropdownOpen ? 'active' : ''}`}
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        aria-label={`User menu for ${username}`}
+        aria-expanded={isDropdownOpen}
+        aria-haspopup="menu"
+        type="button"
       >
         <div className="trigger-avatar">
           <img src={AVATAR_MAP[selectedAvatarId]} alt="User" />
-          {isLoggedIn && <div className="online-indicator" />}
+          {isLoggedIn && <div className="online-indicator" aria-label="Online" />}
         </div>
-      </div>
+      </button>
 
       {isDropdownOpen && (
         <>
           <div className="dropdown-overlay" onClick={() => setIsDropdownOpen(false)} />
-          <div className="user-dropdown glass-panel">
+          <div className="user-dropdown glass-panel" role="menu" aria-label="User menu">
               <div className="dropdown-header">
                 <div className="user-info-section">
                    <div className="name-row">
@@ -87,10 +118,14 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                                setUsername(tempName.trim())
                             }
                             setIsEditing(false)
+                          } else if (e.key === 'Escape') {
+                            setIsEditing(false)
+                            setTempName(username)
                           }
                         }}
                         autoFocus
                         maxLength={12}
+                        aria-label="Edit username"
                       />
                     ) : (
                       <div className="name-wrapper" onClick={() => { setIsEditing(true); setTempName(username); }}>
@@ -127,12 +162,22 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
 
               <div className="dropdown-footer">
                 {isLoggedIn ? (
-                  <button className="logout-btn" onClick={() => { onLogoutRequest(); setIsDropdownOpen(false); }}>
+                  <button 
+                    className="logout-btn" 
+                    onClick={() => { onLogoutRequest(); setIsDropdownOpen(false); }}
+                    type="button"
+                    aria-label="Sign out"
+                  >
                     <LogOut size={14} />
                     <span>Sign Out</span>
                   </button>
                 ) : (
-                  <button className="login-btn-dropdown" onClick={() => { openLoginModal(); setIsDropdownOpen(false); }}>
+                  <button 
+                    className="login-btn-dropdown" 
+                    onClick={() => { openLoginModal(); setIsDropdownOpen(false); }}
+                    type="button"
+                    aria-label="Sign in"
+                  >
                     <LogOut size={14} style={{ transform: 'rotate(180deg)' }} />
                     <span>Sign In</span>
                   </button>

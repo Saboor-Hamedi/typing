@@ -23,22 +23,22 @@
 export const PERFORMANCE = {
   // Telemetry collection interval (ms)
   TELEMETRY_INTERVAL: 1000,
-  
+
   // Ghost caret update frequency (ms)
   GHOST_UPDATE_INTERVAL: 50,
-  
+
   // Chameleon color update debounce (ms)
   CHAMELEON_DEBOUNCE: 100,
-  
+
   // Typing timeout for caret blink state (ms)
   TYPING_TIMEOUT: 500,
-  
+
   // Toast auto-dismiss duration (ms)
   TOAST_DURATION: 4000,
-  
+
   // Auth check delay on mount (ms)
   AUTH_CHECK_DELAY: 2000,
-  
+
   // Logout cooldown period (ms)
   LOGOUT_COOLDOWN: 2500,
 }
@@ -50,28 +50,31 @@ export const PERFORMANCE = {
 export const UI = {
   // Scroll position for active line (0-1, where 0.4 = 40% from top)
   HORIZON_SCROLL_POSITION: 0.4,
-  
+
   // Maximum history items to store locally
   MAX_HISTORY_ITEMS: 50,
-  
+
   // Caret animation stiffness (smooth mode)
-  CARET_STIFFNESS_SMOOTH: 450,
-  CARET_DAMPING_SMOOTH: 35,
-  CARET_MASS_SMOOTH: 0.2,
-  
+  // Lower stiffness = smoother, more fluid motion
+  // Higher damping = less oscillation, more controlled
+  // Higher mass = heavier feel, smoother transitions
+  CARET_STIFFNESS_SMOOTH: 300,
+  CARET_DAMPING_SMOOTH: 45,
+  CARET_MASS_SMOOTH: 0.35,
+
   // Caret animation stiffness (instant mode)
   CARET_STIFFNESS_INSTANT: 1000,
   CARET_DAMPING_INSTANT: 28,
   CARET_MASS_INSTANT: 0.1,
-  
+
   // Ghost caret animation
   GHOST_STIFFNESS: 700,
   GHOST_DAMPING: 30,
   GHOST_OPACITY: 0.2,
-  
+
   // Page transition animation duration (s)
   PAGE_TRANSITION_DURATION: 0.3,
-  
+
   // Zen mode transition duration (s)
   ZEN_TRANSITION_DURATION: 0.5,
 }
@@ -84,23 +87,23 @@ export const GAME = {
   // Default test modes
   DEFAULT_MODE: 'words',
   DEFAULT_LIMIT: 25,
-  
+
   // Test mode options
-  TIME_LIMITS: [15, 30, 60, 120],
-  WORD_LIMITS: [10, 25, 50, 100],
-  
+  TIME_LIMITS: [15, 30, 60],
+  WORD_LIMITS: [10, 25, 50],
+
   // Word generation multiplier for time mode
   TIME_MODE_WORD_MULTIPLIER: 4,
   MIN_WORDS_FOR_TIME_MODE: 100,
-  
+
   // WPM calculation
   CHARS_PER_WORD: 5,
-  
+
   // Chameleon Flow heat calculation
   CHAMELEON_MIN_THRESHOLD: 0.6, // 60% of PB
   CHAMELEON_MAX_THRESHOLD: 1.1, // 110% of PB
   CHAMELEON_FALLBACK_TARGET: 100, // WPM when no PB exists
-  
+
   // Ghost speed multiplier range
   GHOST_SPEED_MIN: 0.5,
   GHOST_SPEED_MAX: 2.0,
@@ -122,10 +125,10 @@ export const PROGRESSION = {
     { id: 7, level: 50, name: 'Void Walker' },
     { id: 8, level: 60, name: 'Ascended Zero' },
   ],
-  
+
   // Starting unlocked avatars
   DEFAULT_UNLOCKED_AVATARS: [0, 1],
-  
+
   // Default selected avatar
   DEFAULT_AVATAR_ID: 1,
 }
@@ -138,18 +141,18 @@ export const AUDIO = {
   // Sound profiles
   PROFILES: ['thocky', 'creamy', 'clicky'],
   DEFAULT_PROFILE: 'thocky',
-  
+
   // Volume settings
   MASTER_GAIN: 1.8,
   VOLUME_JITTER: 0.1,
-  
+
   // Reverb settings
   REVERB_LENGTH: 2.5, // seconds
   REVERB_GAIN: 0.2,
-  
+
   // Pitch jitter for organic feel
   PITCH_JITTER: 0.05,
-  
+
   // Noise buffer duration
   NOISE_BUFFER_DURATION: 0.08,
 }
@@ -161,7 +164,7 @@ export const AUDIO = {
 export const THEMES = {
   AVAILABLE: ['carbon', 'nord', 'dracula', 'serika_blue', 'matrix', 'lavender'],
   DEFAULT: 'carbon',
-  
+
   // RGB values for Chameleon Flow
   COLORS: {
     carbon: [226, 183, 20],
@@ -171,7 +174,7 @@ export const THEMES = {
     matrix: [21, 255, 0],
     lavender: [187, 154, 247],
   },
-  
+
   // Hot color for Chameleon Flow (red)
   HOT_COLOR: [226, 68, 20],
 }
@@ -185,10 +188,10 @@ export const VALIDATION = {
   USERNAME_MIN_LENGTH: 1,
   USERNAME_MAX_LENGTH: 30,
   USERNAME_PATTERN: /^[a-zA-Z0-9_-\s]+$/,
-  
+
   // Email pattern (basic)
   EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  
+
   // Default values
   DEFAULT_USERNAME: 'Guest',
 }
@@ -209,7 +212,7 @@ export const STORAGE_KEYS = {
   KINETIC_ENABLED: 'isKineticEnabled',
   SMOOTH_CARET: 'isSmoothCaret',
   MANUAL_LOGOUT: 'typingzone-manual-logout',
-  
+
   // Electron store keys (settings.json)
   SETTINGS: {
     THEME: 'theme',
@@ -226,7 +229,7 @@ export const STORAGE_KEYS = {
     HALL_EFFECT: 'isHallEffect',
     GHOST_SPEED: 'ghostSpeed',
   },
-  
+
   // Electron store keys (data.json)
   DATA: {
     PB: 'pb',
@@ -243,23 +246,23 @@ export const ERROR_MESSAGES = {
   // Network errors
   NETWORK_ERROR: 'Network error. Please check your connection.',
   OFFLINE: 'You are currently offline.',
-  
+
   // Auth errors
   AUTH_FAILED: 'Authentication failed. Please try again.',
   SESSION_EXPIRED: 'Your session has expired. Please sign in again.',
   INVALID_CREDENTIALS: 'Invalid email or password.',
-  
+
   // Validation errors
   INVALID_USERNAME: 'Username can only contain letters, numbers, spaces, hyphens, and underscores.',
   USERNAME_TOO_SHORT: 'Username must be at least 1 character.',
   USERNAME_TOO_LONG: 'Username cannot exceed 30 characters.',
   INVALID_EMAIL: 'Please enter a valid email address.',
-  
+
   // Data errors
   SAVE_FAILED: 'Failed to save data. Please try again.',
   LOAD_FAILED: 'Failed to load data.',
   SYNC_FAILED: 'Cloud sync failed. Your data is saved locally.',
-  
+
   // Generic
   UNKNOWN_ERROR: 'An unexpected error occurred.',
 }
@@ -273,16 +276,16 @@ export const SUCCESS_MESSAGES = {
   LOGIN_SUCCESS: 'Welcome back',
   LOGOUT_SUCCESS: 'Signed out successfully',
   BROWSER_AUTH_SUCCESS: 'Authenticated via browser!',
-  
+
   // Data
   SYNC_SUCCESS: 'Synced successfully!',
   PROFILE_UPDATED: 'Profile updated',
   LOCAL_NICKNAME_SAVED: 'Local nickname saved',
-  
+
   // Settings
   THEME_CHANGED: 'Theme switched to',
   DATA_CLEARED: 'History and PBs cleared',
-  
+
   // Progression
   AVATAR_UNLOCKED: 'New Avatar',
 }
@@ -296,10 +299,10 @@ export const A11Y = {
   // Focus visible outline
   FOCUS_OUTLINE: '2px solid var(--main-color)',
   FOCUS_OFFSET: '2px',
-  
+
   // Minimum touch target size (px)
   MIN_TOUCH_TARGET: 44,
-  
+
   // Animation duration for reduced motion (s)
   REDUCED_MOTION_DURATION: 0.01,
 }

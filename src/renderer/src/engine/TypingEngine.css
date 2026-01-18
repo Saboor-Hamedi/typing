@@ -19,22 +19,24 @@
   overflow-y: auto;
   padding: 0 0.5rem;
   transition: all 0.3s ease;
-  /* Center content when shorter than max-height */
+  /* Start from top to prevent hiding text */
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 /* Words mode: shorter content, smaller max-height, larger font */
 .typing-container.words-mode {
   max-height: min(50vh, 25rem);
   font-size: 1.8rem;
+  justify-content: center; /* Center for shorter content in words mode */
 }
 
 /* Time mode: longer content, larger max-height, smaller font to prevent hiding */
 .typing-container.time-mode {
   max-height: min(65vh, 40rem);
   font-size: 1.4rem;
+  justify-content: flex-start; /* Start from top to prevent hiding top text */
 }
 
 /* Allow expansion for results */
@@ -56,7 +58,7 @@
   gap: 0 0; /* Avoid extra spacing beyond actual space glyph */
   line-height: 1.5;
   user-select: none;
-  padding: 1rem 0 10rem 0; /* Small top padding for visual balance */
+  padding: 2rem 0 10rem 0; /* Increased top padding to prevent text from being hidden */
   min-height: fit-content;
 }
 
@@ -118,6 +120,10 @@
   border-radius: 1px;
   box-shadow: 0 0 15px rgba(var(--main-color-rgb), 0.5);
   will-change: transform, opacity;
+  /* Hardware acceleration for smoother animation */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 .caret.blinking:not(.typing) {

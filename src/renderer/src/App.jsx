@@ -36,6 +36,9 @@ function App() {
         Skip to main content
       </a>
       
+      {/* Screen reader announcements */}
+      <div id="sr-announcer" className="sr-only" aria-live="polite" aria-atomic="true" />
+      
       <OfflineBanner />
       
       <ThemeProvider>
