@@ -55,12 +55,13 @@ export const UI = {
   MAX_HISTORY_ITEMS: 50,
 
   // Caret animation stiffness (smooth mode)
-  // Lower stiffness = smoother, more fluid motion
-  // Higher damping = less oscillation, more controlled
-  // Higher mass = heavier feel, smoother transitions
-  CARET_STIFFNESS_SMOOTH: 300,
+  // Fast and smooth: responsive enough to catch up with fast typing
+  // High stiffness = very fast response, still smooth
+  // Balanced damping = controlled, minimal oscillation
+  // Low mass = light, snappy movement
+  CARET_STIFFNESS_SMOOTH: 600,
   CARET_DAMPING_SMOOTH: 45,
-  CARET_MASS_SMOOTH: 0.35,
+  CARET_MASS_SMOOTH: 0.15,
 
   // Caret animation stiffness (instant mode)
   CARET_STIFFNESS_INSTANT: 1000,

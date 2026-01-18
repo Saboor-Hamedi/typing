@@ -245,8 +245,9 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
                 stiffness: UI.CARET_STIFFNESS_SMOOTH,
                 damping: UI.CARET_DAMPING_SMOOTH,
                 mass: UI.CARET_MASS_SMOOTH,
-                restDelta: 0.005, // Finer precision for smoother settling
-                velocity: 0 // Start from rest for smoother initial movement
+                restDelta: 1, // Faster settling for quick responsiveness
+                restSpeed: 20, // Higher rest speed for immediate stopping
+                velocity: 0 // Start from rest
               } : {
                 duration: 0
               }}

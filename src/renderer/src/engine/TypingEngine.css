@@ -124,6 +124,13 @@
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
+  /* Ultra-smooth animation properties */
+  transition: transform 0.01s linear; /* Fallback for instant mode */
+}
+
+/* When smooth caret is enabled, ensure no transition conflicts */
+.caret[style*="transform"] {
+  transition: none; /* Let Framer Motion handle animation */
 }
 
 .caret.blinking:not(.typing) {

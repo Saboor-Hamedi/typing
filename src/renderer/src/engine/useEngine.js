@@ -48,7 +48,7 @@ export function useEngine(testMode, testLimit) {
   const [startTime, setStartTime] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
   const [isReplaying, setIsReplaying] = useState(false);
-  const [results, setResults] = useState({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0 });
+  const [results, setResults] = useState({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
   const [keystrokes, setKeystrokes] = useState([]);
   const [testHistory, setTestHistory] = useState([]);
   const [caretPos, setCaretPos] = useState({ left: 0, top: 0 });
@@ -158,8 +158,9 @@ export function useEngine(testMode, testLimit) {
       const wpm = Math.max(0, Math.round((correctChars / 5) / durationInMinutes));
       const rawWpm = Math.max(0, Math.round((finalInput.length / 5) / durationInMinutes));
       const accuracy = finalInput.length > 0 ? Math.round((correctChars / finalInput.length) * 100) : 100;
+      const durationSeconds = Math.round((endTime - finalStartTime) / 1000);
 
-      setResults({ wpm, rawWpm, accuracy, errors });
+      setResults({ wpm, rawWpm, accuracy, errors, duration: durationSeconds });
       setIsFinished(true);
 
       // Save to local storage
@@ -269,7 +270,7 @@ export function useEngine(testMode, testLimit) {
     setKeystrokes([]);
     telemetryBufferRef.current.clear();
     setTelemetry([]);
-    setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0 });
+    setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
     setIsTyping(false);
 
     // Reset timers
