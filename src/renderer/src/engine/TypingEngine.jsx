@@ -14,16 +14,32 @@ import './TypingEngine.css'
 /**
  * Letter Component
  */
-const Letter = memo(({ char, status, active, id, feedbackDisabled }) => {
+const Letter = memo(({ char, status, active, id, feedbackDisabled, isKineticEnabled }) => {
   const displayStatus = (status === 'incorrect' && feedbackDisabled) ? '' : status
+  
   return (
-    <span 
+    <motion.span 
       id={id} 
       className={`letter ${displayStatus} ${active ? 'active' : ''}`} 
       aria-label={active ? 'Current typing position' : undefined}
+      animate={isKineticEnabled && status === 'correct' ? {
+        scale: [1, 1.15, 1],
+        y: [0, -4, 0],
+        filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
+        textShadow: [
+          "0 0 0px var(--main-color)",
+          "0 0 12px var(--main-color)",
+          "0 0 0px var(--main-color)"
+        ]
+      } : {}}
+      transition={{ 
+        duration: 0.15,
+        times: [0, 0.2, 1],
+        ease: "easeOut"
+      }}
     >
       {char}
-    </span>
+    </motion.span>
   )
 })
 Letter.displayName = 'Letter'
@@ -31,7 +47,7 @@ Letter.displayName = 'Letter'
 /**
  * Word Component
  */
-const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled }) => {
+const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled, isKineticEnabled }) => {
   const letterStatuses = useMemo(() => {
     return word.split('').map((letter, i) => {
       let status = ''
@@ -68,6 +84,7 @@ const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled 
           status={status}
           active={isActive}
           feedbackDisabled={!isErrorFeedbackEnabled}
+          isKineticEnabled={isKineticEnabled}
         />
       ))}
       <Letter
@@ -76,6 +93,7 @@ const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled 
         status={spaceStatus}
         active={isSpaceActive}
         feedbackDisabled={!isErrorFeedbackEnabled}
+        isKineticEnabled={isKineticEnabled}
       />
     </div>
   )
@@ -89,7 +107,12 @@ const TypingEngine = ({
   isSmoothCaret, 
   isOverlayActive 
 }) => {
-  const { isSmoothCaret: ctxSmoothCaret, caretStyle, isErrorFeedbackEnabled } = useSettings()
+  const { 
+    isSmoothCaret: ctxSmoothCaret, 
+    caretStyle, 
+    isErrorFeedbackEnabled,
+    isKineticEnabled 
+  } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   
   const {
@@ -236,6 +259,7 @@ const TypingEngine = ({
                     isCurrent={isCurrent}
                     startIndex={startIndex}
                     isErrorFeedbackEnabled={isErrorFeedbackEnabled}
+                    isKineticEnabled={isKineticEnabled}
                   />
                 )
               })}
