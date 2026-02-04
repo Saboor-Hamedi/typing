@@ -79,21 +79,18 @@ export const useGhostRacing = (
     const ghostLetter = getElement(ghostCharIndex)
     
     if (ghostLetter) {
-      const wordWrapper = ghostLetter.closest('.word-wrapper');
-      if (wordWrapper) {
-        const wrapperRect = wordWrapper.getBoundingClientRect();
-        const letterRect = ghostLetter.getBoundingClientRect();
-        const originalTop = letterRect.top - wrapperRect.top;
-        const h = letterRect.height * 0.7;
-        const top = originalTop + (letterRect.height - h) / 2;
+      // Use offset properties for high performance RAF loop
+      const left = ghostLetter.offsetLeft;
+      const top_offset = ghostLetter.offsetTop;
+      const h = ghostLetter.offsetHeight * 0.7;
+      const top = top_offset + (ghostLetter.offsetHeight - h) / 2;
 
-        setGhostPos({
-          left: letterRect.left - wrapperRect.left,
-          top: top,
-          width: letterRect.width,
-          height: h
-        })
-      }
+      setGhostPos({
+        left,
+        top,
+        width: ghostLetter.offsetWidth,
+        height: h
+      })
     }
 
     // Schedule next frame

@@ -213,6 +213,8 @@ export const STORAGE_KEYS = {
   CHAMELEON_ENABLED: 'isChameleonEnabled',
   KINETIC_ENABLED: 'isKineticEnabled',
   SMOOTH_CARET: 'isSmoothCaret',
+  SOUND_PROFILE: 'soundProfile',
+  CENTERED_SCROLLING: 'isCenteredScrolling',
   MANUAL_LOGOUT: 'typingzone-manual-logout',
 
   // Electron store keys (settings.json)
@@ -229,6 +231,8 @@ export const STORAGE_KEYS = {
     GHOST_ENABLED: 'isGhostEnabled',
     SOUND_ENABLED: 'isSoundEnabled',
     HALL_EFFECT: 'isHallEffect',
+    SOUND_PROFILE: 'soundProfile',
+    CENTERED_SCROLLING: 'isCenteredScrolling',
     GHOST_SPEED: 'ghostSpeed',
   },
 

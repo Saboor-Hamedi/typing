@@ -77,6 +77,15 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true
   })
 
+  const [soundProfile, setSoundProfile] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.SOUND_PROFILE) || 'thocky'
+  })
+
+  const [isCenteredScrolling, setIsCenteredScrolling] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.CENTERED_SCROLLING)
+    return saved !== null ? JSON.parse(saved) : true
+  })
+
   // UI state
   const [isZenMode, setIsZenMode] = useState(false)
   
@@ -96,6 +105,8 @@ export const SettingsProvider = ({ children }) => {
           savedErrorFeedback,
           savedSound,
           savedHall,
+          savedProfile,
+          savedCentered,
         ] = await Promise.all([
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_MODE),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_LIMIT),
@@ -106,6 +117,8 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get('isErrorFeedbackEnabled'),
           window.api.settings.get('isSoundEnabled'),
           window.api.settings.get('isHallEffect'),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.SOUND_PROFILE),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.CENTERED_SCROLLING),
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -117,6 +130,8 @@ export const SettingsProvider = ({ children }) => {
         if (savedErrorFeedback !== undefined) setIsErrorFeedbackEnabled(savedErrorFeedback)
         if (savedSound !== undefined) setIsSoundEnabled(savedSound)
         if (savedHall !== undefined) setIsHallEffect(savedHall)
+        if (savedProfile) setSoundProfile(savedProfile)
+        if (savedCentered !== undefined) setIsCenteredScrolling(savedCentered)
       }
       setIsSettingsLoaded(true)
     }
@@ -139,6 +154,8 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
     localStorage.setItem('isSoundEnabled', isSoundEnabled)
     localStorage.setItem('isHallEffect', isHallEffect)
+    localStorage.setItem(STORAGE_KEYS.SOUND_PROFILE, soundProfile)
+    localStorage.setItem(STORAGE_KEYS.CENTERED_SCROLLING, isCenteredScrolling)
 
     // Save to electron-store
     if (window.api?.settings) {
@@ -153,8 +170,10 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
       window.api.settings.set('isSoundEnabled', isSoundEnabled)
       window.api.settings.set('isHallEffect', isHallEffect)
+      window.api.settings.set(STORAGE_KEYS.SETTINGS.SOUND_PROFILE, soundProfile)
+      window.api.settings.set(STORAGE_KEYS.SETTINGS.CENTERED_SCROLLING, isCenteredScrolling)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, isSettingsLoaded])
+  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, isSettingsLoaded])
 
   /**
    * Update test mode and set appropriate default limit
@@ -207,6 +226,10 @@ export const SettingsProvider = ({ children }) => {
     setIsSoundEnabled,
     isHallEffect,
     setIsHallEffect,
+    soundProfile,
+    setSoundProfile,
+    isCenteredScrolling,
+    setIsCenteredScrolling,
 
     // UI state
     isZenMode,

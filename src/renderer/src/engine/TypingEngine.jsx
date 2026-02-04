@@ -17,21 +17,28 @@ import './TypingEngine.css'
 const Letter = memo(({ char, status, active, id, feedbackDisabled, isKineticEnabled }) => {
   const displayStatus = (status === 'incorrect' && feedbackDisabled) ? '' : status
   
+  // High performance: use standard span for base letters to avoid Framer Motion overhead on static text
+  if (!isKineticEnabled || status !== 'correct') {
+    return (
+      <span 
+        id={id} 
+        className={`letter ${displayStatus} ${active ? 'active' : ''}`} 
+      >
+        {char}
+      </span>
+    )
+  }
+
   return (
     <motion.span 
       id={id} 
       className={`letter ${displayStatus} ${active ? 'active' : ''}`} 
-      aria-label={active ? 'Current typing position' : undefined}
-      animate={isKineticEnabled && status === 'correct' ? {
-        scale: [1, 1.15, 1],
-        y: [0, -4, 0],
-        filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
-        textShadow: [
-          "0 0 0px var(--main-color)",
-          "0 0 12px var(--main-color)",
-          "0 0 0px var(--main-color)"
-        ]
-      } : {}}
+      initial={{ scale: 1, y: 0 }}
+      animate={{
+        scale: [1, 1.1, 1],
+        y: [0, -2, 0],
+        filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"]
+      }}
       transition={{ 
         duration: 0.15,
         times: [0, 0.2, 1],
@@ -237,25 +244,31 @@ const TypingEngine = ({
                 }}
               />
 
-              {words.map((word, i) => {
-                const startIndex = i === 0 
-                  ? 0 
-                  : words.slice(0, i).join(' ').length + 1
-                const isCurrent = userInput.length >= startIndex && userInput.length <= startIndex + word.length
-                const chunk = userInput.slice(startIndex, Math.min(startIndex + word.length + 1, userInput.length))
-                
-                return (
-                  <Word
-                    key={i}
-                    word={word}
-                    chunk={chunk}
-                    isCurrent={isCurrent}
-                    startIndex={startIndex}
-                    isErrorFeedbackEnabled={isErrorFeedbackEnabled}
-                    isKineticEnabled={isKineticEnabled}
-                  />
-                )
-              })}
+              {(() => {
+                let currentIndex = 0;
+                return words.map((word, i) => {
+                  const startIndex = currentIndex;
+                  const isCurrent = userInput.length >= startIndex && userInput.length <= startIndex + word.length;
+                  const chunk = userInput.length >= startIndex 
+                    ? userInput.slice(startIndex, startIndex + word.length + 1)
+                    : '';
+                  
+                  // Update index for next word (word + space)
+                  currentIndex += word.length + 1;
+
+                  return (
+                    <Word
+                      key={i}
+                      word={word}
+                      chunk={chunk}
+                      isCurrent={isCurrent}
+                      startIndex={startIndex}
+                      isErrorFeedbackEnabled={isErrorFeedbackEnabled}
+                      isKineticEnabled={isKineticEnabled}
+                    />
+                  );
+                });
+              })()}
             </div>
           </>
         ) : (

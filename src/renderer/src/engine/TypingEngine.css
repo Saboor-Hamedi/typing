@@ -84,21 +84,16 @@
 }
 
 /* Typing Feedback */
+/* Typing Feedback - Optimized for performance */
 .letter.correct {
   color: #00ffaa;
-  text-shadow: 0 0 8px rgba(0, 255, 170, 0.3);
-  animation: bloom 0.2s ease-out;
+  /* Removed expensive text-shadow and filters */
 }
 
 .letter.incorrect {
   color: #ff4444;
-  text-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+  /* Kept transform-based shake as it is hardware accelerated */
   animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-@keyframes bloom {
-  0% { filter: brightness(1.5) saturate(1.5); }
-  100% { filter: brightness(1) saturate(1); }
 }
 
 @keyframes shake {

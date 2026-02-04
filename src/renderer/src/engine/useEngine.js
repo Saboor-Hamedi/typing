@@ -64,7 +64,6 @@ export function useEngine(testMode, testLimit) {
   const elapsedTimerRef = useRef(null);
   const [timeLeft, setTimeLeft] = useState(testLimit);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [soundProfile, setSoundProfile] = useState('thocky');
   const [isTyping, setIsTyping] = useState(false);
   const [isStoreLoaded, setIsStoreLoaded] = useState(false);
   const typingTimeoutRef = useRef(null);
@@ -76,7 +75,11 @@ export function useEngine(testMode, testLimit) {
     isSoundEnabled,
     setIsSoundEnabled,
     isHallEffect,
-    setIsHallEffect
+    setIsHallEffect,
+    soundProfile,
+    setSoundProfile,
+    isCenteredScrolling,
+    setIsCenteredScrolling
   } = useSettings();
   const ghostPos = useGhostRacing(
     isGhostEnabled,
@@ -490,46 +493,45 @@ export function useEngine(testMode, testLimit) {
       const target = document.getElementById(`char-${charIndex}`);
       
       if (target) {
-        const wordWrapper = target.closest('.word-wrapper');
-        if (wordWrapper) {
-          const wrapperRect = wordWrapper.getBoundingClientRect();
-          const targetRect = target.getBoundingClientRect();
-          
-          const left = targetRect.left - wrapperRect.left;
-          const originalTop = targetRect.top - wrapperRect.top;
-          const h = targetRect.height * 0.7; // Aim for font-size height vs line-height
-          const top = originalTop + (targetRect.height - h) / 2;
+        // use offset properties for better performance (no layout thrashing)
+        const left = target.offsetLeft;
+        const top_offset = target.offsetTop;
+        const targetHeight = target.offsetHeight;
+        const targetWidth = target.offsetWidth;
 
-          setCaretPos({ 
-            left, 
-            top,
-            width: targetRect.width,
-            height: h
-          });
-          
-          // Scroll tracking
-          if (Math.abs(top - lastLineTop.current) > 5) {
-            const containerHeight = container.clientHeight;
+        const h = targetHeight * 0.7;
+        const top = top_offset + (targetHeight - h) / 2;
+
+        setCaretPos({ 
+          left, 
+          top,
+          width: targetWidth,
+          height: h
+        });
+        
+        // Scrolling logic
+        if (Math.abs(top - lastLineTop.current) > 2) {
+          const containerHeight = container.clientHeight;
+          const wordWrapper = target.closest('.word-wrapper');
+          if (wordWrapper) {
             const absoluteTop = wordWrapper.offsetTop + top;
-
-            container.scrollTo({
-              top: absoluteTop - (containerHeight * 0.4),
-              behavior: 'smooth'
-            });
+            
+            if (isCenteredScrolling) {
+              const targetScroll = absoluteTop - (containerHeight / 2) + (targetHeight / 2);
+              container.scrollTo({ top: targetScroll, behavior: 'smooth' });
+            } else {
+              container.scrollTo({ top: absoluteTop - (containerHeight * 0.4), behavior: 'smooth' });
+            }
             lastLineTop.current = top;
           }
         }
       } else if (charIndex > 0) {
-        // End of text fallback
         const lastTarget = document.getElementById(`char-${charIndex - 1}`);
-        const wordWrapper = lastTarget?.closest('.word-wrapper');
-        if (lastTarget && wordWrapper) {
-          const wrapperRect = wordWrapper.getBoundingClientRect();
-          const targetRect = lastTarget.getBoundingClientRect();
-          const left = targetRect.left - wrapperRect.left + lastTarget.offsetWidth;
-          const originalTop = targetRect.top - wrapperRect.top;
-          const h = targetRect.height * 0.7;
-          const top = originalTop + (targetRect.height - h) / 2;
+        if (lastTarget) {
+          const left = lastTarget.offsetLeft + lastTarget.offsetWidth;
+          const top_offset = lastTarget.offsetTop;
+          const h = lastTarget.offsetHeight * 0.7;
+          const top = top_offset + (lastTarget.offsetHeight - h) / 2;
 
           setCaretPos({
             left,

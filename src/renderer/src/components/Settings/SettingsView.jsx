@@ -28,7 +28,11 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
     isErrorFeedbackEnabled,
     setIsErrorFeedbackEnabled,
     isZenMode,
-    setIsZenMode
+    setIsZenMode,
+    soundProfile,
+    setSoundProfile,
+    isCenteredScrolling,
+    setIsCenteredScrolling
   } = useSettings()
   return (
     <div className="settings-container">
@@ -196,6 +200,24 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
           <div className="setting-item">
             <div className="setting-info">
               <div className="setting-label">
+                <ShieldCheck size={16} />
+                <span>Centered Line Scrolling</span>
+              </div>
+              <p className="setting-description">Keep the active line locked in the vertical center for better focus.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={isCenteredScrolling} 
+                onChange={() => setIsCenteredScrolling(!isCenteredScrolling)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
                 <AlertCircle size={16} />
                 <span>Error Feedback</span>
               </div>
@@ -241,18 +263,19 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
             <div className="setting-info">
               <div className="setting-label">
                 <Volume2 size={16} />
-                <span>Mechanical Sound</span>
+                <span>Sound Profile</span>
               </div>
-              <p className="setting-description">High-fidelity mechanical switch feedback on every keypress.</p>
+              <p className="setting-description">Choose your preferred mechanical switch acoustic profile.</p>
             </div>
-            <label className="toggle-switch">
-              <input 
-                type="checkbox" 
-                checked={isSoundEnabled} 
-                onChange={() => setIsSoundEnabled(!isSoundEnabled)} 
-              />
-              <span className="slider"></span>
-            </label>
+            <select 
+              className="settings-select"
+              value={soundProfile}
+              onChange={(e) => setSoundProfile(e.target.value)}
+            >
+              <option value="thocky">Thocky (Deep)</option>
+              <option value="creamy">Creamy (Marble)</option>
+              <option value="clicky">Clicky (Crisp)</option>
+            </select>
           </div>
 
           <div className="setting-item">

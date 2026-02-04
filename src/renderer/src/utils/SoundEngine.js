@@ -93,108 +93,101 @@ class SoundEngine {
     return buffer;
   }
 
+  /**
+   * Play a synthesized mechanical key sound
+   * @param {string} type - 'key', 'space', or 'backspace'
+   */
   playKeySound(type = 'key') {
-    this.init();
+    this.init()
+    if (!this.audioCtx) return
     if (this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
+      this.audioCtx.resume()
     }
 
-    const now = this.audioCtx.currentTime;
+    const now = this.audioCtx.currentTime
     
     // Add micro-randomness to pitch and gain for "organic" feel
-    const jitter = (Math.random() - 0.5) * 0.05; 
-    const volumeJitter = 1 + (Math.random() - 0.5) * 0.1;
+    const pitchJitter = 1 + (Math.random() - 0.5) * 0.05
+    const volumeJitter = 1 + (Math.random() - 0.5) * 0.1
 
-    const masterGain = this.audioCtx.createGain();
-    masterGain.gain.setValueAtTime(1.8 * volumeJitter, now); // Doubled loudness
-    masterGain.connect(this.audioCtx.destination);
+    const masterGain = this.audioCtx.createGain()
+    masterGain.gain.setValueAtTime(0.8 * volumeJitter, now) 
+    masterGain.connect(this.audioCtx.destination)
     
     if (this.hallEffect && this.reverbNode) {
-        masterGain.connect(this.reverbNode);
+        masterGain.connect(this.reverbNode)
     }
 
-    // Components
-    const bodyOsc = this.audioCtx.createOscillator();
-    const bodyGain = this.audioCtx.createGain();
-
-    const lowEndOsc = this.audioCtx.createOscillator();
-    const lowEndGain = this.audioCtx.createGain();
-
-    const impactNoise = this.audioCtx.createBufferSource();
-    impactNoise.buffer = this.getNoiseBuffer();
-    const noiseFilter = this.audioCtx.createBiquadFilter();
-    const noiseGain = this.audioCtx.createGain();
-
-    // Body Osc logic
-    bodyOsc.connect(bodyGain);
-    bodyGain.connect(masterGain);
-
-    lowEndOsc.connect(lowEndGain);
-    lowEndGain.connect(masterGain);
-
-    impactNoise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(masterGain);
-
-    if (this.profile === 'thocky') {
-        // Satisfaction: Deep sub + muffled impact + micro-tail
-        bodyOsc.type = 'sine';
-        bodyOsc.frequency.setValueAtTime(160 * (1 + jitter), now);
-        bodyOsc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-        bodyGain.gain.setValueAtTime(0.6, now); // Increased from 0.4
-        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-
-        lowEndOsc.type = 'sine';
-        lowEndOsc.frequency.setValueAtTime(80 * (1 + jitter), now);
-        lowEndGain.gain.setValueAtTime(0.8, now); // Increased from 0.6
-        lowEndGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-
-        noiseFilter.type = 'lowpass';
-        noiseFilter.frequency.setValueAtTime(250, now);
-        noiseGain.gain.setValueAtTime(0.12, now); // Increased from 0.08
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-
-    } else if (this.profile === 'creamy') {
-        // Satisfaction: Smooth, rounded, marble-like "pop"
-        bodyOsc.type = 'triangle';
-        bodyOsc.frequency.setValueAtTime(320 * (1 + jitter), now);
-        bodyOsc.frequency.exponentialRampToValueAtTime(90, now + 0.08);
-        bodyGain.gain.setValueAtTime(0.2, now);
-        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.setValueAtTime(1000, now);
-        noiseGain.gain.setValueAtTime(0.05, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-    } else {
-        // Best Clicky: Sharp, crisp, industrial
-        bodyOsc.type = 'square';
-        bodyOsc.frequency.setValueAtTime(1800 * (1 + jitter), now);
-        bodyOsc.frequency.exponentialRampToValueAtTime(1200, now + 0.02);
-        bodyGain.gain.setValueAtTime(0.04, now);
-        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
-
-        lowEndOsc.type = 'sine';
-        lowEndOsc.frequency.setValueAtTime(250, now);
-        lowEndGain.gain.setValueAtTime(0.1, now);
-        lowEndGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    // Sound profile definitions
+    const settings = {
+      thocky: {
+        body: { type: 'sine', freq: 160, decay: 0.12, gain: 0.6 },
+        low: { type: 'sine', freq: 80, decay: 0.15, gain: 0.8 },
+        noise: { filter: 'lowpass', freq: 250, decay: 0.05, gain: 0.15 }
+      },
+      creamy: {
+        body: { type: 'triangle', freq: 320, decay: 0.1, gain: 0.4 },
+        low: { type: 'sine', freq: 120, decay: 0.12, gain: 0.3 },
+        noise: { filter: 'bandpass', freq: 1200, decay: 0.04, gain: 0.1 }
+      },
+      clicky: {
+        body: { type: 'square', freq: 1800, decay: 0.02, gain: 0.05 },
+        low: { type: 'sine', freq: 400, decay: 0.06, gain: 0.15 },
+        noise: { filter: 'highpass', freq: 3000, decay: 0.015, gain: 0.12 }
+      }
     }
 
+    const s = settings[this.profile] || settings.thocky
+    
+    // 1. Body Component
+    const bodyOsc = this.audioCtx.createOscillator()
+    const bodyGain = this.audioCtx.createGain()
+    bodyOsc.type = s.body.type
+    bodyOsc.frequency.setValueAtTime(s.body.freq * pitchJitter, now)
+    bodyOsc.frequency.exponentialRampToValueAtTime(s.body.freq * 0.5, now + s.body.decay)
+    bodyGain.gain.setValueAtTime(s.body.gain, now)
+    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + s.body.decay)
+    bodyOsc.connect(bodyGain)
+    bodyGain.connect(masterGain)
+
+    // 2. Low End Component
+    if (s.low) {
+      const lowOsc = this.audioCtx.createOscillator()
+      const lowGain = this.audioCtx.createGain()
+      lowOsc.type = s.low.type
+      lowOsc.frequency.setValueAtTime(s.low.freq * pitchJitter, now)
+      lowGain.gain.setValueAtTime(s.low.gain, now)
+      lowGain.gain.exponentialRampToValueAtTime(0.001, now + s.low.decay)
+      lowOsc.connect(lowGain)
+      lowGain.connect(masterGain)
+      lowOsc.start(now)
+      lowOsc.stop(now + s.low.decay + 0.05)
+    }
+
+    // 3. Impact Noise
+    const impactNoise = this.audioCtx.createBufferSource()
+    impactNoise.buffer = this.getNoiseBuffer()
+    const noiseFilter = this.audioCtx.createBiquadFilter()
+    const noiseGain = this.audioCtx.createGain()
+    noiseFilter.type = s.noise.filter
+    noiseFilter.frequency.setValueAtTime(s.noise.freq, now)
+    noiseGain.gain.setValueAtTime(s.noise.gain, now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + s.noise.decay)
+    
+    impactNoise.connect(noiseFilter)
+    noiseFilter.connect(noiseGain)
+    noiseGain.connect(masterGain)
+
+    // Modification for Spacebar (deeper, more resonance)
     if (type === 'space') {
-        const spaceMod = 0.6;
-        bodyOsc.frequency.setValueAtTime(100 * (1 + jitter), now);
-        lowEndOsc.frequency.setValueAtTime(50 * (1 + jitter), now);
-        bodyGain.gain.setValueAtTime(0.5, now);
-        lowEndGain.gain.setValueAtTime(0.8, now);
+      bodyOsc.frequency.setValueAtTime(s.body.freq * 0.6 * pitchJitter, now)
+      masterGain.gain.setValueAtTime(1.2 * volumeJitter, now)
     }
 
-    bodyOsc.start(now);
-    lowEndOsc.start(now);
-    impactNoise.start(now);
-
-    bodyOsc.stop(now + 0.2);
-    lowEndOsc.stop(now + 0.2);
-    impactNoise.stop(now + 0.2);
+    bodyOsc.start(now)
+    impactNoise.start(now)
+    bodyOsc.stop(now + s.body.decay + 0.05)
+    impactNoise.stop(now + s.noise.decay + 0.05)
   }
 }
 
