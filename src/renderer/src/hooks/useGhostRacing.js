@@ -79,13 +79,17 @@ export const useGhostRacing = (
     const ghostLetter = getElement(ghostCharIndex)
     
     if (ghostLetter) {
-      const parentRect = containerRef.current.getBoundingClientRect()
-      const rect = ghostLetter.getBoundingClientRect()
-      
-      setGhostPos({
-        left: rect.left - parentRect.left,
-        top: rect.top - parentRect.top
-      })
+      const wordWrapper = ghostLetter.closest('.word-wrapper');
+      if (wordWrapper) {
+        const wrapperRect = wordWrapper.getBoundingClientRect();
+        const letterRect = ghostLetter.getBoundingClientRect();
+        setGhostPos({
+          left: letterRect.left - wrapperRect.left,
+          top: letterRect.top - wrapperRect.top,
+          width: letterRect.width,
+          height: letterRect.height
+        })
+      }
     }
 
     // Schedule next frame

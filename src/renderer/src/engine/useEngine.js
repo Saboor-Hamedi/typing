@@ -470,37 +470,49 @@ export function useEngine(testMode, testLimit) {
       const target = document.getElementById(`char-${charIndex}`);
       
       if (target) {
-        const containerRect = container.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        
-        const left = targetRect.left - containerRect.left + container.scrollLeft;
-        const top = targetRect.top - containerRect.top + container.scrollTop;
+        const wordWrapper = target.closest('.word-wrapper');
+        if (wordWrapper) {
+          const wrapperRect = wordWrapper.getBoundingClientRect();
+          const targetRect = target.getBoundingClientRect();
+          
+          const left = targetRect.left - wrapperRect.left;
+          const top = targetRect.top - wrapperRect.top;
 
-        setCaretPos({ left, top });
-        
-        // Scroll tracking for multi-line support
-        if (Math.abs(top - lastLineTop.current) > 5) {
-          const containerHeight = container.clientHeight;
-          // Only scroll if we move to a new vertical position significantly
-          container.scrollTo({
-            top: top - (containerHeight * 0.4),
-            behavior: 'smooth'
+          setCaretPos({ 
+            left, 
+            top,
+            width: targetRect.width,
+            height: targetRect.height
           });
-          lastLineTop.current = top;
+          
+          // Scroll tracking
+          if (Math.abs(top - lastLineTop.current) > 5) {
+            const containerHeight = container.clientHeight;
+            const absoluteTop = wordWrapper.offsetTop + top;
+
+            container.scrollTo({
+              top: absoluteTop - (containerHeight * 0.4),
+              behavior: 'smooth'
+            });
+            lastLineTop.current = top;
+          }
         }
       } else if (charIndex > 0) {
         // End of text fallback
         const lastTarget = document.getElementById(`char-${charIndex - 1}`);
-        if (lastTarget) {
-          const containerRect = container.getBoundingClientRect();
+        const wordWrapper = lastTarget?.closest('.word-wrapper');
+        if (lastTarget && wordWrapper) {
+          const wrapperRect = wordWrapper.getBoundingClientRect();
           const targetRect = lastTarget.getBoundingClientRect();
           setCaretPos({
-            left: targetRect.left - containerRect.left + container.scrollLeft + lastTarget.offsetWidth,
-            top: targetRect.top - containerRect.top + container.scrollTop
+            left: targetRect.left - wrapperRect.left + lastTarget.offsetWidth,
+            top: targetRect.top - wrapperRect.top,
+            width: 2, // Default bar width at end
+            height: targetRect.height
           });
         }
-      } else if (retryCount < 20) {
-        // More aggressive retry for initial mount
+      }
+ else if (retryCount < 20) {
         retryCount++;
         setTimeout(updateCaret, 20);
       }
