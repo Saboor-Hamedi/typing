@@ -64,13 +64,20 @@ export function useEngine(testMode, testLimit) {
   const elapsedTimerRef = useRef(null);
   const [timeLeft, setTimeLeft] = useState(testLimit);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [soundProfile, setSoundProfile] = useState('thocky');
-  const [isHallEffect, setIsHallEffect] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [isStoreLoaded, setIsStoreLoaded] = useState(false);
   const typingTimeoutRef = useRef(null);
-  const { isGhostEnabled, setIsGhostEnabled, ghostSpeed, setGhostSpeed } = useSettings();
+  const { 
+    isGhostEnabled, 
+    setIsGhostEnabled, 
+    ghostSpeed, 
+    setGhostSpeed,
+    isSoundEnabled,
+    setIsSoundEnabled,
+    isHallEffect,
+    setIsHallEffect
+  } = useSettings();
   const ghostPos = useGhostRacing(
     isGhostEnabled,
     !!startTime && !isFinished,
@@ -83,13 +90,7 @@ export function useEngine(testMode, testLimit) {
   useEffect(() => {
     soundEngine.setProfile(soundProfile);
     soundEngine.setHallEffect(isHallEffect);
-    if (window.api && window.api.settings && isStoreLoaded) {
-      window.api.settings.set('isGhostEnabled', isGhostEnabled);
-      window.api.settings.set('isSoundEnabled', isSoundEnabled);
-      window.api.settings.set('isHallEffect', isHallEffect);
-      window.api.settings.set('ghostSpeed', ghostSpeed);
-    }
-  }, [soundProfile, isHallEffect, isGhostEnabled, isSoundEnabled, isStoreLoaded, ghostSpeed]);
+  }, [soundProfile, isHallEffect]);
   useEffect(() => {
     const loadPb = async () => {
       try {
@@ -98,14 +99,6 @@ export function useEngine(testMode, testLimit) {
           setPb(savedPb);
           const savedHistory = await window.api.data.get('history') || [];
           setTestHistory(savedHistory);
-          const savedGhost = await window.api.settings.get('isGhostEnabled');
-          if (savedGhost !== undefined) setIsGhostEnabled(savedGhost);
-          const savedSound = await window.api.settings.get('isSoundEnabled');
-          if (savedSound !== undefined) setIsSoundEnabled(savedSound);
-          const savedHall = await window.api.settings.get('isHallEffect');
-          if (savedHall !== undefined) setIsHallEffect(savedHall);
-          const savedSpeed = await window.api.settings.get('ghostSpeed');
-          if (savedSpeed !== undefined) setGhostSpeed(savedSpeed);
           setIsStoreLoaded(true);
         }
       } catch {

@@ -1,6 +1,6 @@
 import './SettingsView.css'
 import { motion } from 'framer-motion'
-import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette } from 'lucide-react'
+import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play } from 'lucide-react'
 import { useSettings } from '../../contexts'
 
 /**
@@ -22,7 +22,13 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
     isSmoothCaret,
     setIsSmoothCaret,
     ghostSpeed,
-    setGhostSpeed
+    setGhostSpeed,
+    caretStyle,
+    setCaretStyle,
+    isErrorFeedbackEnabled,
+    setIsErrorFeedbackEnabled,
+    isZenMode,
+    setIsZenMode
   } = useSettings()
   return (
     <div className="settings-container">
@@ -46,6 +52,42 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
             <button className="settings-action-btn" onClick={openThemeModal}>
               Select Theme
             </button>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Type size={16} />
+                <span>Thin Caret</span>
+              </div>
+              <p className="setting-description">Use a standard 2px vertical bar.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={caretStyle === 'bar'} 
+                onChange={() => setCaretStyle('bar')} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Type size={16} />
+                <span>Thick Caret</span>
+              </div>
+              <p className="setting-description">Use a 7px block that inverts colors.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={caretStyle === 'block'} 
+                onChange={() => setCaretStyle('block')} 
+              />
+              <span className="slider"></span>
+            </label>
           </div>
         </section>
 
@@ -146,6 +188,42 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
                 type="checkbox" 
                 checked={isSmoothCaret} 
                 onChange={() => setIsSmoothCaret(!isSmoothCaret)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <AlertCircle size={16} />
+                <span>Error Feedback</span>
+              </div>
+              <p className="setting-description">Visual red glow and shake animation when you mistype.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={isErrorFeedbackEnabled} 
+                onChange={() => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Play size={16} />
+                <span>Zen Mode</span>
+              </div>
+              <p className="setting-description">Hide unnecessary UI elements while typing for maximum focus.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={isZenMode} 
+                onChange={() => setIsZenMode(!isZenMode)} 
               />
               <span className="slider"></span>
             </label>

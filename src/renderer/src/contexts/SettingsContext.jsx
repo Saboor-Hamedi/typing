@@ -52,6 +52,11 @@ export const SettingsProvider = ({ children }) => {
     return localStorage.getItem('caretStyle') || 'bar'
   })
 
+  const [isErrorFeedbackEnabled, setIsErrorFeedbackEnabled] = useState(() => {
+    const saved = localStorage.getItem('isErrorFeedbackEnabled')
+    return saved !== null ? JSON.parse(saved) : true
+  })
+
   const [isGhostEnabled, setIsGhostEnabled] = useState(() => {
     const saved = localStorage.getItem('isGhostEnabled')
     return saved !== null ? JSON.parse(saved) : false
@@ -60,6 +65,16 @@ export const SettingsProvider = ({ children }) => {
   const [ghostSpeed, setGhostSpeed] = useState(() => {
     const saved = localStorage.getItem('ghostSpeed')
     return saved ? Number(saved) : 1.0
+  })
+
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('isSoundEnabled')
+    return saved !== null ? JSON.parse(saved) : true
+  })
+
+  const [isHallEffect, setIsHallEffect] = useState(() => {
+    const saved = localStorage.getItem('isHallEffect')
+    return saved !== null ? JSON.parse(saved) : true
   })
 
   // UI state
@@ -78,6 +93,9 @@ export const SettingsProvider = ({ children }) => {
           savedKinetic,
           savedSmooth,
           savedCaretStyle,
+          savedErrorFeedback,
+          savedSound,
+          savedHall,
         ] = await Promise.all([
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_MODE),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_LIMIT),
@@ -85,6 +103,9 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get(STORAGE_KEYS.SETTINGS.KINETIC),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.SMOOTH_CARET),
           window.api.settings.get('caretStyle'),
+          window.api.settings.get('isErrorFeedbackEnabled'),
+          window.api.settings.get('isSoundEnabled'),
+          window.api.settings.get('isHallEffect'),
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -93,6 +114,9 @@ export const SettingsProvider = ({ children }) => {
         if (savedKinetic !== undefined) setIsKineticEnabled(savedKinetic)
         if (savedSmooth !== undefined) setIsSmoothCaret(savedSmooth)
         if (savedCaretStyle) setCaretStyle(savedCaretStyle)
+        if (savedErrorFeedback !== undefined) setIsErrorFeedbackEnabled(savedErrorFeedback)
+        if (savedSound !== undefined) setIsSoundEnabled(savedSound)
+        if (savedHall !== undefined) setIsHallEffect(savedHall)
       }
       setIsSettingsLoaded(true)
     }
@@ -112,6 +136,9 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('isGhostEnabled', isGhostEnabled)
     localStorage.setItem('ghostSpeed', ghostSpeed)
     localStorage.setItem('caretStyle', caretStyle)
+    localStorage.setItem('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
+    localStorage.setItem('isSoundEnabled', isSoundEnabled)
+    localStorage.setItem('isHallEffect', isHallEffect)
 
     // Save to electron-store
     if (window.api?.settings) {
@@ -123,8 +150,11 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set('isGhostEnabled', isGhostEnabled)
       window.api.settings.set('ghostSpeed', ghostSpeed)
       window.api.settings.set('caretStyle', caretStyle)
+      window.api.settings.set('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
+      window.api.settings.set('isSoundEnabled', isSoundEnabled)
+      window.api.settings.set('isHallEffect', isHallEffect)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isSettingsLoaded])
+  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, isSettingsLoaded])
 
   /**
    * Update test mode and set appropriate default limit
@@ -171,6 +201,12 @@ export const SettingsProvider = ({ children }) => {
     setGhostSpeed,
     caretStyle,
     setCaretStyle,
+    isErrorFeedbackEnabled,
+    setIsErrorFeedbackEnabled,
+    isSoundEnabled,
+    setIsSoundEnabled,
+    isHallEffect,
+    setIsHallEffect,
 
     // UI state
     isZenMode,

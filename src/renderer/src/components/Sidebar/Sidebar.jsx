@@ -77,7 +77,7 @@ const Sidebar = memo(({
 
   return (
     <aside 
-      className="main-sidebar"
+      className={`main-sidebar ${testStarted && isZenMode ? 'zen-active' : ''}`}
     >
       <div className="sidebar-top">
         <div className="sidebar-divider" />

@@ -36,7 +36,7 @@ import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
 import { LoadingSpinner, KeyboardShortcutsModal } from '../Common'
 import CommandPalette from '../CommandPalette/CommandPalette'
-import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity } from 'lucide-react'
+import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle } from 'lucide-react'
 import './AppLayout.css'
 
 // Lazy load views for code splitting
@@ -71,7 +71,9 @@ const AppLayout = ({ addToast }) => {
     isZenMode,
     setIsZenMode,
     caretStyle,
-    setCaretStyle
+    setCaretStyle,
+    isErrorFeedbackEnabled,
+    setIsErrorFeedbackEnabled
   } = useSettings()
   
   const { 
@@ -305,6 +307,7 @@ const AppLayout = ({ addToast }) => {
     { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
     { id: 'sound', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
     { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, onSelect: () => setIsHallEffect(!isHallEffect) },
+    { id: 'error-feedback', label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`, icon: <AlertCircle size={18} />, onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled) },
     { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
     { id: 'zen', label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`, icon: <Play size={18} />, onSelect: () => setIsZenMode(!isZenMode) },
     { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, onSelect: () => setActiveTab('typing') },
@@ -346,6 +349,7 @@ const AppLayout = ({ addToast }) => {
         onNotification={addToast}
         selectedAvatarId={selectedAvatarId}
         isLoggedIn={isLoggedIn}
+        className={(!!startTime && !isFinished && isZenMode) ? 'zen-active' : ''}
         onProfileClick={() => {
           if (isLoggedIn) {
             setActiveTab('dashboard')
@@ -416,7 +420,7 @@ const AppLayout = ({ addToast }) => {
           </Suspense>
         </main>
 
-        <footer className="status-bar">
+        <footer className={`status-bar ${(!!startTime && !isFinished && isZenMode) ? 'zen-active' : ''}`}>
           <div className="status-bar-left">
             <div className="status-item">
               <span className="status-label">WPM</span>

@@ -14,17 +14,24 @@ import './TypingEngine.css'
 /**
  * Letter Component
  */
-const Letter = memo(({ char, status, active, id }) => (
-  <span id={id} className={`letter ${status} ${active ? 'active' : ''}`} aria-label={active ? 'Current typing position' : undefined}>
-    {char}
-  </span>
-))
+const Letter = memo(({ char, status, active, id, feedbackDisabled }) => {
+  const displayStatus = (status === 'incorrect' && feedbackDisabled) ? '' : status
+  return (
+    <span 
+      id={id} 
+      className={`letter ${displayStatus} ${active ? 'active' : ''}`} 
+      aria-label={active ? 'Current typing position' : undefined}
+    >
+      {char}
+    </span>
+  )
+})
 Letter.displayName = 'Letter'
 
 /**
  * Word Component
  */
-const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
+const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled }) => {
   const letterStatuses = useMemo(() => {
     return word.split('').map((letter, i) => {
       let status = ''
@@ -60,6 +67,7 @@ const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
           char={letter}
           status={status}
           active={isActive}
+          feedbackDisabled={!isErrorFeedbackEnabled}
         />
       ))}
       <Letter
@@ -67,6 +75,7 @@ const Word = memo(({ word, chunk, isCurrent, startIndex }) => {
         char={' '}
         status={spaceStatus}
         active={isSpaceActive}
+        feedbackDisabled={!isErrorFeedbackEnabled}
       />
     </div>
   )
@@ -80,7 +89,7 @@ const TypingEngine = ({
   isSmoothCaret, 
   isOverlayActive 
 }) => {
-  const { isSmoothCaret: ctxSmoothCaret, caretStyle } = useSettings()
+  const { isSmoothCaret: ctxSmoothCaret, caretStyle, isErrorFeedbackEnabled } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   
   const {
@@ -226,6 +235,7 @@ const TypingEngine = ({
                     chunk={chunk}
                     isCurrent={isCurrent}
                     startIndex={startIndex}
+                    isErrorFeedbackEnabled={isErrorFeedbackEnabled}
                   />
                 )
               })}
