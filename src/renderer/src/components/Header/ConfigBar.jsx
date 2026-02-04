@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Palette, Clock, Type, Eye, EyeOff, Hash, CaseSensitive, Quote } from 'lucide-react'
+import { Palette, Clock, Type, Eye, EyeOff, Hash, CaseSensitive, Quote, Flame } from 'lucide-react'
 import { useTheme, useSettings } from '../../contexts'
 import { Tooltip } from '../Common'
 
@@ -24,7 +24,9 @@ const ConfigBar = memo(({ openThemeModal }) => {
     hasNumbers,
     setHasNumbers,
     hasCaps,
-    setHasCaps
+    setHasCaps,
+    caretStyle,
+    setCaretStyle
   } = useSettings()
 
   return (
@@ -125,6 +127,38 @@ const ConfigBar = memo(({ openThemeModal }) => {
             </button>
           </Tooltip>
         ))}
+      </div>
+
+      <div className="config-divider" />
+
+      {/* Caret Selector */}
+      <div className="config-group caret-switch">
+        <Tooltip content="Thin Caret">
+          <button 
+            onClick={() => setCaretStyle('bar')}
+            className={`config-btn ${caretStyle === 'bar' ? 'active' : ''}`}
+          >
+            <div style={{ width: 2, height: 12, background: 'currentColor' }} />
+          </button>
+        </Tooltip>
+        
+        <Tooltip content="Thick Caret">
+          <button 
+            onClick={() => setCaretStyle('block')}
+            className={`config-btn ${caretStyle === 'block' ? 'active' : ''}`}
+          >
+            <div style={{ width: 6, height: 12, background: 'currentColor' }} />
+          </button>
+        </Tooltip>
+
+        <Tooltip content="Flame Caret">
+          <button 
+            onClick={() => setCaretStyle('fire')}
+            className={`config-btn ${caretStyle === 'fire' ? 'active' : ''}`}
+          >
+            <Flame size={14} color={caretStyle === 'fire' ? '#ff4500' : 'currentColor'} />
+          </button>
+        </Tooltip>
       </div>
 
       <div className="config-divider" />

@@ -220,12 +220,12 @@ const TypingEngine = ({
               )}
               
               <motion.div
-                className={`caret blinking ${isTyping ? 'typing' : ''}`}
+                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
                 animate={{
                   x: caretPos.left,
                   y: caretPos.top,
                   height: caretPos.height,
-                  width: caretStyle === 'block' ? 7 : 2,
+                  width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
                   opacity: 1
                 }}
                 transition={smoothCaretEnabled ? {
@@ -240,7 +240,7 @@ const TypingEngine = ({
                   left: 0, 
                   top: 0,
                   mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                  borderRadius: caretStyle === 'block' ? '2px' : '1px'
+                  borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px')
                 }}
               />
 

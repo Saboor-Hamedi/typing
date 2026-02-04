@@ -1,6 +1,6 @@
 import './SettingsView.css'
 import { motion } from 'framer-motion'
-import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play, Hash, CaseSensitive, Quote } from 'lucide-react'
+import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play, Hash, CaseSensitive, Quote, Flame } from 'lucide-react'
 import { useSettings } from '../../contexts'
 
 /**
@@ -97,6 +97,24 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
                 type="checkbox" 
                 checked={caretStyle === 'block'} 
                 onChange={() => setCaretStyle('block')} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Flame size={16} color="#ff4500" />
+                <span>Flame Caret</span>
+              </div>
+              <p className="setting-description">High-performance animated fire effect (GPU).</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={caretStyle === 'fire'} 
+                onChange={() => setCaretStyle('fire')} 
               />
               <span className="slider"></span>
             </label>

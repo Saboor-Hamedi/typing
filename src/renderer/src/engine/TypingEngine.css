@@ -131,6 +131,55 @@
   50% { opacity: 0; }
 }
 
+/* Fire Caret Styles - GPU Optimized */
+.caret.style-fire {
+  width: 4px !important;
+  background: white !important; /* White hot core */
+  border-radius: 4px !important;
+  box-shadow: 
+    0 0 4px #fff,
+    0 0 10px #ff4500,
+    0 0 20px #ff8c00,
+    0 0 40px #ffd700;
+  overflow: visible;
+  z-index: 100;
+}
+
+/* Outer Flame */
+.caret.style-fire::after {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -4px;
+  right: -4px;
+  bottom: -2px;
+  background: radial-gradient(ellipse at bottom, rgba(255, 69, 0, 0.9), transparent 70%);
+  filter: blur(5px);
+  animation: fire-flicker 0.15s ease-in-out infinite alternate;
+  border-radius: 50% 50% 20% 20%;
+  pointer-events: none;
+}
+
+/* Inner Heat */
+.caret.style-fire::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -2px;
+  right: -2px;
+  bottom: 0;
+  background: linear-gradient(to top, #ffd700, transparent);
+  filter: blur(2px);
+  animation: fire-flicker 0.1s ease-in-out infinite alternate-reverse;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+@keyframes fire-flicker {
+  0% { transform: scaleY(1) scaleX(0.95); opacity: 0.8; }
+  100% { transform: scaleY(1.3) scaleX(1.05); opacity: 1; }
+}
+
 .hidden-input {
   position: absolute;
   opacity: 0;

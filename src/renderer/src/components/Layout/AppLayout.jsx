@@ -325,7 +325,16 @@ const AppLayout = ({ addToast }) => {
   const commandPaletteActions = [
     { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', onSelect: () => engine.resetGame() },
     { id: 'chameleon', label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, onSelect: () => setIsChameleonEnabled(!isChameleonEnabled) },
-    { id: 'caret-style', label: `Caret Style: ${caretStyle === 'bar' ? 'THIN' : 'THICK'}`, icon: <Type size={18} />, onSelect: () => setCaretStyle(caretStyle === 'bar' ? 'block' : 'bar') },
+    { 
+      id: 'caret-style', 
+      label: `Caret Style: ${caretStyle.toUpperCase()}`, 
+      icon: <Type size={18} />, 
+      onSelect: () => {
+        const styles = ['bar', 'block', 'fire'];
+        const next = styles[(styles.indexOf(caretStyle) + 1) % styles.length];
+        setCaretStyle(next);
+      } 
+    },
     { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
     { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
     { id: 'sound', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
