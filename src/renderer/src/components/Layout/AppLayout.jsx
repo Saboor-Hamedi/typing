@@ -349,7 +349,6 @@ const AppLayout = ({ addToast }) => {
         onNotification={addToast}
         selectedAvatarId={selectedAvatarId}
         isLoggedIn={isLoggedIn}
-        className={(!!startTime && !isFinished && isZenMode) ? 'zen-active' : ''}
         onProfileClick={() => {
           if (isLoggedIn) {
             setActiveTab('dashboard')

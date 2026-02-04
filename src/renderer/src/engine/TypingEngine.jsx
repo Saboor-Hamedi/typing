@@ -161,18 +161,6 @@ const TypingEngine = ({
     }
   }, [isOverlayActive, words])
 
-  // Replay shortcuts
-  useEffect(() => {
-    if (!isReplaying) return
-    const handleReplayKeyDown = (e) => {
-      if (e.key === 'Escape' || e.key === 'Enter') {
-        e.preventDefault()
-        skipReplay()
-      }
-    }
-    window.addEventListener('keydown', handleReplayKeyDown)
-    return () => window.removeEventListener('keydown', handleReplayKeyDown)
-  }, [isReplaying, skipReplay])
 
   return (
     <div className="typing-canvas" onClick={() => !isOverlayActive && inputRef.current?.focus()}>
@@ -192,22 +180,29 @@ const TypingEngine = ({
       >
         {!isFinished ? (
           <>
-            <AnimatePresence>
-              {isReplaying && (
-                <motion.button
-                  className="skip-replay-btn"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  onClick={skipReplay}
-                >
-                  <FastForward size={16} />
-                  <span>Skip Replay</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
 
             <div className="word-wrapper">
+              <AnimatePresence>
+                {isReplaying && (
+                  <motion.button
+                    className="skip-replay-btn"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    onClick={skipReplay}
+                    style={{ 
+                      position: 'absolute', 
+                      top: '-1.5rem', 
+                      left: '50%', 
+                      transform: 'translateX(-50%)',
+                      zIndex: 100
+                    }}
+                  >
+                    <FastForward size={16} />
+                    <span>Skip Replay <span style={{ opacity: 0.6, fontSize: '0.8em' }}>(Esc / Tab)</span></span>
+                  </motion.button>
+                )}
+              </AnimatePresence>
               {isGhostEnabled && startTime && !isFinished && (
                 <motion.div
                   className={`caret ghost blinking ${isTyping ? 'typing' : ''}`}
@@ -230,9 +225,7 @@ const TypingEngine = ({
                   type: 'spring',
                   stiffness: UI.CARET_STIFFNESS_SMOOTH,
                   damping: UI.CARET_DAMPING_SMOOTH,
-                  mass: UI.CARET_MASS_SMOOTH,
-                  restDelta: 0.1,
-                  restSpeed: 10
+                  mass: UI.CARET_MASS_SMOOTH
                 } : {
                   duration: 0
                 }}

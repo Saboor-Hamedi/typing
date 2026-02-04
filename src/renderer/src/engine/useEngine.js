@@ -438,18 +438,45 @@ export function useEngine(testMode, testLimit) {
   }, [keystrokes, stopTimer, isSoundEnabled]);
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const active = document.activeElement;
+      const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+      const isOurInput = active === inputRef.current;
+
+      // 1. Handle Replay skipping
+      if (isReplaying) {
+        if (e.key === 'Escape' || e.key === 'Enter' || e.key === 'Tab') {
+          e.preventDefault();
+          e.stopPropagation();
+          skipReplay();
+          return;
+        }
+      }
+
+      // 2. Handle Tab for Restart
       if (e.key === 'Tab') {
-        const active = document.activeElement;
-        const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
-        const isOurInput = active === inputRef.current;
+        // Don't restart if user is typing in a different input (like theme search)
         if (isInput && !isOurInput) return;
+        
         e.preventDefault();
+        e.stopPropagation();
         resetGame();
+        return;
+      }
+
+      // 3. Handle ResultsView shortcuts (only if finished and not replaying)
+      if (isFinished && !isReplaying) {
+        if (e.key === 'Enter' || e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          resetGame();
+          return;
+        }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [resetGame]);
+
+    window.addEventListener('keydown', handleKeyDown, true); // Use capture to handle it before others
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [resetGame, isReplaying, isFinished, skipReplay]);
   const lastLineTop = useRef(-1);
   useLayoutEffect(() => {
     if (isFinished) return;

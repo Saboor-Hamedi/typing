@@ -59,9 +59,9 @@ export const UI = {
   // High stiffness = very fast response, still smooth
   // Balanced damping = controlled, minimal oscillation
   // Low mass = light, snappy movement
-  CARET_STIFFNESS_SMOOTH: 600,
-  CARET_DAMPING_SMOOTH: 45,
-  CARET_MASS_SMOOTH: 0.15,
+  CARET_STIFFNESS_SMOOTH: 450,
+  CARET_DAMPING_SMOOTH: 42,
+  CARET_MASS_SMOOTH: 0.25,
 
   // Caret animation stiffness (instant mode)
   CARET_STIFFNESS_INSTANT: 1000,

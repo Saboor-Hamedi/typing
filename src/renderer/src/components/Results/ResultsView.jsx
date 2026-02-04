@@ -62,16 +62,6 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
     }
   }, [results, formattedDuration])
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Enter' || e.key === 'Escape') {
-        onRestart()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onRestart])
-
   return (
     <div className="results-container glass-panel">
       <div className="results-content">
