@@ -48,6 +48,10 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : false // Changed default to false for performance
   })
 
+  const [caretStyle, setCaretStyle] = useState(() => {
+    return localStorage.getItem('caretStyle') || 'bar'
+  })
+
   const [isGhostEnabled, setIsGhostEnabled] = useState(() => {
     const saved = localStorage.getItem('isGhostEnabled')
     return saved !== null ? JSON.parse(saved) : false
@@ -73,12 +77,14 @@ export const SettingsProvider = ({ children }) => {
           savedChameleon,
           savedKinetic,
           savedSmooth,
+          savedCaretStyle,
         ] = await Promise.all([
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_MODE),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_LIMIT),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.CHAMELEON),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.KINETIC),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.SMOOTH_CARET),
+          window.api.settings.get('caretStyle'),
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -86,6 +92,7 @@ export const SettingsProvider = ({ children }) => {
         if (savedChameleon !== undefined) setIsChameleonEnabled(savedChameleon)
         if (savedKinetic !== undefined) setIsKineticEnabled(savedKinetic)
         if (savedSmooth !== undefined) setIsSmoothCaret(savedSmooth)
+        if (savedCaretStyle) setCaretStyle(savedCaretStyle)
       }
       setIsSettingsLoaded(true)
     }
@@ -104,6 +111,7 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEYS.SMOOTH_CARET, isSmoothCaret)
     localStorage.setItem('isGhostEnabled', isGhostEnabled)
     localStorage.setItem('ghostSpeed', ghostSpeed)
+    localStorage.setItem('caretStyle', caretStyle)
 
     // Save to electron-store
     if (window.api?.settings) {
@@ -114,8 +122,9 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.SMOOTH_CARET, isSmoothCaret)
       window.api.settings.set('isGhostEnabled', isGhostEnabled)
       window.api.settings.set('ghostSpeed', ghostSpeed)
+      window.api.settings.set('caretStyle', caretStyle)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, isSettingsLoaded])
+  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isSettingsLoaded])
 
   /**
    * Update test mode and set appropriate default limit
@@ -160,6 +169,8 @@ export const SettingsProvider = ({ children }) => {
     setIsGhostEnabled,
     ghostSpeed,
     setGhostSpeed,
+    caretStyle,
+    setCaretStyle,
 
     // UI state
     isZenMode,

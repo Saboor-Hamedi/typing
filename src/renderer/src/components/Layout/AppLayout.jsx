@@ -36,7 +36,7 @@ import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
 import { LoadingSpinner, KeyboardShortcutsModal } from '../Common'
 import CommandPalette from '../CommandPalette/CommandPalette'
-import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield } from 'lucide-react'
+import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity } from 'lucide-react'
 import './AppLayout.css'
 
 // Lazy load views for code splitting
@@ -63,9 +63,15 @@ const AppLayout = ({ addToast }) => {
     setTestMode, 
     setTestLimit,
     isChameleonEnabled,
+    setIsChameleonEnabled,
     isSmoothCaret,
+    setIsSmoothCaret,
+    isKineticEnabled,
+    setIsKineticEnabled,
     isZenMode,
-    setIsZenMode
+    setIsZenMode,
+    caretStyle,
+    setCaretStyle
   } = useSettings()
   
   const { 
@@ -293,6 +299,14 @@ const AppLayout = ({ addToast }) => {
   // Define Command Palette Actions
   const commandPaletteActions = [
     { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', onSelect: () => engine.resetGame() },
+    { id: 'chameleon', label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, onSelect: () => setIsChameleonEnabled(!isChameleonEnabled) },
+    { id: 'caret-style', label: `Caret Style: ${caretStyle === 'bar' ? 'THIN' : 'THICK'}`, icon: <Type size={18} />, onSelect: () => setCaretStyle(caretStyle === 'bar' ? 'block' : 'bar') },
+    { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
+    { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
+    { id: 'sound', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
+    { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, onSelect: () => setIsHallEffect(!isHallEffect) },
+    { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
+    { id: 'zen', label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`, icon: <Play size={18} />, onSelect: () => setIsZenMode(!isZenMode) },
     { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, onSelect: () => setActiveTab('typing') },
     { id: 'leaderboard', label: 'Global Leaderboard', icon: <Globe size={18} />, onSelect: () => setActiveTab('leaderboard') },
     { id: 'history', label: 'Test History', icon: <History size={18} />, onSelect: () => setActiveTab('history') },

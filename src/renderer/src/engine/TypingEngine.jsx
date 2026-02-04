@@ -80,7 +80,7 @@ const TypingEngine = ({
   isSmoothCaret, 
   isOverlayActive 
 }) => {
-  const { isSmoothCaret: ctxSmoothCaret } = useSettings()
+  const { isSmoothCaret: ctxSmoothCaret, caretStyle } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   
   const {
@@ -191,7 +191,7 @@ const TypingEngine = ({
                   x: caretPos.left,
                   y: caretPos.top,
                   height: caretPos.height,
-                  width: 2, // Keep as bar for now, or match width if block preferred
+                  width: caretStyle === 'block' ? 7 : 2,
                   opacity: 1
                 }}
                 transition={smoothCaretEnabled ? {
@@ -204,7 +204,12 @@ const TypingEngine = ({
                 } : {
                   duration: 0
                 }}
-                style={{ left: 0, top: 0 }}
+                style={{ 
+                  left: 0, 
+                  top: 0,
+                  mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
+                  borderRadius: caretStyle === 'block' ? '2px' : '1px'
+                }}
               />
 
               {words.map((word, i) => {
