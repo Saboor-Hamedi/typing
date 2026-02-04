@@ -348,19 +348,20 @@
 
 .live-progress-counter {
   position: absolute;
-  top: 0.5rem;
-  left: 0.75rem;
-  font-size: 25px;
-  font-weight: 600;
+  top: 1rem;
+  left: 1rem;
+  font-size: 40px;
+  font-weight: 700;
   color: var(--main-color);
   font-family: inherit;
-  opacity: 0.9;
+  opacity: 1;
   user-select: none;
   pointer-events: none;
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 6px;
   z-index: 5;
+  letter-spacing: -1px;
 }
 
 .live-progress-counter .remaining {

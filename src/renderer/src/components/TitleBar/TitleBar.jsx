@@ -1,4 +1,5 @@
-import { Minus, Square, X, AppWindow } from 'lucide-react'
+import { Minus, Square, X } from 'lucide-react'
+import logo from '../../../../../resources/icon.png?asset'
 import './TitleBar.css'
 
 const TitleBar = () => {
@@ -18,8 +19,11 @@ const TitleBar = () => {
     <div className="titlebar">
       <div className="titlebar-drag-region">
         <div className="titlebar-title">
-           <AppWindow size={14} className="app-icon" />
-           <span>TypingZone</span>
+           <div 
+             className="app-icon-img" 
+             style={{ '--logo-url': `url(${logo})` }} 
+           />
+           {/* <span>TypingZone</span> */}
         </div>
       </div>
       

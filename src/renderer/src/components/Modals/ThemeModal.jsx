@@ -9,7 +9,9 @@ const THEMES = [
   { id: 'serika_blue', name: 'Serika Blue', bg: '#0d1117', main: '#58a6ff', text: '#c9d1d9' },
   { id: 'matrix', name: 'Matrix', bg: '#000000', main: '#ffffff', text: '#ffffff' },
   { id: 'lavender', name: 'Lavender', bg: '#11111b', main: '#cba6f7', text: '#cdd6f4' },
-  { id: 'rose_pine', name: 'Rose Pine', bg: '#191724', main: '#ebbcba', text: '#e0def4' }
+  { id: 'rose_pine', name: 'Rose Pine', bg: '#191724', main: '#ebbcba', text: '#e0def4' },
+  { id: 'cyberpunk', name: 'Cyberpunk', bg: '#000000', main: '#f6019d', text: '#ffffff' },
+  { id: 'synthwave', name: 'Synthwave', bg: '#2b213a', main: '#ff7edb', text: '#f2e6ff' }
 ]
 
 const ThemeModal = ({ isOpen, onClose, currentTheme, onSelect }) => {

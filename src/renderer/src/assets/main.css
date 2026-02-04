@@ -83,6 +83,28 @@
   --main-color-rgb: 235, 188, 186;
 }
 
+[data-theme='cyberpunk'] {
+  --bg-color: #000000;
+  --main-color: #f6019d;
+  --sub-color: #2de2e6;
+  --sub-alt-color: #190138;
+  --text-color: #ffffff;
+  --error-color: #f6019d;
+  --bg-color-rgb: 0, 0, 0;
+  --main-color-rgb: 246, 1, 157;
+}
+
+[data-theme='synthwave'] {
+  --bg-color: #2b213a;
+  --main-color: #ff7edb;
+  --sub-color: #36f9f6;
+  --sub-alt-color: #1a112c;
+  --text-color: #f2e6ff;
+  --error-color: #36f9f6;
+  --bg-color-rgb: 43, 33, 58;
+  --main-color-rgb: 255, 126, 219;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

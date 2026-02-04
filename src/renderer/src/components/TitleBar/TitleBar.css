@@ -25,15 +25,24 @@
 .titlebar-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 0.8rem;
   color: var(--sub-color);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
 
-.titlebar-title .app-icon {
-  color: var(--main-color);
+.app-icon-img {
+  width: 20px;
+  height: 20px;
+  background-color: var(--main-color); /* This tints the logo! */
+  -webkit-mask-image: var(--logo-url);
+  mask-image: var(--logo-url);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .titlebar-controls {
