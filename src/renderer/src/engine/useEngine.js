@@ -66,6 +66,7 @@ export function useEngine(testMode, testLimit) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [isStoreLoaded, setIsStoreLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const typingTimeoutRef = useRef(null);
   const { 
     isGhostEnabled, 
@@ -303,6 +304,10 @@ export function useEngine(testMode, testLimit) {
         inputRef.current.focus();
       }
     });
+
+    // Briefly show loader to make transition feel smooth
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 400);
   }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps]);
   useEffect(() => {
     resetGame();
@@ -571,6 +576,31 @@ export function useEngine(testMode, testLimit) {
     if (diff <= 0) return 0;
     return Math.round((userInput.length / 5) / diff);
   }, [userInput, startTime, isFinished, isReplaying, results.wpm]);
+
+  const wordProgress = useMemo(() => {
+    if (testMode !== 'words') return { typed: 0, remaining: 0, total: 0 };
+    
+    let typed = 0;
+    let charCount = 0;
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      // A word is considered typed if the user has typed past its length + space
+      if (userInput.length >= charCount + word.length + 1) {
+        typed++;
+        charCount += word.length + 1;
+      } else {
+        break;
+      }
+    }
+
+    return {
+      typed,
+      total: testLimit,
+      remaining: Math.max(0, testLimit - typed)
+    };
+  }, [userInput, words, testMode, testLimit]);
+
   return useMemo(() => ({
     words,
     userInput,
@@ -603,12 +633,14 @@ export function useEngine(testMode, testLimit) {
     testHistory,
     clearAllData,
     ghostSpeed,
-    setGhostSpeed
+    setGhostSpeed,
+    wordProgress,
+    isLoading
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, caretPos,
     timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
-    ghostSpeed
+    ghostSpeed, wordProgress, isLoading
   ]);
 }

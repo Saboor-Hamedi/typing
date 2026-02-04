@@ -11,30 +11,26 @@
   min-height: 0;
 }
 
+/* Standardize container dimensions and add transitions */
 .typing-container {
   position: relative;
   width: 100%;
   max-width: 1000px; 
   margin: 0 auto;
   overflow-y: auto;
-  padding: 0 0.5rem;
-  transition: all 0.3s ease;
-  /* Always centered vertically */
+  padding: 4rem 0.5rem 2rem 0.5rem; 
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* Align to top to prevent vertical jumping on growth */
+  min-height: 25rem; /* Reserve vertical space */
 }
 
-/* Words mode: shorter content, smaller max-height, larger font */
-.typing-container.words-mode {
-  max-height: min(50vh, 25rem);
-  font-size: 1.8rem;
-}
-
-/* Time mode: longer content, larger max-height, smaller font to prevent hiding */
+/* Unified font size to prevent jumping, with subtle adjustments if needed */
+.typing-container.words-mode,
 .typing-container.time-mode {
-  max-height: min(65vh, 40rem);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  max-height: 32rem;
 }
 
 /* Allow expansion for results */
@@ -60,13 +56,10 @@
   min-height: fit-content;
 }
 
-/* Inherit font size from container */
-.words-mode .word-wrapper {
-  font-size: 1.8rem;
-}
-
-.time-mode .word-wrapper {
-  font-size: 1.4rem;
+/* Inherit unified font size */
+.word-wrapper {
+  font-size: 1.5rem;
+  transition: font-size 0.3s ease-in-out;
 }
 
 .word {
@@ -351,4 +344,27 @@
   .word-wrapper {
     font-size: 1.1rem;
   }
+}
+
+.live-progress-counter {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  font-size: 25px;
+  font-weight: 600;
+  color: var(--main-color);
+  font-family: inherit;
+  opacity: 0.9;
+  user-select: none;
+  pointer-events: none;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  z-index: 5;
+}
+
+.live-progress-counter .remaining {
+  color: var(--sub-color);
+  font-size: 0.7em;
+  font-weight: 400;
 }

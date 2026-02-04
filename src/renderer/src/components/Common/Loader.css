@@ -1,0 +1,19 @@
+.loader-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1000;
+  width: 100%;
+}
+
+.loader-pill {
+  height: 4px;
+  background: var(--main-color);
+  border-radius: 10px;
+  box-shadow: 0 0 20px var(--main-color);
+}

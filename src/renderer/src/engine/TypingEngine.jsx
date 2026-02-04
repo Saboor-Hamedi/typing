@@ -9,6 +9,7 @@ import { useSettings } from '../contexts'
 import { UI } from '../constants'
 import { FastForward } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
+import Loader from '../components/Common/Loader'
 import './TypingEngine.css'
 
 /**
@@ -180,11 +181,27 @@ const TypingEngine = ({
         disabled={isReplaying}
         autoFocus
       />
+      <AnimatePresence>
+        {engine.isLoading && <Loader />}
+      </AnimatePresence>
 
       <div
         className={`typing-container ${testMode === 'time' ? 'time-mode' : 'words-mode'}`}
         ref={wordContainerRef}
       >
+        <AnimatePresence>
+          {testMode === 'words' && !isFinished && engine.wordProgress && (
+            <motion.div 
+              className="live-progress-counter"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <span>{engine.wordProgress.typed}</span>
+              <span className="remaining">/ {engine.wordProgress.remaining}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {!isFinished ? (
           <>
 
