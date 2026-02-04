@@ -134,6 +134,15 @@ class SoundEngine {
         body: { type: 'square', freq: 1800, decay: 0.02, gain: 0.05 },
         low: { type: 'sine', freq: 400, decay: 0.06, gain: 0.15 },
         noise: { filter: 'highpass', freq: 3000, decay: 0.015, gain: 0.12 }
+      },
+      raindrop: {
+        body: { type: 'sine', freq: 2200, decay: 0.04, gain: 0.08 },
+        noise: { filter: 'highpass', freq: 5000, decay: 0.01, gain: 0.03 }
+      },
+      wood: {
+        body: { type: 'triangle', freq: 180, decay: 0.1, gain: 0.5 },
+        low: { type: 'sine', freq: 90, decay: 0.12, gain: 0.4 },
+        noise: { filter: 'bandpass', freq: 400, decay: 0.04, gain: 0.15 }
       }
     }
 

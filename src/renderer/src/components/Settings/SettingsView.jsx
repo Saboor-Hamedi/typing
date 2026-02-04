@@ -263,6 +263,24 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
             <div className="setting-info">
               <div className="setting-label">
                 <Volume2 size={16} />
+                <span>Mechanical Sound</span>
+              </div>
+              <p className="setting-description">Enable or disable high-fidelity mechanical switch feedback.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={isSoundEnabled} 
+                onChange={() => setIsSoundEnabled(!isSoundEnabled)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Volume2 size={16} />
                 <span>Sound Profile</span>
               </div>
               <p className="setting-description">Choose your preferred mechanical switch acoustic profile.</p>
@@ -275,6 +293,8 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
               <option value="thocky">Thocky (Deep)</option>
               <option value="creamy">Creamy (Marble)</option>
               <option value="clicky">Clicky (Crisp)</option>
+              <option value="raindrop">Raindrop (Soft)</option>
+              <option value="wood">Wood Block (Warm)</option>
             </select>
           </div>
 
