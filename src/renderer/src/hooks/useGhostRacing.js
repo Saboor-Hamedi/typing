@@ -83,11 +83,15 @@ export const useGhostRacing = (
       if (wordWrapper) {
         const wrapperRect = wordWrapper.getBoundingClientRect();
         const letterRect = ghostLetter.getBoundingClientRect();
+        const originalTop = letterRect.top - wrapperRect.top;
+        const h = letterRect.height * 0.7;
+        const top = originalTop + (letterRect.height - h) / 2;
+
         setGhostPos({
           left: letterRect.left - wrapperRect.left,
-          top: letterRect.top - wrapperRect.top,
+          top: top,
           width: letterRect.width,
-          height: letterRect.height
+          height: h
         })
       }
     }

@@ -476,13 +476,15 @@ export function useEngine(testMode, testLimit) {
           const targetRect = target.getBoundingClientRect();
           
           const left = targetRect.left - wrapperRect.left;
-          const top = targetRect.top - wrapperRect.top;
+          const originalTop = targetRect.top - wrapperRect.top;
+          const h = targetRect.height * 0.7; // Aim for font-size height vs line-height
+          const top = originalTop + (targetRect.height - h) / 2;
 
           setCaretPos({ 
             left, 
             top,
             width: targetRect.width,
-            height: targetRect.height
+            height: h
           });
           
           // Scroll tracking
@@ -504,11 +506,16 @@ export function useEngine(testMode, testLimit) {
         if (lastTarget && wordWrapper) {
           const wrapperRect = wordWrapper.getBoundingClientRect();
           const targetRect = lastTarget.getBoundingClientRect();
+          const left = targetRect.left - wrapperRect.left + lastTarget.offsetWidth;
+          const originalTop = targetRect.top - wrapperRect.top;
+          const h = targetRect.height * 0.7;
+          const top = originalTop + (targetRect.height - h) / 2;
+
           setCaretPos({
-            left: targetRect.left - wrapperRect.left + lastTarget.offsetWidth,
-            top: targetRect.top - wrapperRect.top,
-            width: 2, // Default bar width at end
-            height: targetRect.height
+            left,
+            top,
+            width: 2,
+            height: h
           });
         }
       }
