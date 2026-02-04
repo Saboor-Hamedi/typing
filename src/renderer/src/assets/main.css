@@ -16,58 +16,69 @@
 }
 
 [data-theme='nord'] {
-  --bg-color: #2e3440;
+  --bg-color: #242933;
   --main-color: #88c0d0;
-  --sub-color: #819ebf; /* Brightened */
-  --sub-alt-color: #3b4252;
-  --text-color: #ffffff; /* Max contrast */
+  --sub-color: #617b94;
+  --sub-alt-color: #2e3440;
+  --text-color: #eceff4;
   --error-color: #bf616a;
-  --bg-color-rgb: 46, 52, 64;
+  --bg-color-rgb: 36, 41, 51;
   --main-color-rgb: 136, 192, 208;
 }
 
 [data-theme='dracula'] {
-  --bg-color: #282a36;
+  --bg-color: #1e1f29;
   --main-color: #bd93f9;
-  --sub-color: #95a3d1; /* Brightened */
-  --sub-alt-color: #44475a;
-  --text-color: #ffffff;
+  --sub-color: #6272a4;
+  --sub-alt-color: #282a36;
+  --text-color: #f8f8f2;
   --error-color: #ff5555;
-  --bg-color-rgb: 40, 42, 54;
+  --bg-color-rgb: 30, 31, 41;
   --main-color-rgb: 189, 147, 249;
 }
 
 [data-theme='serika_blue'] {
-  --bg-color: #15202b;
-  --main-color: #1da1f2;
-  --sub-color: #8899a6; /* Brightened */
-  --sub-alt-color: #192734;
-  --text-color: #ffffff;
-  --error-color: #e0245e;
-  --bg-color-rgb: 21, 32, 43;
-  --main-color-rgb: 29, 161, 242;
+  --bg-color: #0d1117;
+  --main-color: #58a6ff;
+  --sub-color: #484f58;
+  --sub-alt-color: #161b22;
+  --text-color: #c9d1d9;
+  --error-color: #f85149;
+  --bg-color-rgb: 13, 17, 23;
+  --main-color-rgb: 88, 166, 255;
 }
 
 [data-theme='matrix'] {
   --bg-color: #000000;
-  --main-color: #15ff00;
-  --sub-color: #008f00; /* More visible dark green */
-  --sub-alt-color: #001a00;
-  --text-color: #15ff00;
+  --main-color: #ffffff;
+  --sub-color: #444444;
+  --sub-alt-color: #111111;
+  --text-color: #ffffff;
   --error-color: #ff0000;
   --bg-color-rgb: 0, 0, 0;
-  --main-color-rgb: 21, 255, 0;
+  --main-color-rgb: 255, 255, 255;
 }
 
 [data-theme='lavender'] {
-  --bg-color: #1a1b26;
-  --main-color: #bb9af7;
-  --sub-color: #7aa2f7; /* Brightened */
-  --sub-alt-color: #24283b;
-  --text-color: #ffffff;
-  --error-color: #f7768e;
-  --bg-color-rgb: 26, 27, 38;
-  --main-color-rgb: 187, 154, 247;
+  --bg-color: #11111b;
+  --main-color: #cba6f7;
+  --sub-color: #585b70;
+  --sub-alt-color: #181825;
+  --text-color: #cdd6f4;
+  --error-color: #f38ba8;
+  --bg-color-rgb: 17, 17, 27;
+  --main-color-rgb: 203, 166, 247;
+}
+
+[data-theme='rose_pine'] {
+  --bg-color: #191724;
+  --main-color: #ebbcba;
+  --sub-color: #908caa;
+  --sub-alt-color: #1f1d2e;
+  --text-color: #e0def4;
+  --error-color: #eb6f92;
+  --bg-color-rgb: 25, 23, 36;
+  --main-color-rgb: 235, 188, 186;
 }
 
 /* Custom Scrollbar */

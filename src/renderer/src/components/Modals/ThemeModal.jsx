@@ -4,11 +4,12 @@ import './ThemeModal.css'
 
 const THEMES = [
   { id: 'carbon', name: 'Carbon', bg: '#111111', main: '#e2b714', text: '#d1d0c5' },
-  { id: 'nord', name: 'Nord', bg: '#2e3440', main: '#88c0d0', text: '#d8dee9' },
-  { id: 'dracula', name: 'Dracula', bg: '#282a36', main: '#bd93f9', text: '#f8f8f2' },
-  { id: 'serika_blue', name: 'Serika Blue', bg: '#15202b', main: '#1da1f2', text: '#ffffff' },
-  { id: 'matrix', name: 'Matrix', bg: '#000000', main: '#15ff00', text: '#15ff00' },
-  { id: 'lavender', name: 'Lavender', bg: '#1a1b26', main: '#bb9af7', text: '#cfc9c2' }
+  { id: 'nord', name: 'Nord', bg: '#242933', main: '#88c0d0', text: '#eceff4' },
+  { id: 'dracula', name: 'Dracula', bg: '#1e1f29', main: '#bd93f9', text: '#f8f8f2' },
+  { id: 'serika_blue', name: 'Serika Blue', bg: '#0d1117', main: '#58a6ff', text: '#c9d1d9' },
+  { id: 'matrix', name: 'Matrix', bg: '#000000', main: '#ffffff', text: '#ffffff' },
+  { id: 'lavender', name: 'Lavender', bg: '#11111b', main: '#cba6f7', text: '#cdd6f4' },
+  { id: 'rose_pine', name: 'Rose Pine', bg: '#191724', main: '#ebbcba', text: '#e0def4' }
 ]
 
 const ThemeModal = ({ isOpen, onClose, currentTheme, onSelect }) => {

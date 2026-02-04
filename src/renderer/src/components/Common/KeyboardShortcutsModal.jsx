@@ -44,7 +44,8 @@ const KeyboardShortcutsModal = memo(({ isOpen, onClose }) => {
       category: 'Navigation',
       items: [
         { keys: ['Ctrl', ','], description: 'Open settings' },
-        { keys: ['Ctrl', 'K'], description: 'Quick actions (coming soon)' },
+        { keys: ['Ctrl', 'T'], description: 'Open themes' },
+        { keys: ['Ctrl', 'P'], description: 'Command Palette' },
         { keys: ['?'], description: 'Show keyboard shortcuts' },
       ]
     },

@@ -163,7 +163,7 @@ export const AUDIO = {
 // ============================================
 
 export const THEMES = {
-  AVAILABLE: ['carbon', 'nord', 'dracula', 'serika_blue', 'matrix', 'lavender'],
+  AVAILABLE: ['carbon', 'nord', 'dracula', 'serika_blue', 'matrix', 'lavender', 'rose_pine'],
   DEFAULT: 'carbon',
 
   // RGB values for Chameleon Flow
@@ -171,9 +171,10 @@ export const THEMES = {
     carbon: [226, 183, 20],
     nord: [136, 192, 208],
     dracula: [189, 147, 249],
-    serika_blue: [29, 161, 242],
-    matrix: [21, 255, 0],
-    lavender: [187, 154, 247],
+    serika_blue: [88, 166, 255],
+    matrix: [255, 255, 255],
+    lavender: [203, 166, 247],
+    rose_pine: [235, 188, 186],
   },
 
   // Hot color for Chameleon Flow (red)

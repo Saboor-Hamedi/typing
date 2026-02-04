@@ -250,6 +250,16 @@ const AppLayout = ({ addToast }) => {
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
       if (isInput && active.type !== 'text' && active.type !== 'password') return
 
+      // Escape: Close any open modal
+      if (e.key === 'Escape') {
+        if (isThemeModalOpen) setIsThemeModalOpen(false)
+        if (isLoginModalOpen) setIsLoginModalOpen(false)
+        if (isLogoutModalOpen) setIsLogoutModalOpen(false)
+        if (isClearDataModalOpen) setIsClearDataModalOpen(false)
+        if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
+        if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
+      }
+
       // Don't intercept if a modal is open (except shortcuts modal)
       if (isOverlayActive && !isShortcutsModalOpen) return
 
@@ -285,11 +295,18 @@ const AppLayout = ({ addToast }) => {
         setIsCommandPaletteOpen(prev => !prev)
         return
       }
+
+      // Ctrl/Cmd + T: Open Themes
+      if (ctrlKey && e.key === 't') {
+        e.preventDefault()
+        setIsThemeModalOpen(prev => !prev)
+        return
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOverlayActive, isShortcutsModalOpen, engine])
+  }, [isOverlayActive, isThemeModalOpen, isLoginModalOpen, isLogoutModalOpen, isClearDataModalOpen, isShortcutsModalOpen, isCommandPaletteOpen, engine])
 
   // Display value for header
   const displayValue = (() => {
