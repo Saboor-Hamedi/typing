@@ -41,23 +41,24 @@
 
 .toast-message {
   flex-grow: 1;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: -0.2px;
 }
 
 .toast-close {
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--sub-color);
   cursor: pointer;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  padding: 0;
 }
 
 .toast-close:hover {

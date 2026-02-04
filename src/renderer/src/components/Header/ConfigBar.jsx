@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { Palette, Clock, Type, Eye, EyeOff } from 'lucide-react'
 import { useTheme, useSettings } from '../../contexts'
+import { Tooltip } from '../Common'
 
 /**
  * ConfigBar Component
@@ -29,29 +30,35 @@ const ConfigBar = memo(({ openThemeModal }) => {
 
   return (
     <div className="master-config">
-      <div className="config-group themes clickable" onClick={openThemeModal}>
-        <Palette size={14} />
-        <span className="current-theme-label">{theme}</span>
-      </div>
+      <Tooltip content="Change Theme">
+        <div className="config-group themes clickable" onClick={openThemeModal}>
+          <Palette size={16} />
+        </div>
+      </Tooltip>
 
       <div className="config-divider" />
 
       {/* Mode Selector */}
       <div className="config-group mode-switch">
-        <button 
-          onClick={() => setTestMode('time')}
-          className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
-        >
-          <Clock size={16} />
-          <span>time</span>
-        </button>
-        <button 
-          onClick={() => setTestMode('words')}
-          className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
-        >
-          <Type size={16} />
-          <span>words</span>
-        </button>
+        <Tooltip content="Time Mode">
+          <button 
+            onClick={() => setTestMode('time')}
+            className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
+            aria-label="Time Mode"
+          >
+            <Clock size={16} />
+          </button>
+        </Tooltip>
+        
+        <Tooltip content="Words Mode">
+          <button 
+            onClick={() => setTestMode('words')}
+            className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
+            aria-label="Words Mode"
+          >
+            <Type size={16} />
+          </button>
+        </Tooltip>
       </div>
 
       <div className="config-divider" />
@@ -59,26 +66,28 @@ const ConfigBar = memo(({ openThemeModal }) => {
       {/* Limit Selector */}
       <div className="config-group limit-options">
         {(testMode === 'time' ? [15, 30, 60] : [10, 25, 50]).map(v => (
-          <button 
-            key={v} 
-            onClick={() => setTestLimit(v)}
-            className={`config-btn ${testLimit === v ? 'active' : ''}`}
-          >
-            {v}
-          </button>
+          <Tooltip key={v} content={`${v} ${testMode === 'time' ? 'seconds' : 'words'}`}>
+            <button 
+              onClick={() => setTestLimit(v)}
+              className={`config-btn ${testLimit === v ? 'active' : ''}`}
+            >
+              {v}
+            </button>
+          </Tooltip>
         ))}
       </div>
 
       <div className="config-divider" />
 
       {/* Zen Toggle */}
-      <div 
-        className={`zen-box ${isZenMode ? 'active' : ''}`}
-        onClick={() => setIsZenMode(!isZenMode)}
-      >
-        {isZenMode ? <EyeOff size={16} /> : <Eye size={16} />}
-        <span>zen</span>
-      </div>
+      <Tooltip content={isZenMode ? "Disable Zen Mode" : "Enable Zen Mode"} align="right">
+        <div 
+          className={`zen-box ${isZenMode ? 'active' : ''}`}
+          onClick={() => setIsZenMode(!isZenMode)}
+        >
+          {isZenMode ? <EyeOff size={16} /> : <Eye size={16} />}
+        </div>
+      </Tooltip>
     </div>
   )
 })

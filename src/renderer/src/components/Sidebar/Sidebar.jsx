@@ -89,7 +89,6 @@ const Sidebar = memo(({
             key={item.id}
             className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
             onClick={() => setActiveTab(item.id)}
-            title={item.label}
           >
             <div className="icon-wrapper">
               {item.icon}
@@ -99,10 +98,10 @@ const Sidebar = memo(({
             )}
           </div>
         ))}
-        <div className="nav-item secondary" title="Commands Help" onClick={() => onNotification('Press Ctrl + Shift + P for commands', 'info')}>
+        <div className="nav-item secondary" onClick={() => onNotification('Press Ctrl + Shift + P for commands', 'info')}>
           <Command size={20} />
         </div>
-        <div className="nav-item secondary" title="About TypingZone" onClick={() => onNotification('TypingZone v1.0.3 - Built for speed.', 'success')}>
+        <div className="nav-item secondary" onClick={() => onNotification('TypingZone v1.0.3 - Built for speed.', 'success')}>
           <Info size={20} />
         </div>
       </nav>
@@ -112,11 +111,6 @@ const Sidebar = memo(({
           <div 
             className={`nav-item secondary ${updateStatus === 'checking' ? 'spin' : ''} ${updateStatus === 'downloaded' ? 'active-green' : ''} ${updateStatus === 'downloading' ? 'downloading' : ''}`}
             onClick={handleUpdateClick}
-            title={
-              updateStatus === 'downloaded' ? 'Restart to Update' : 
-              updateStatus === 'downloading' ? `Downloading... ${downloadProgress}%` : 
-              'Check for Updates'
-            }
           >
             {updateStatus === 'downloaded' ? (
               <ArrowUpCircle size={20} />
@@ -131,7 +125,6 @@ const Sidebar = memo(({
           <div 
             className="profile-trigger"
             onClick={onProfileClick}
-            title={isLoggedIn ? "Profile & Settings" : "Login"}
           >
              {/* We need the avatar image here. Since `UserDropdown` handles it via ID map, we should probably do same or pass src */}
              {/* Simplified: Rendering a div that will be filled by css or passed child */}

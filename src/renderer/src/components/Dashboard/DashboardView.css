@@ -53,8 +53,8 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -63,11 +63,18 @@
   transition: all 0.2s ease;
   backdrop-filter: blur(4px);
 }
+svg{
+    cursor: pointer;
+}
+.hero-btn svg {
+  width: 14px;
+  height: 14px;
+
+}
 
 .hero-btn:hover {
   background: white;
   color: var(--bg-color);
-  transform: translateY(-2px);
 }
 
 .hero-btn.logout:hover {

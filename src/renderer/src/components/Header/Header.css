@@ -8,7 +8,7 @@
   top: 32px; /* Below TitleBar */
   left: 0;
   right: 0;
-  height: 64px;
+  height: var(--nav-item-size);
   z-index: 1000;
   background: var(--bg-color);
   border-bottom: 1px solid var(--sub-alt-color);
@@ -417,19 +417,13 @@
 .config-group.clickable {
   cursor: pointer;
   transition: all 0.2s;
-  padding: 4px 8px;
+  padding: 8px 12px;
   border-radius: var(--round);
 }
 
 .config-group.clickable:hover {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-color);
-}
-
-.current-theme-label {
-  font-size: 0.7rem; /* Smaller font */
-  font-weight: 600;
-  text-transform: lowercase;
 }
 
 .config-options {
@@ -442,17 +436,18 @@
   border: none;
   color: var(--sub-color);
   font-family: inherit;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding: 4px 10px; /* Slightly more balanced padding */
+  padding: 8px 12px;
   border-radius: var(--round);
   transition: all 0.2s;
   display: flex;
   align-items: center;
+  justify-content: center; /* Center content since text is removed */
   gap: 6px;
   text-transform: lowercase;
   min-height: 0; /* Override global 44px */
-  min-width: 0;  /* Override global 44px */
+  min-width: 32px;  /* Ensure clickable width */
 }
 
 .config-btn:hover {
@@ -479,11 +474,12 @@
   cursor: pointer;
   color: var(--sub-color);
   font-size: 0.7rem;
-  padding: 4px 10px;
+  padding: 8px 12px;
   border-radius: var(--round);
   transition: 0.2s;
   min-height: 0;
-  min-width: 0;
+  min-width: 32px;
+  justify-content: center;
 }
 
 .zen-box.active {

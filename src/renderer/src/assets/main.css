@@ -1,5 +1,6 @@
 :root {
-  --sidebar-width: 50px;
+  --nav-item-size: 50px;
+  --sidebar-width: var(--nav-item-size);
   --bg-color: #111111;
   --main-color: #e2b714;
   --sub-color: #8fa1b3; /* Brightened from #646669 */
@@ -11,6 +12,7 @@
   --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   --bg-color-rgb: 17, 17, 17;
   --main-color-rgb: 226, 183, 20;
+  --nav-item-size: 50px;
 }
 
 [data-theme='nord'] {
@@ -96,26 +98,7 @@ header, footer, .main-sidebar, .config-bar-container {
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease;
 }
 
-.app-container.is-typing header,
-.app-container.is-typing footer,
-.app-container.is-typing .main-sidebar,
-.app-container.is-typing .config-bar-container {
-  opacity: 0 !important;
-  pointer-events: none;
-  filter: blur(4px);
-}
-
-.app-container.is-typing .main-sidebar {
-  transform: translateX(-20px);
-}
-
-.app-container.is-typing header {
-  transform: translateY(-10px);
-}
-
-.app-container.is-typing footer {
-  transform: translateY(10px);
-}
+/* removed is-typing styles */
 
 * {
   box-sizing: border-box;
@@ -173,28 +156,7 @@ body {
   transition: opacity 0.3s ease, visibility 0.3s;
 }
 
-.main-viewport:has(.typing-canvas) .config-bar-container,
-.main-viewport:has(.typing-canvas) header,
-.app-container:has(.typing-canvas) .main-sidebar {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.main-viewport:has(.typing-canvas):hover .config-bar-container,
-.main-viewport:has(.typing-canvas):hover header,
-.app-container:has(.typing-canvas) .main-sidebar:hover,
-.app-container:has(.typing-canvas):hover .main-sidebar {
-  opacity: 1;
-  visibility: visible;
-}
-
-.app-container:has(.typing-canvas) .main-sidebar {
-  transition: opacity 0.3s ease, visibility 0.3s, transform 0.3s ease;
-}
-
-.app-container:has(.typing-canvas) .main-sidebar:not(:hover) {
-  transform: translateX(-10px);
-}
+/* removed :has(.typing-canvas) hiding styles */
 
 .content-area {
   flex-grow: 1;

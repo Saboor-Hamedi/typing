@@ -210,8 +210,7 @@ const AppLayout = ({ addToast }) => {
   // Theme change handler
   const handleThemeChange = useCallback((newTheme) => {
     setTheme(newTheme)
-    addToast(`${SUCCESS_MESSAGES.THEME_CHANGED} ${newTheme}`, 'success')
-  }, [setTheme, addToast])
+  }, [setTheme])
 
   // Auto-close Login modal upon successful authentication (OAuth or password)
   useEffect(() => {

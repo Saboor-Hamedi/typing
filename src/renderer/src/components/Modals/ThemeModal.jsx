@@ -15,25 +15,22 @@ const ThemeModal = ({ isOpen, onClose, currentTheme, onSelect }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="theme-modal-overlay">
-          <motion.div 
-            className="theme-modal-overlay-bg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
+        <div className="theme-modal-overlay" onClick={onClose}>
           <motion.div 
             className="theme-modal glass-panel"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="theme-modal-header">
-              <h2><Palette size={24} /> Select Theme</h2>
-              <button className="close-modal" onClick={onClose}>
-                <X size={20} />
+            <div className="theme-modal-header window-like-header">
+              <div className="header-title">
+                <Palette size={12} className="header-icon"/>
+                <span>Select Theme</span>
+              </div>
+              <button className="header-close-btn" onClick={onClose}>
+                <X size={12} />
               </button>
             </div>
 

@@ -8,7 +8,7 @@
  * Notes:
  * - `addToast` is passed to UserProvider/AppLayout so deeper components can trigger notifications.
  */
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import AppLayout from './components/Layout/AppLayout'
 import { ThemeProvider, SettingsProvider, UserProvider } from './contexts'
 import { ToastContainer } from './components/Notification/Toast'
@@ -18,11 +18,22 @@ import './assets/main.css'
 function App() {
   // Toast notification system (shared across all contexts)
   const [toasts, setToasts] = useState([])
+  const toastTimeoutRef = useRef(null)
 
   const addToast = useCallback((message, type = 'info') => {
-    const id = `${performance.now()}-${Math.random().toString(36).substr(2, 9)}`
-    setToasts(prev => [...prev, { id, message, type }])
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000)
+    // Clear any pending removal to keep the toast distinct or extend its life
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current)
+    }
+
+    // Use a stable ID to prevent re-mounting/re-animating on rapid clicks
+    const id = 'singleton-toast'
+    
+    setToasts([{ id, message, type }])
+    
+    toastTimeoutRef.current = setTimeout(() => {
+      setToasts([])
+    }, 4000)
   }, [])
 
   const removeToast = useCallback((id) => {
