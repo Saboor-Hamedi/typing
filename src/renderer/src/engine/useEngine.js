@@ -284,6 +284,7 @@ export function useEngine(testMode, testLimit) {
 
     // Reset caret position
     setCaretPos({ left: 0, top: 0 });
+    lastLineTop.current = -1;
 
     // Scroll to top
     if (wordContainerRef.current) {
@@ -458,111 +459,60 @@ export function useEngine(testMode, testLimit) {
   }, [resetGame]);
   const lastLineTop = useRef(-1);
   useLayoutEffect(() => {
-    if (words.length > 0 && userInput.length === 0) {
-      const activeLetter = document.getElementById('char-0');
-      if (activeLetter) {
-        setCaretPos({ left: activeLetter.offsetLeft, top: activeLetter.offsetTop });
-      }
-    }
-  }, [words]);
-  useLayoutEffect(() => {
     if (isFinished) return;
     if (!wordContainerRef.current) return;
 
     const container = wordContainerRef.current;
+    let retryCount = 0;
+
     const updateCaret = () => {
-      let charIndex = userInput.length;
+      const charIndex = userInput.length;
+      const target = document.getElementById(`char-${charIndex}`);
+      
+      if (target) {
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        
+        const left = targetRect.left - containerRect.left + container.scrollLeft;
+        const top = targetRect.top - containerRect.top + container.scrollTop;
 
-      // If at very start, use invisible char--1 span
-      if (charIndex === 0) {
-        const caretTarget = document.getElementById('char--1');
-        if (caretTarget) {
-          // Account for word-wrapper offset
-          const wordWrapper = caretTarget.closest('.word-wrapper');
-          const wrapperOffsetLeft = wordWrapper ? wordWrapper.offsetLeft : 0;
-          const wrapperOffsetTop = wordWrapper ? wordWrapper.offsetTop : 0;
-
-          setCaretPos({
-            left: wrapperOffsetLeft + caretTarget.offsetLeft,
-            top: wrapperOffsetTop + caretTarget.offsetTop
+        setCaretPos({ left, top });
+        
+        // Scroll tracking for multi-line support
+        if (Math.abs(top - lastLineTop.current) > 5) {
+          const containerHeight = container.clientHeight;
+          // Only scroll if we move to a new vertical position significantly
+          container.scrollTo({
+            top: top - (containerHeight * 0.4),
+            behavior: 'smooth'
           });
-          lastLineTop.current = wrapperOffsetTop + caretTarget.offsetTop;
+          lastLineTop.current = top;
         }
-      } else {
-        // Try to position at the NEXT character first (where we're about to type)
-        // This handles spaces and line breaks correctly
-        const nextCharTarget = document.getElementById(`char-${charIndex}`);
-
-        if (nextCharTarget) {
-          // Get the word-wrapper - it has position: relative, so it's the offsetParent
-          const wordWrapper = nextCharTarget.closest('.word-wrapper');
-          const wrapperOffsetLeft = wordWrapper ? wordWrapper.offsetLeft : 0;
-          const wrapperOffsetTop = wordWrapper ? wordWrapper.offsetTop : 0;
-
-          // Position at the left edge of the next character (space or first char of new line)
-          const caretLeft = wrapperOffsetLeft + nextCharTarget.offsetLeft;
-          // Add offset to visually center caret vertically
-          const caretTop = wrapperOffsetTop + nextCharTarget.offsetTop;
-
+      } else if (charIndex > 0) {
+        // End of text fallback
+        const lastTarget = document.getElementById(`char-${charIndex - 1}`);
+        if (lastTarget) {
+          const containerRect = container.getBoundingClientRect();
+          const targetRect = lastTarget.getBoundingClientRect();
           setCaretPos({
-            left: caretLeft,
-            top: caretTop
+            left: targetRect.left - containerRect.left + container.scrollLeft + lastTarget.offsetWidth,
+            top: targetRect.top - containerRect.top + container.scrollTop
           });
-
-          // Scroll logic for new line
-          if (caretTop !== lastLineTop.current) {
-            const containerHeight = container.clientHeight;
-            const targetScroll = caretTop - (containerHeight * 0.4);
-            container.scrollTo({
-              top: targetScroll,
-              behavior: 'smooth'
-            });
-            lastLineTop.current = caretTop;
-          }
-        } else {
-          // Fallback: use the right edge of the last typed character
-          const lastTypedIndex = charIndex - 1;
-          const lastTypedTarget = document.getElementById(`char-${lastTypedIndex}`);
-
-          if (lastTypedTarget) {
-            // Get the word-wrapper - it has position: relative, so it's the offsetParent
-            const wordWrapper = lastTypedTarget.closest('.word-wrapper');
-            const wrapperOffsetLeft = wordWrapper ? wordWrapper.offsetLeft : 0;
-            const wrapperOffsetTop = wordWrapper ? wordWrapper.offsetTop : 0;
-
-            // Position at the right edge of the last typed character
-            const caretLeft = wrapperOffsetLeft + lastTypedTarget.offsetLeft + lastTypedTarget.offsetWidth;
-            const caretTop = wrapperOffsetTop + lastTypedTarget.offsetTop;
-
-            setCaretPos({
-              left: caretLeft,
-              top: caretTop
-            });
-
-            // Scroll logic for new line
-            if (caretTop !== lastLineTop.current) {
-              const containerHeight = container.clientHeight;
-              const targetScroll = caretTop - (containerHeight * 0.4);
-              container.scrollTo({
-                top: targetScroll,
-                behavior: 'smooth'
-              });
-              lastLineTop.current = caretTop;
-            }
-          }
         }
-      }
-
-      if (userInput.length === 0 && wordContainerRef.current) {
-        wordContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
-        lastLineTop.current = -1;
+      } else if (retryCount < 20) {
+        // More aggressive retry for initial mount
+        retryCount++;
+        setTimeout(updateCaret, 20);
       }
     };
 
-    // Use requestAnimationFrame to ensure DOM has updated
-    requestAnimationFrame(() => {
-      requestAnimationFrame(updateCaret);
-    });
+    // Run IMMEDIATELY to avoid the (0,0) jump
+    updateCaret();
+
+    // Also run in a frame to catch flexbox settling
+    const frame = requestAnimationFrame(updateCaret);
+    
+    return () => cancelAnimationFrame(frame);
   }, [userInput, isFinished, words]);
   const liveWpm = useMemo(() => {
     if (!startTime || isFinished || isReplaying) return results.wpm;

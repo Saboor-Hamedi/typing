@@ -196,17 +196,6 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     return () => window.removeEventListener('keydown', handleReplayKeyDown)
   }, [isReplaying, skipReplay])
 
-  // --- FIX: Place invisible char--1 span absolutely at the left of the first letter ---
-  // Find the first word's first letter span after render and align char--1 to its left/top
-  // This ensures caret is visually before the first letter, not at (0,0)
-  useEffect(() => {
-    const firstLetter = document.getElementById('char-0');
-    const startSpan = document.getElementById('char--1');
-    if (firstLetter && startSpan) {
-      startSpan.style.left = firstLetter.offsetLeft + 'px';
-      startSpan.style.top = firstLetter.offsetTop + 'px';
-    }
-  }, [words]);
 
   return (
     <div
@@ -285,7 +274,6 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
             )}
 
             <div className="word-wrapper">
-              <span id="char--1" style={{position: 'absolute', left: 0, top: 0, width: 0, height: 0, pointerEvents: 'none'}} />
               {words.map((word, i) => {
                 // Calculate startIndex: sum of previous words + spaces between them
                 const startIndex = i === 0

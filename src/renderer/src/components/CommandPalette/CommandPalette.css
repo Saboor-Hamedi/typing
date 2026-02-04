@@ -30,32 +30,42 @@
 .command-palette-search {
   display: flex;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   gap: 12px;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .search-icon {
   color: var(--sub-color);
+  opacity: 0.5;
 }
 
 .command-palette-search input {
   flex: 1;
   background: transparent;
-  border: none;
+  border: none !important;
   outline: none !important;
+  box-shadow: none !important;
   color: var(--text-color);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-family: inherit;
   cursor: text;
+  padding: 4px 0;
+}
+
+.command-palette-search input::placeholder {
+  color: var(--sub-color);
+  opacity: 0.4;
 }
 
 .esc-hint {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--sub-color);
   padding: 2px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 4px;
+  opacity: 0.6;
 }
 
 .command-palette-list {
