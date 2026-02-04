@@ -349,6 +349,7 @@ const AppLayout = ({ addToast }) => {
     { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', onSelect: () => setIsThemeModalOpen(true) },
     { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', onSelect: () => setActiveTab('settings') },
     { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', onSelect: () => setIsShortcutsModalOpen(true) },
+    { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, onSelect: () => handleLogout() },
     isLoggedIn 
       ? { id: 'logout', label: 'Sign Out', icon: <LogOut size={18} />, onSelect: () => toggleLogoutModal(true) }
       : { id: 'login', label: 'Sign In / Register', icon: <User size={18} />, onSelect: () => toggleLoginModal(true) }
@@ -491,10 +492,11 @@ const AppLayout = ({ addToast }) => {
             <div className="status-item clickable" onClick={handleReload} title="Restart test">
               <kbd>Tab</kbd> to restart
             </div>
+            {/* Visual alert for Caps Lock to prevent user frustration during tests */}
             {isCapsLockOn && (
               <div className="caps-lock-abs-container">
                 <Tooltip content="Caps Lock is ON" align="top">
-                  <div className="glow-dot" />
+                  <div className="caps-locks" />
                 </Tooltip>
               </div>
             )}

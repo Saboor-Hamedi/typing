@@ -180,7 +180,7 @@ export const THEMES = {
   // RGB values for Chameleon Flow
   COLORS: {
     carbon: [226, 183, 20],
-    nord: [136, 192, 208],
+    nord: [226, 183, 20],
     dracula: [189, 147, 249],
     serika_blue: [88, 166, 255],
     matrix: [255, 255, 255],

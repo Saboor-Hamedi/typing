@@ -12,18 +12,20 @@
   --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   --bg-color-rgb: 17, 17, 17;
   --main-color-rgb: 226, 183, 20;
+  --error-color-rgb: 202, 71, 84;
   --nav-item-size: 50px;
 }
 
 [data-theme='nord'] {
-  --bg-color: #242933;
-  --main-color: #88c0d0;
-  --sub-color: #617b94;
-  --sub-alt-color: #2e3440;
-  --text-color: #eceff4;
-  --error-color: #bf616a;
-  --bg-color-rgb: 36, 41, 51;
-  --main-color-rgb: 136, 192, 208;
+  --bg-color: #323437;
+  --main-color: #e2b714;
+  --sub-color: #646669;
+  --sub-alt-color: #2c2e31;
+  --text-color: #d1d0c5;
+  --error-color: #ca4754;
+  --bg-color-rgb: 50, 52, 55;
+  --main-color-rgb: 226, 183, 20;
+  --error-color-rgb: 202, 71, 84;
 }
 
 [data-theme='dracula'] {
@@ -117,6 +119,10 @@ header, footer, .main-sidebar, .config-bar-container {
   padding: 0;
   cursor: default; /* Typing-centric default */
   -webkit-app-region: no-drag; /* Default to no drag so buttons work */
+}
+
+input, textarea {
+  cursor: text;
 }
 
 body {
@@ -357,14 +363,28 @@ main {
   height: 20px;
 }
 
-.glow-dot {
+/* 
+  ============================================
+  CAPS LOCK INDICATOR (THEMED)
+  ============================================
+  Purpose: 
+  Visual alert to prevent user frustration when Caps Lock is accidentally ON.
+  
+  Implementation:
+  - Positioned absolutely within the status bar via .caps-lock-abs-container.
+  - Uses var(--main-color) from the active theme for brand consistency.
+  - Dot animation (dotGlow) creates a 'breathing' effect to catch attention 
+    without being a sharp, distracting flash.
+  - 8px size keeps it minimalist and professional.
+*/
+.caps-locks {
   width: 8px;
   height: 8px;
-  background: var(--error-color);
+  background: var(--main-color);
   border-radius: 50%;
   box-shadow: 
-    0 0 5px var(--error-color),
-    0 0 10px var(--error-color);
+    0 0 5px var(--main-color),
+    0 0 10px var(--main-color);
   animation: dotGlow 1.5s ease-in-out infinite;
 }
 
@@ -372,12 +392,12 @@ main {
   0%, 100% { 
     transform: scale(1);
     opacity: 0.8;
-    box-shadow: 0 0 5px var(--error-color), 0 0 10px var(--error-color);
+    box-shadow: 0 0 5px var(--main-color), 0 0 10px var(--main-color);
   }
   50% { 
     transform: scale(1.3);
     opacity: 1;
-    box-shadow: 0 0 10px var(--error-color), 0 0 20px var(--error-color);
+    box-shadow: 0 0 10px var(--main-color), 0 0 20px var(--main-color);
   }
 }
 

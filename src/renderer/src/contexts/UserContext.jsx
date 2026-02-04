@@ -180,6 +180,15 @@ export const UserProvider = ({ children, addToast }) => {
         console.log('Deep link received:', cleanUrl)
       }
 
+      // Catch OAuth errors from the URL
+      const errorMatch = cleanUrl.match(/error_description=([^&#\s?]+)/i)
+      if (errorMatch) {
+        const errorMsg = decodeURIComponent(errorMatch[1]).replace(/\+/g, ' ')
+        addToast?.(errorMsg, 'error')
+        console.error('OAuth Error:', errorMsg)
+        return
+      }
+
       // Robust token extraction using Regex (Case Insensitive)
       const accessTokenMatch = cleanUrl.match(/access_token=([^&#\s?]+)/i)
       const refreshTokenMatch = cleanUrl.match(/refresh_token=([^&#\s?]+)/i)
@@ -223,7 +232,7 @@ export const UserProvider = ({ children, addToast }) => {
         if (import.meta.env.DEV) {
           console.warn('No tokens found in URL:', cleanUrl)
         }
-        addToast?.('No login tokens detected in link', 'warning')
+        // Don't toast 'warning' if we already showed a specific error above
       }
     })
 
@@ -309,8 +318,11 @@ export const UserProvider = ({ children, addToast }) => {
 
     localStorage.setItem(STORAGE_KEYS.MANUAL_LOGOUT, 'true')
 
+    // Aggressively clear ALL Supabase and auth related tokens
     Object.keys(localStorage).forEach(key => {
-      if (key.includes('auth-token')) localStorage.removeItem(key)
+      if (key.includes('auth-token') || key.startsWith('sb-')) {
+        localStorage.removeItem(key)
+      }
     })
 
     try {
@@ -318,6 +330,8 @@ export const UserProvider = ({ children, addToast }) => {
       addToast?.(SUCCESS_MESSAGES.LOGOUT_SUCCESS, 'info')
     } catch (err) {
       console.error('Logout error:', err)
+      // Even if cloud logout fails, local state is already cleared
+      addToast?.('Signed out locally', 'info')
     } finally {
       setTimeout(() => { isLoggingOut.current = false }, 2500)
     }

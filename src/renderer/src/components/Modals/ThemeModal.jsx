@@ -4,7 +4,7 @@ import './ThemeModal.css'
 
 const THEMES = [
   { id: 'carbon', name: 'Carbon', bg: '#111111', main: '#e2b714', text: '#d1d0c5' },
-  { id: 'nord', name: 'Nord', bg: '#242933', main: '#88c0d0', text: '#eceff4' },
+  { id: 'nord', name: 'Nord', bg: '#323437', main: '#e2b714', text: '#d1d0c5' },
   { id: 'dracula', name: 'Dracula', bg: '#1e1f29', main: '#bd93f9', text: '#f8f8f2' },
   { id: 'serika_blue', name: 'Serika Blue', bg: '#0d1117', main: '#58a6ff', text: '#c9d1d9' },
   { id: 'matrix', name: 'Matrix', bg: '#000000', main: '#ffffff', text: '#ffffff' },

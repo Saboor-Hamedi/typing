@@ -11,7 +11,7 @@
  *   once the deep link establishes the Supabase session.
  */
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Lock, User, Github, AlertCircle, Globe } from 'lucide-react'
+import { X, Mail, Lock, User, Github, AlertCircle, Globe, AppWindow } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import './LoginModal.css'
 
@@ -19,7 +19,11 @@ import { supabase } from '../../utils/supabase'
 
 const LoginModal = ({ isOpen, onClose, onLogin }) => {
   const [mode, setMode] = useState('login') // 'login' | 'signup'
-  const [formData, setFormData] = useState({ email: '', password: '', username: '' })
+  const [formData, setFormData] = useState({ 
+    email: localStorage.getItem('lastEmail') || '', 
+    password: localStorage.getItem('lastPassword') || '', 
+    username: '' 
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -56,6 +60,11 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
         })
         setLoading(false)
         if (error) throw error
+
+        // Save credentials for 'auto-completion' effect
+        localStorage.setItem('lastEmail', formData.email)
+        localStorage.setItem('lastPassword', formData.password)
+
         if (onLogin) onLogin(formData.username)
         onClose()
       } else {
@@ -67,6 +76,10 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
         // Signal success immediately
         setLoading(false)
         if (error) throw error
+
+        // Save credentials for 'auto-completion' effect
+        localStorage.setItem('lastEmail', formData.email)
+        localStorage.setItem('lastPassword', formData.password)
 
         // Handle success
         onClose()
@@ -129,9 +142,10 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             <div className="modal-top-bar">
-              <motion.h2 layout="position">
-                {mode === 'login' ? 'Authentication' : 'Registration'}
-              </motion.h2>
+                <div className="modal-header-title">
+                  <AppWindow size={12} className="modal-app-icon" />
+                  <span>{mode === 'login' ? 'Authentication' : 'Registration'}</span>
+                </div>
               <button 
                 className="close-btn" 
                 onClick={onClose} 
@@ -168,43 +182,52 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               <AnimatePresence mode="popLayout" initial={false}>
                 {mode === 'signup' && (
                   <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
                     className="input-group"
                   >
-                    <User size={16} />
-                    <input 
-                      type="text" 
-                      placeholder="Username" 
-                      value={formData.username}
-                      onChange={e => setFormData({...formData, username: e.target.value})}
-                      required 
-                    />
+                    <label>Username</label>
+                    <div className="input-container">
+                      <User size={18} />
+                      <input 
+                        type="text" 
+                        placeholder="Choose a typing name" 
+                        value={formData.username}
+                        onChange={e => setFormData({...formData, username: e.target.value})}
+                        required 
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
               
               <div className="input-group">
-                <Mail size={16} />
-                <input 
-                  type="email" 
-                  placeholder="Email" 
-                  value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
-                  required 
-                />
+                <label>Email Address</label>
+                <div className="input-container">
+                  <Mail size={18} />
+                  <input 
+                    type="email" 
+                    placeholder="name@example.com" 
+                    value={formData.email}
+                    onChange={e => setFormData({...formData, email: e.target.value})}
+                    required 
+                  />
+                </div>
               </div>
 
               <div className="input-group">
-                <Lock size={16} />
-                <input 
-                  type="password" 
-                  placeholder="Password" 
-                  value={formData.password}
-                  onChange={e => setFormData({...formData, password: e.target.value})}
-                  required 
-                />
+                <label>Password</label>
+                <div className="input-container">
+                  <Lock size={18} />
+                  <input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={formData.password}
+                    onChange={e => setFormData({...formData, password: e.target.value})}
+                    required 
+                  />
+                </div>
               </div>
 
               {error && (

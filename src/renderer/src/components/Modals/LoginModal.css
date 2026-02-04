@@ -1,170 +1,202 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
 .login-modal {
-  width: 360px;
-  max-width: 90vw;
-  padding: 0 !important; /* Force no padding */
-  background: var(--bg-color-glass);
+  width: 400px;
+  max-width: 95vw;
+  padding: 0 !important;
+  background: var(--bg-color); /* Real theme background */
+  border: 1px solid var(--sub-alt-color); 
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  border-radius: 0 !important;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08); 
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  border-radius: 0 !important; /* Square corners like TitleBar */
 }
 
 .modal-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 32px;
-  padding-left: 0.75rem; /* Only left padding */
-  padding-right: 0; /* No space on the right for the close button */
-  background: rgba(255, 255, 255, 0.02);
+  height: 32px; /* Standard window title bar height */
+  padding: 0 0 0 1rem; /* No padding on right for close button */
+  background: var(--sub-alt-color); /* Match TitleBar */
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.modal-top-bar h2 {
-  font-size: 0.65rem; /* Even smaller, more professional */
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  font-weight: 800;
+.modal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  font-weight: 600;
   color: var(--sub-color);
-  margin: 0;
-  opacity: 0.8;
+  opacity: 1;
+}
+
+.modal-app-icon {
+  color: var(--main-color);
 }
 
 .modal-inner-content {
-  padding: 1.25rem;
+  padding: 2rem;
 }
 
-/* Removed internal .modal-header as it's replaced by .modal-top-bar */
-
 .close-btn {
-  background: none;
+  background: transparent;
   border: none;
   color: var(--sub-color);
   cursor: pointer;
-  width: 40px;
+  width: 45px; /* Proportional window button width */
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s; /* Limit transition to prevent layout shifts */
-  border-radius: 0;
+  transition: all 0.2s ease;
+  border-radius: 0; /* Square button */
   padding: 0;
-  margin: 0;
-  min-width: 0; /* Override global 44px rule */
-  min-height: 0; /* Override global 44px rule */
-  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
 }
 
 .close-btn:hover {
-  background: #ca4754;
+  background: #e81123; /* Consistent with TitleBar close */
   color: white;
 }
 
 .auth-tabs {
   display: flex;
-  gap: 1rem;
-  margin: 0.75rem 0; /* Reduced from 1rem */
-  border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  background: var(--sub-alt-color); /* Use theme instead of hardcoded black */
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  position: relative;
 }
 
 .auth-tab {
+  flex: 1;
   background: none;
   border: none;
-  font-size: 0.85rem; /* Reduced from 1rem */
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--sub-color);
-  padding-bottom: 0.4rem;
+  padding: 8px 0;
   cursor: pointer;
   position: relative;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
 .auth-tab.active {
-  color: var(--main-color);
-}
-
-.auth-tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 2px;
+  color: var(--bg-color);
   background: var(--main-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(var(--main-color-rgb), 0.2);
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Reduced from 0.75rem */
+  gap: 1.25rem;
 }
 
 .input-group {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--sub-alt-color);
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px; /* Standard small radius */
-  border: 1px solid transparent !important; /* Force remove border */
-  transition: all 0.2s;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.input-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--sub-color);
-  outline: none !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.input-group:focus-within {
-  background: rgba(255, 255, 255, 0.04);
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--sub-alt-color);
+  padding: 0 1rem;
+  height: 48px;
+  border-radius: var(--round);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  color: var(--sub-color);
+}
+
+.input-container:focus-within {
+  background: rgba(var(--main-color-rgb), 0.05);
+  border-color: var(--main-color);
   color: var(--main-color);
-  box-shadow: none !important; /* Remove any global shadows */
+  box-shadow: 0 0 0 4px rgba(var(--main-color-rgb), 0.1);
 }
 
-.input-group svg {
-  transition: transform 0.2s;
-}
-
-.input-group:focus-within svg {
-  transform: scale(1.1);
-}
-
-.input-group input {
+.input-container input {
   background: transparent;
   border: none !important;
   outline: none !important;
   color: var(--text-color);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   width: 100%;
 }
 
-/* Remove browsers default focus indicators */
-.input-group input:focus {
-  box-shadow: none !important;
-  outline: none !important;
+.input-container input::placeholder {
+  color: var(--sub-color);
+  opacity: 0.5;
 }
 
 .submit-btn {
-  background: var(--text-color);
+  background: var(--main-color);
   color: var(--bg-color);
   border: none;
-  padding: 0.7rem; /* Reduced from 0.8rem */
+  height: 48px;
   border-radius: var(--round);
   font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  transition: opacity 0.2s;
-  margin-top: 0.4rem;
-  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
 }
 
-.submit-btn:hover {
-  opacity: 0.9;
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(var(--main-color-rgb), 0.3);
+  filter: brightness(1.1);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .auth-divider {
   display: flex;
   align-items: center;
-  margin: 0.75rem 0; /* Reduced from 1rem */
+  margin: 1.5rem 0;
   color: var(--sub-color);
-  font-size: 0.7rem; /* Reduced from 0.8rem */
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.5;
 }
 
 .auth-divider::before,
@@ -176,7 +208,7 @@
 }
 
 .auth-divider span {
-  padding: 0 10px;
+  padding: 0 15px;
 }
 
 .social-btn {
@@ -184,34 +216,37 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  padding: 0.7rem; /* Reduced from 0.8rem */
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 12px;
+  height: 48px;
+  background: var(--sub-alt-color);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: var(--text-color);
   border-radius: var(--round);
   cursor: pointer;
-  transition: background 0.2s;
-  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
-.social-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+.social-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .social-btn.browser {
-  border-color: var(--main-color);
+  border-color: rgba(var(--main-color-rgb), 0.3);
   color: var(--main-color);
 }
 
-.social-btn.browser:hover {
+.social-btn.browser:hover:not(:disabled) {
   background: rgba(var(--main-color-rgb), 0.1);
+  border-color: var(--main-color);
 }
 
 .auth-footer {
-  margin-top: 0.75rem; /* Reduced from 1rem */
+  margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.75rem; /* Reduced from 0.8rem */
+  font-size: 0.85rem;
   color: var(--sub-color);
 }
 
@@ -219,5 +254,25 @@
   color: var(--main-color);
   cursor: pointer;
   font-weight: 600;
+  margin-left: 4px;
+  transition: all 0.2s ease;
+}
+
+.auth-footer .link:hover {
+  text-decoration: underline;
+  filter: brightness(1.2);
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--error-color-rgb), 0.1);
+  border: 1px solid rgba(var(--error-color-rgb), 0.2);
+  color: #ff4444;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
 }
 
