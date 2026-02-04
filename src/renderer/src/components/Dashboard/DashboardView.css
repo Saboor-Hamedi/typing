@@ -43,6 +43,39 @@
   width: 100%;
 }
 
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.hero-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.hero-btn:hover {
+  background: white;
+  color: var(--bg-color);
+  transform: translateY(-2px);
+}
+
+.hero-btn.logout:hover {
+  background: var(--error-color);
+  color: white;
+  border-color: var(--error-color);
+}
+
 .profile-section {
   display: flex;
   align-items: center;
@@ -111,6 +144,38 @@
   margin-bottom: 0.35rem;
 }
 
+.name-display-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.name-display-row:hover .edit-icon {
+  opacity: 1;
+}
+
+.edit-icon {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: var(--sub-color);
+}
+
+.username-input-large {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--main-color);
+  font-size: 2.1rem;
+  font-weight: 900;
+  color: var(--text-color);
+  width: 100%;
+  margin-bottom: 0.35rem;
+  font-family: inherit;
+  outline: none;
+  padding: 0;
+  letter-spacing: -0.5px;
+}
+
 .level-badge {
   background: var(--main-color);
   color: var(--bg-color);
@@ -164,6 +229,16 @@
   .profile-info h1 {
     font-size: 1.6rem;
     margin-bottom: 0.25rem;
+  }
+
+  .username-input-large {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+  
+  .name-display-row {
+    justify-content: center;
   }
 
   .level-badge {

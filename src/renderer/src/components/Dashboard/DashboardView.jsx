@@ -12,7 +12,7 @@
  */
 import './DashboardView.css'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity, Trash2 } from 'lucide-react'
+import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity, Trash2, Settings, LogOut, Edit2 } from 'lucide-react'
 import ProgressGraph from '../Analytics/ProgressGraph'
 import dashboardBg from '../../assets/dashboard_bg.png'
 import { calculateLevel } from '../../utils/Leveling'
@@ -22,7 +22,9 @@ import { Lock, Check } from 'lucide-react'
 // Avatar Registry
 import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
 
-const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, unlockedAvatars = [1], onUpdateAvatar, isLoggedIn, onDeleteAccount }) => {
+const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, unlockedAvatars = [1], onUpdateAvatar, setUsername, isLoggedIn, onDeleteAccount, onLogout, onSettings }) => {
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [tempName, setTempName] = useState(username)
   
   const { 
     experience, level, levelProgress, xpToNext 
@@ -59,7 +61,34 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
               <div className="status-indicator online" />
             </div>
             <div className="profile-info">
-              <h1>{username || 'Pro Typist'}</h1>
+              {isEditingName ? (
+                <input
+                  type="text"
+                  className="username-input-large"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  onBlur={() => {
+                    if (tempName.trim() && tempName.trim() !== username) setUsername(tempName.trim())
+                    setIsEditingName(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      if (tempName.trim() && tempName.trim() !== username) setUsername(tempName.trim())
+                      setIsEditingName(false)
+                    } else if (e.key === 'Escape') {
+                      setIsEditingName(false)
+                      setTempName(username)
+                    }
+                  }}
+                  autoFocus
+                  maxLength={12}
+                />
+              ) : (
+                <div className="name-display-row" onClick={() => { setIsEditingName(true); setTempName(username); }}>
+                  <h1>{username || 'Pro Typist'}</h1>
+                  <Edit2 size={16} className="edit-icon" />
+                </div>
+              )}
               <div className="level-badge">LEVEL {level}</div>
               <div className="level-progress-container">
                 <div className="level-progress-bar" style={{ width: `${levelProgress}%` }} />
@@ -67,6 +96,17 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
               <p className="exp-text">{experience} XP • {xpToNext} XP to next level</p>
             </div>
           </motion.div>
+          
+          <div className="hero-actions">
+            <button className="hero-btn" onClick={onSettings} title="Settings">
+               <Settings size={20} />
+            </button>
+            {isLoggedIn && (
+              <button className="hero-btn logout" onClick={onLogout} title="Sign Out">
+                 <LogOut size={20} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

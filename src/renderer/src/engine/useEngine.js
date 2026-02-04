@@ -501,6 +501,7 @@ export function useEngine(testMode, testLimit) {
 
           // Position at the left edge of the next character (space or first char of new line)
           const caretLeft = wrapperOffsetLeft + nextCharTarget.offsetLeft;
+          // Add offset to visually center caret vertically
           const caretTop = wrapperOffsetTop + nextCharTarget.offsetTop;
 
           setCaretPos({

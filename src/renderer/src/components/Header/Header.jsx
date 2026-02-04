@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { useSettings } from '../../contexts'
-import UserDropdown from './UserDropdown'
+import ConfigBar from './ConfigBar'
 import './Header.css'
 
 const Header = memo(({ 
@@ -12,7 +12,8 @@ const Header = memo(({
   onLogoutRequest,
   selectedAvatarId = 1,
   onNavigateDashboard,
-  liveWpm
+  liveWpm,
+  openThemeModal
 }) => {
   const { isZenMode } = useSettings()
 
@@ -27,19 +28,14 @@ const Header = memo(({
   return (
     <header className={`main-header ${testStarted && isZenMode ? 'zen-active' : ''}`}>
       <div className="header-inner">
-        <div className="header-top-row">
-          <div className="header-actions">
-             <UserDropdown 
-                username={safeUsername}
-                isLoggedIn={isLoggedIn}
-                setUsername={safeSetUsername}
-                openLoginModal={safeOpenLoginModal}
-                onLogoutRequest={safeOnLogoutRequest}
-                selectedAvatarId={safeSelectedAvatarId}
-                onNavigateDashboard={safeOnNavigateDashboard}
-                wpm={testStarted && liveWpm !== undefined ? liveWpm : undefined}
-             />
-          </div>
+        <div className="header-left">
+           {/* Profile now in sidebar. Left side reserved for future use or branding if needed. */}
+        </div>
+        
+        <div className="header-right">
+          {!testStarted && (
+            <ConfigBar openThemeModal={openThemeModal} />
+          )}
         </div>
       </div>
     </header>

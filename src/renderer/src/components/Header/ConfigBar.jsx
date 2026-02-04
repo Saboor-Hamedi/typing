@@ -28,7 +28,7 @@ const ConfigBar = memo(({ openThemeModal }) => {
   } = useSettings()
 
   return (
-    <div className="master-config glass-panel">
+    <div className="master-config">
       <div className="config-group themes clickable" onClick={openThemeModal}>
         <Palette size={14} />
         <span className="current-theme-label">{theme}</span>

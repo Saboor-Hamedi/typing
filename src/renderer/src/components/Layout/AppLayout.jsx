@@ -331,6 +331,15 @@ const AppLayout = ({ addToast }) => {
         testStarted={!!startTime && !isFinished}
         isZenMode={isZenMode}
         onNotification={addToast}
+        selectedAvatarId={selectedAvatarId}
+        isLoggedIn={isLoggedIn}
+        onProfileClick={() => {
+          if (isLoggedIn) {
+            setActiveTab('dashboard')
+          } else {
+            toggleLoginModal(true)
+          }
+        }}
       />
 
       <div className="main-viewport">
@@ -345,17 +354,11 @@ const AppLayout = ({ addToast }) => {
             selectedAvatarId={selectedAvatarId}
             onNavigateDashboard={() => setActiveTab('dashboard')}
             liveWpm={liveWpm}
+            openThemeModal={() => toggleThemeModal(true)}
           />
         )}
 
-        {/* Config Bar - Outside header, below it */}
-        {!isOverlayActive && activeTab !== 'dashboard' && !(!!startTime && !isFinished) && activeTab === 'typing' && (
-          <div className="config-bar-container">
-            <ConfigBar 
-              openThemeModal={() => toggleThemeModal(true)}
-            />
-          </div>
-        )}
+        {/* Config Bar moved to Header */}
 
         <main className="content-area">
           <Suspense fallback={<LoadingSpinner />}>
@@ -383,8 +386,11 @@ const AppLayout = ({ addToast }) => {
                 unlockedAvatars={unlockedAvatars}
                 currentLevel={currentLevel}
                 onUpdateAvatar={updateAvatar}
+                setUsername={updateUsername}
                 isLoggedIn={isLoggedIn}
                 onDeleteAccount={() => toggleDeleteAccountModal(true)}
+                onLogout={() => toggleLogoutModal(true)}
+                onSettings={() => setActiveTab('settings')}
               />
             ) : activeTab === 'leaderboard' ? (
               <LeaderboardView currentUser={username} />

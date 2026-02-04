@@ -113,7 +113,8 @@
 .caret {
   position: absolute;
   width: 2px;
-  height: 1.5em; /* Match line-height exactly */
+  height: 1.2em; /* Slightly shorter than line-height to fit within line */
+  top: 0.15em; /* Nudge down to center vertically in line */
   background: var(--main-color);
   z-index: 10;
   pointer-events: none;

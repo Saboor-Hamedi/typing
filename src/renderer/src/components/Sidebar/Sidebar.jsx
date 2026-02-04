@@ -1,13 +1,17 @@
 import './Sidebar.css'
 import { Keyboard, History, Settings, Info, Trophy, Command, Globe, ArrowUpCircle, RefreshCw } from 'lucide-react'
 import { useState, useEffect, memo } from 'react'
+import { AVATAR_MAP } from '../../assets/avatars'
 
 const Sidebar = memo(({ 
   activeTab, 
   setActiveTab, 
   testStarted, 
   isZenMode,
-  onNotification
+  onNotification,
+  selectedAvatarId,
+  isLoggedIn,
+  onProfileClick
 }) => {
   const [updateStatus, setUpdateStatus] = useState('idle')
   const [downloadProgress, setDownloadProgress] = useState(0)
@@ -50,6 +54,10 @@ const Sidebar = memo(({
 
     return () => cleanups.forEach(c => c())
   }, [onNotification, updateStatus])
+
+  // Need AVATAR_MAP for profile button
+  // We will trust the passed ID or fetch mapping appropriately.
+  // Ideally importing AVATAR_MAP here is best practice.
 
   const handleUpdateClick = () => {
     if (updateStatus === 'downloaded') {
@@ -121,14 +129,15 @@ const Sidebar = memo(({
           </div>
           
           <div 
-            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
-            title="Settings"
+            className="profile-trigger"
+            onClick={onProfileClick}
+            title={isLoggedIn ? "Profile & Settings" : "Login"}
           >
-            <Settings size={20} />
-            {activeTab === 'settings' && (
-              <div className="active-indicator" />
-            )}
+             {/* We need the avatar image here. Since `UserDropdown` handles it via ID map, we should probably do same or pass src */}
+             {/* Simplified: Rendering a div that will be filled by css or passed child */}
+             <img src={AVATAR_MAP[selectedAvatarId] || AVATAR_MAP[0]} alt="Profile" className="profile-img-sidebar" onError={(e) => e.target.style.display='none'} />
+             {/* Fallback icon if image fails */}
+             <Settings size={20} className="fallback-icon" style={{position:'absolute', zIndex:-1}}/> 
           </div>
         </div>
       </div>

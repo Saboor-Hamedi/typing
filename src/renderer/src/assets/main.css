@@ -148,7 +148,7 @@ body {
 .main-viewport {
   flex-grow: 1;
   margin-left: var(--sidebar-width);
-  padding: 64px 0 22px 0; /* Top padding for fixed header, bottom for status bar */
+  padding: 64px 0 40px 0; /* Top padding for fixed header, bottom for status bar visibility */
   display: flex;
   flex-direction: column;
   overflow-y: auto; /* Solid scroll behavior */
@@ -450,9 +450,9 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--main-color);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(var(--main-color-rgb), 0.2);
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 2px rgba(var(--main-color-rgb), 0.2);
 }
 
 /* Skip to main content link (for screen readers) */

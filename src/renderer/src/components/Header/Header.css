@@ -27,14 +27,16 @@
 }
 
 /* Row 1: Brand & Metadata */
-.header-top-row {
+.header-left {
   display: flex;
-  justify-content: flex-start; /* Moved to left */
   align-items: center;
-  padding: 0.5rem 0;
   gap: 1rem;
-  min-height: 48px;
-  flex-wrap: nowrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .branding {
@@ -393,11 +395,10 @@
 .master-config {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--round);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: var(--sub-alt-color);
+  gap: 0.5rem;
+  padding: 0;
+  border: none;
+  background: transparent; /* Seamless blend */
 }
 
 .glass-panel {

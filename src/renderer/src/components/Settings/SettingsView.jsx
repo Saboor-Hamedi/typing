@@ -43,7 +43,7 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
               <div className="setting-label">Application Theme</div>
               <p className="setting-description">Change the overall look and feel of TypingZone.</p>
             </div>
-            <button className="config-btn active" onClick={openThemeModal} style={{ padding: '8px 16px' }}>
+            <button className="settings-action-btn" onClick={openThemeModal}>
               Select Theme
             </button>
           </div>

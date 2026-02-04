@@ -14,6 +14,35 @@
   flex-shrink: 0;
 }
 
+.profile-trigger {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  border-radius: 0;
+  transition: background 0.2s ease;
+}
+
+.profile-trigger:hover {
+  background: var(--sub-alt-color);
+}
+
+.profile-trigger img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--sub-alt-color);
+  transition: border-color 0.2s;
+}
+
+.profile-trigger:hover img {
+  border-color: var(--main-color);
+}
+
 
 @media (max-width: 768px) {
   .main-sidebar {
@@ -89,6 +118,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0;
+  padding-bottom: 26px; /* Space for status bar */
 }
 
 .nav-item.secondary {
