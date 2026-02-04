@@ -1,6 +1,6 @@
 import './SettingsView.css'
 import { motion } from 'framer-motion'
-import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play } from 'lucide-react'
+import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play, Hash, CaseSensitive, Quote } from 'lucide-react'
 import { useSettings } from '../../contexts'
 
 /**
@@ -32,7 +32,15 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
     soundProfile,
     setSoundProfile,
     isCenteredScrolling,
-    setIsCenteredScrolling
+    setIsCenteredScrolling,
+    difficulty,
+    setDifficulty,
+    hasPunctuation,
+    setHasPunctuation,
+    hasNumbers,
+    setHasNumbers,
+    hasCaps,
+    setHasCaps
   } = useSettings()
   return (
     <div className="settings-container">
@@ -246,6 +254,87 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
                 type="checkbox" 
                 checked={isZenMode} 
                 onChange={() => setIsZenMode(!isZenMode)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </section>
+
+        {/* Complexity & Training Section */}
+        <section className="settings-section glass-panel">
+          <div className="section-title">
+            <Zap size={18} />
+            <span>Complexity & Training</span>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <ShieldCheck size={16} />
+                <span>Difficulty Level</span>
+              </div>
+              <p className="setting-description">Choose word list complexity (Short vs. Technical).</p>
+            </div>
+            <select 
+              className="settings-select"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
+              <option value="beginner">Beginner (1-4 letters)</option>
+              <option value="intermediate">Intermediate (Mixed)</option>
+              <option value="advanced">Advanced (Long Words)</option>
+            </select>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Quote size={16} />
+                <span>Punctuation</span>
+              </div>
+              <p className="setting-description">Inject periods, commas, and question marks.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={hasPunctuation} 
+                onChange={() => setHasPunctuation(!hasPunctuation)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <Hash size={16} />
+                <span>Numbers</span>
+              </div>
+              <p className="setting-description">Add numerals 0-9 to the word stream.</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={hasNumbers} 
+                onChange={() => setHasNumbers(!hasNumbers)} 
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <CaseSensitive size={16} />
+                <span>Capitalization</span>
+              </div>
+              <p className="setting-description">Practice using the SHIFT key (Aa).</p>
+            </div>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={hasCaps} 
+                onChange={() => setHasCaps(!hasCaps)} 
               />
               <span className="slider"></span>
             </label>

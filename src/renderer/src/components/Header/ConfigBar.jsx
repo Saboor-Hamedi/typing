@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Palette, Clock, Type, Eye, EyeOff } from 'lucide-react'
+import { Palette, Clock, Type, Eye, EyeOff, Hash, CaseSensitive, Quote } from 'lucide-react'
 import { useTheme, useSettings } from '../../contexts'
 import { Tooltip } from '../Common'
 
@@ -7,15 +7,6 @@ import { Tooltip } from '../Common'
  * ConfigBar Component
  * 
  * Configuration bar for test settings: theme, mode (time/words), limits, and zen mode.
- * 
- * @component
- * @param {Object} props - Component props
- * @param {Function} props.openThemeModal - Function to open the theme selection modal
- * 
- * @example
- * ```jsx
- * <ConfigBar openThemeModal={() => setThemeModalOpen(true)} />
- * ```
  */
 const ConfigBar = memo(({ openThemeModal }) => {
   const { theme } = useTheme()
@@ -25,16 +16,59 @@ const ConfigBar = memo(({ openThemeModal }) => {
     testLimit, 
     setTestLimit,
     isZenMode,
-    setIsZenMode
+    setIsZenMode,
+    difficulty,
+    setDifficulty,
+    hasPunctuation,
+    setHasPunctuation,
+    hasNumbers,
+    setHasNumbers,
+    hasCaps,
+    setHasCaps
   } = useSettings()
 
   return (
     <div className="master-config">
       <Tooltip content="Change Theme">
         <div className="config-group themes clickable" onClick={openThemeModal}>
-          <Palette size={16} />
+          <Palette size={14} />
         </div>
       </Tooltip>
+
+      <div className="config-divider" />
+
+      {/* Punctuation, Numbers, Caps Toggles */}
+      <div className="config-group modifiers">
+        <Tooltip content="Punctuation">
+          <button 
+            onClick={() => setHasPunctuation(!hasPunctuation)}
+            className={`config-btn ${hasPunctuation ? 'active' : ''}`}
+            aria-label="Punctuation"
+          >
+            <Quote size={14} />
+          </button>
+        </Tooltip>
+        
+        <Tooltip content="Numbers">
+          <button 
+            onClick={() => setHasNumbers(!hasNumbers)}
+            className={`config-btn ${hasNumbers ? 'active' : ''}`}
+            aria-label="Numbers"
+          >
+            <Hash size={14} />
+          </button>
+        </Tooltip>
+
+        <Tooltip content="Capitalization">
+          <button 
+            onClick={() => setHasCaps(!hasCaps)}
+            className={`config-btn ${hasCaps ? 'active' : ''}`}
+            aria-label="Capitals"
+          >
+            <CaseSensitive size={14} />
+          </button>
+        </Tooltip>
+      </div>
 
       <div className="config-divider" />
 
@@ -46,7 +80,7 @@ const ConfigBar = memo(({ openThemeModal }) => {
             className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
             aria-label="Time Mode"
           >
-            <Clock size={16} />
+            <Clock size={14} />
           </button>
         </Tooltip>
         
@@ -56,9 +90,25 @@ const ConfigBar = memo(({ openThemeModal }) => {
             className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
             aria-label="Words Mode"
           >
-            <Type size={16} />
+            <Type size={14} />
           </button>
         </Tooltip>
+      </div>
+
+      <div className="config-divider" />
+
+      {/* Difficulty Selector */}
+      <div className="config-group difficulty">
+        {['beginner', 'intermediate', 'advanced'].map(d => (
+          <Tooltip key={d} content={`${d.charAt(0).toUpperCase() + d.slice(1)} Words`}>
+            <button 
+              onClick={() => setDifficulty(d)}
+              className={`config-btn ${difficulty === d ? 'active' : ''}`}
+            >
+              {d === 'beginner' ? 'beg' : d === 'intermediate' ? 'int' : 'adv'}
+            </button>
+          </Tooltip>
+        ))}
       </div>
 
       <div className="config-divider" />
@@ -85,7 +135,7 @@ const ConfigBar = memo(({ openThemeModal }) => {
           className={`zen-box ${isZenMode ? 'active' : ''}`}
           onClick={() => setIsZenMode(!isZenMode)}
         >
-          {isZenMode ? <EyeOff size={16} /> : <Eye size={16} />}
+          {isZenMode ? <EyeOff size={14} /> : <Eye size={14} />}
         </div>
       </Tooltip>
     </div>

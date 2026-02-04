@@ -86,6 +86,26 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true
   })
 
+  // Complexity settings
+  const [difficulty, setDifficulty] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.DIFFICULTY) || GAME.DEFAULT_DIFFICULTY
+  })
+
+  const [hasPunctuation, setHasPunctuation] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.HAS_PUNCTUATION)
+    return saved !== null ? JSON.parse(saved) : false
+  })
+
+  const [hasNumbers, setHasNumbers] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.HAS_NUMBERS)
+    return saved !== null ? JSON.parse(saved) : false
+  })
+
+  const [hasCaps, setHasCaps] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.HAS_CAPS)
+    return saved !== null ? JSON.parse(saved) : false
+  })
+
   // UI state
   const [isZenMode, setIsZenMode] = useState(false)
   
@@ -107,6 +127,10 @@ export const SettingsProvider = ({ children }) => {
           savedHall,
           savedProfile,
           savedCentered,
+          savedDifficulty,
+          savedPunctuation,
+          savedNumbers,
+          savedCaps,
         ] = await Promise.all([
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_MODE),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_LIMIT),
@@ -119,6 +143,10 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get('isHallEffect'),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.SOUND_PROFILE),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.CENTERED_SCROLLING),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.DIFFICULTY),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_NUMBERS),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS),
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -132,6 +160,10 @@ export const SettingsProvider = ({ children }) => {
         if (savedHall !== undefined) setIsHallEffect(savedHall)
         if (savedProfile) setSoundProfile(savedProfile)
         if (savedCentered !== undefined) setIsCenteredScrolling(savedCentered)
+        if (savedDifficulty) setDifficulty(savedDifficulty)
+        if (savedPunctuation !== undefined) setHasPunctuation(savedPunctuation)
+        if (savedNumbers !== undefined) setHasNumbers(savedNumbers)
+        if (savedCaps !== undefined) setHasCaps(savedCaps)
       }
       setIsSettingsLoaded(true)
     }
@@ -156,6 +188,10 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('isHallEffect', isHallEffect)
     localStorage.setItem(STORAGE_KEYS.SOUND_PROFILE, soundProfile)
     localStorage.setItem(STORAGE_KEYS.CENTERED_SCROLLING, isCenteredScrolling)
+    localStorage.setItem(STORAGE_KEYS.DIFFICULTY, difficulty)
+    localStorage.setItem(STORAGE_KEYS.HAS_PUNCTUATION, hasPunctuation)
+    localStorage.setItem(STORAGE_KEYS.HAS_NUMBERS, hasNumbers)
+    localStorage.setItem(STORAGE_KEYS.HAS_CAPS, hasCaps)
 
     // Save to electron-store
     if (window.api?.settings) {
@@ -172,8 +208,12 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set('isHallEffect', isHallEffect)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.SOUND_PROFILE, soundProfile)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.CENTERED_SCROLLING, isCenteredScrolling)
+      window.api.settings.set(STORAGE_KEYS.SETTINGS.DIFFICULTY, difficulty)
+      window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION, hasPunctuation)
+      window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_NUMBERS, hasNumbers)
+      window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, isSettingsLoaded])
+  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, difficulty, hasPunctuation, hasNumbers, hasCaps, isSettingsLoaded])
 
   /**
    * Update test mode and set appropriate default limit
@@ -230,6 +270,14 @@ export const SettingsProvider = ({ children }) => {
     setSoundProfile,
     isCenteredScrolling,
     setIsCenteredScrolling,
+    difficulty,
+    setDifficulty,
+    hasPunctuation,
+    setHasPunctuation,
+    hasNumbers,
+    setHasNumbers,
+    hasCaps,
+    setHasCaps,
 
     // UI state
     isZenMode,

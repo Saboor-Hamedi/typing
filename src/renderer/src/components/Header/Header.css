@@ -438,7 +438,7 @@
   font-family: inherit;
   font-size: 0.8rem;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: var(--round);
   transition: all 0.2s;
   display: flex;

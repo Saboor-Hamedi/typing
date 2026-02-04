@@ -79,7 +79,11 @@ export function useEngine(testMode, testLimit) {
     soundProfile,
     setSoundProfile,
     isCenteredScrolling,
-    setIsCenteredScrolling
+    setIsCenteredScrolling,
+    difficulty,
+    hasPunctuation,
+    hasNumbers,
+    hasCaps
   } = useSettings();
   const ghostPos = useGhostRacing(
     isGhostEnabled,
@@ -252,9 +256,14 @@ export function useEngine(testMode, testLimit) {
       typingTimeoutRef.current = null;
     }
 
-    // Generate new words (works offline - no network dependency)
+    // Generate new words with robustness (tier-based + complexity meta)
     const wordCount = testMode === 'words' ? testLimit : Math.max(100, testLimit * 4);
-    setWords(generateWords(wordCount));
+    setWords(generateWords(wordCount, {
+      difficulty,
+      hasPunctuation,
+      hasNumbers,
+      hasCaps
+    }));
 
     // Reset all state synchronously (no async operations)
     setUserInput('');
@@ -290,11 +299,11 @@ export function useEngine(testMode, testLimit) {
     // Focus input (works offline)
     requestAnimationFrame(() => {
       if (inputRef.current) {
-        inputRef.current.focus();
         inputRef.current.value = ''; // Ensure input is cleared
+        inputRef.current.focus();
       }
     });
-  }, [testMode, testLimit, stopTimer]);
+  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps]);
   useEffect(() => {
     resetGame();
   }, [resetGame]);

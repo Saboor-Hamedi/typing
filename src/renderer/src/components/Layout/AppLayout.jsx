@@ -34,7 +34,7 @@ import { useTheme, useSettings, useUser } from '../../contexts'
 import { soundEngine } from '../../utils/SoundEngine'
 import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
-import { LoadingSpinner, KeyboardShortcutsModal } from '../Common'
+import { LoadingSpinner, KeyboardShortcutsModal, Tooltip } from '../Common'
 import CommandPalette from '../CommandPalette/CommandPalette'
 import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle } from 'lucide-react'
 import './AppLayout.css'
@@ -99,6 +99,7 @@ const AppLayout = ({ addToast }) => {
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false)
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
+  const [isCapsLockOn, setIsCapsLockOn] = useState(false)
 
   // Engine hook
   const engine = useEngine(testMode, testLimit)
@@ -245,6 +246,11 @@ const AppLayout = ({ addToast }) => {
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Update Caps Lock state
+      if (typeof e.getModifierState === 'function') {
+        setIsCapsLockOn(e.getModifierState('CapsLock'))
+      }
+
       // Don't intercept if user is typing in an input/textarea
       const active = document.activeElement
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
@@ -476,6 +482,14 @@ const AppLayout = ({ addToast }) => {
             <div className="status-item clickable" onClick={handleReload} title="Restart test">
               <kbd>Tab</kbd> to restart
             </div>
+            {isCapsLockOn && (
+              <div className="caps-lock-abs-container">
+                <Tooltip content="Caps Lock is ON" align="top">
+                  <div className="glow-dot" />
+                </Tooltip>
+              </div>
+            )}
+
             {window.api && window.api.getVersion && (
               <div className="status-item version-item clickable" title={`Version ${version}`}>
                 v{version}

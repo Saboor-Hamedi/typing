@@ -343,6 +343,44 @@ main {
   opacity: 0.5;
 }
 
+.caps-lock-abs-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  z-index: 100;
+  width: 20px;
+  height: 20px;
+}
+
+.glow-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--error-color);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 5px var(--error-color),
+    0 0 10px var(--error-color);
+  animation: dotGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes dotGlow {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.8;
+    box-shadow: 0 0 5px var(--error-color), 0 0 10px var(--error-color);
+  }
+  50% { 
+    transform: scale(1.3);
+    opacity: 1;
+    box-shadow: 0 0 10px var(--error-color), 0 0 20px var(--error-color);
+  }
+}
+
 .status-bar kbd {
   background: var(--sub-alt-color);
   padding: 1px 4px;

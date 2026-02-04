@@ -92,6 +92,17 @@ export const GAME = {
   // Test mode options
   TIME_LIMITS: [15, 30, 60],
   WORD_LIMITS: [10, 25, 50],
+  
+  // Difficulty and Word Lists
+  DIFFICULTIES: ['beginner', 'intermediate', 'advanced'],
+  DEFAULT_DIFFICULTY: 'beginner',
+  
+  // Modifiers
+  MODIFIERS: {
+    PUNCTUATION: 'punctuation',
+    NUMBERS: 'numbers',
+    CAPS: 'caps',
+  },
 
   // Word generation multiplier for time mode
   TIME_MODE_WORD_MULTIPLIER: 4,
@@ -215,6 +226,10 @@ export const STORAGE_KEYS = {
   SMOOTH_CARET: 'isSmoothCaret',
   SOUND_PROFILE: 'soundProfile',
   CENTERED_SCROLLING: 'isCenteredScrolling',
+  DIFFICULTY: 'difficulty',
+  HAS_PUNCTUATION: 'hasPunctuation',
+  HAS_NUMBERS: 'hasNumbers',
+  HAS_CAPS: 'hasCaps',
   MANUAL_LOGOUT: 'typingzone-manual-logout',
 
   // Electron store keys (settings.json)
@@ -233,6 +248,10 @@ export const STORAGE_KEYS = {
     HALL_EFFECT: 'isHallEffect',
     SOUND_PROFILE: 'soundProfile',
     CENTERED_SCROLLING: 'isCenteredScrolling',
+    DIFFICULTY: 'difficulty',
+    HAS_PUNCTUATION: 'hasPunctuation',
+    HAS_NUMBERS: 'hasNumbers',
+    HAS_CAPS: 'hasCaps',
     GHOST_SPEED: 'ghostSpeed',
   },
 
