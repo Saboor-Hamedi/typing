@@ -167,6 +167,34 @@
   overflow: hidden;
 }
 
+.skip-replay-btn {
+  background: transparent;
+  border: none;
+  color: var(--sub-color);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  z-index: 20;
+  font-size: 0.75rem;
+  font-family: inherit;
+  opacity: 0.4;
+  transition: all 0.2s ease;
+  user-select: none;
+  margin-bottom: -1rem; /* Pull it closer to words */
+  align-self: center;
+}
+
+.skip-replay-btn:hover {
+  opacity: 1;
+  color: var(--main-color);
+}
+
+.skip-replay-btn:active {
+  transform: translateY(0);
+}
+
 /* Results Section in Engine */
 .results-view {
   padding: 1rem;

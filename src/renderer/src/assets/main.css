@@ -92,8 +92,29 @@
   pointer-events: none;
 }
 
-header, footer {
-  transition: opacity 0.5s ease;
+header, footer, .main-sidebar, .config-bar-container {
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease;
+}
+
+.app-container.is-typing header,
+.app-container.is-typing footer,
+.app-container.is-typing .main-sidebar,
+.app-container.is-typing .config-bar-container {
+  opacity: 0 !important;
+  pointer-events: none;
+  filter: blur(4px);
+}
+
+.app-container.is-typing .main-sidebar {
+  transform: translateX(-20px);
+}
+
+.app-container.is-typing header {
+  transform: translateY(-10px);
+}
+
+.app-container.is-typing footer {
+  transform: translateY(10px);
 }
 
 * {
@@ -127,11 +148,10 @@ body {
 .main-viewport {
   flex-grow: 1;
   margin-left: var(--sidebar-width);
-  padding: 0;
-  padding-bottom: 22px; /* Space for fixed status bar */
+  padding: 64px 0 22px 0; /* Top padding for fixed header, bottom for status bar */
   display: flex;
   flex-direction: column;
-  overflow-y: overlay; /* Soft scroll */
+  overflow-y: auto; /* Solid scroll behavior */
   overflow-x: hidden;
   position: relative;
 }
@@ -144,8 +164,36 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  position: sticky;
+  top: 0; /* Align with top of scrollable area, which is below header due to main-viewport padding */
+  z-index: 900;
   background: var(--bg-color);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--sub-alt-color);
+  /* Absolute clean default for typing */
+  transition: opacity 0.3s ease, visibility 0.3s;
+}
+
+.main-viewport:has(.typing-canvas) .config-bar-container,
+.main-viewport:has(.typing-canvas) header,
+.app-container:has(.typing-canvas) .main-sidebar {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.main-viewport:has(.typing-canvas):hover .config-bar-container,
+.main-viewport:has(.typing-canvas):hover header,
+.app-container:has(.typing-canvas) .main-sidebar:hover,
+.app-container:has(.typing-canvas):hover .main-sidebar {
+  opacity: 1;
+  visibility: visible;
+}
+
+.app-container:has(.typing-canvas) .main-sidebar {
+  transition: opacity 0.3s ease, visibility 0.3s, transform 0.3s ease;
+}
+
+.app-container:has(.typing-canvas) .main-sidebar:not(:hover) {
+  transform: translateX(-10px);
 }
 
 .content-area {
@@ -160,7 +208,7 @@ body {
   margin: 0 auto;
   padding: 1rem 1.5rem 2rem 1.5rem;
   min-height: 0;
-  overflow-y: auto;
+  overflow: visible; /* Consolidated scroll to viewport */
 }
 
 /* Typing view should be centered */
@@ -256,19 +304,20 @@ main {
 .status-bar {
   position: fixed;
   bottom: 0;
-  left: var(--sidebar-width);
+  left: 0; /* Align with sidebar width below */
   right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-color);
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
-  padding: 0;
-  height: 22px;
-  font-size: 0.75rem;
-  color: var(--text-color);
+  background: rgba(var(--bg-color-rgb), 0.8);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--sub-alt-color);
+  padding: 0 1rem 0 calc(var(--sidebar-width) + 0.5rem);
+  height: 26px; /* Slightly taller for better feel */
+  font-size: 0.7rem;
+  color: var(--sub-color);
   user-select: none;
-  z-index: 1000;
+  z-index: 10001; /* Above almost everything but titles */
 }
 
 .status-bar-left,
@@ -288,8 +337,12 @@ main {
   color: var(--text-color);
   font-size: 0.75rem;
   white-space: nowrap;
-  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   background: transparent;
+}
+
+.status-item:last-child {
+  border-right: none;
 }
 
 .status-item.clickable {
@@ -307,23 +360,23 @@ main {
 }
 
 .status-value {
-  color: var(--text-color);
-  font-weight: 500;
+  color: var(--main-color);
+  font-weight: 600;
 }
 
 .version-item {
   color: var(--sub-color);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
+  opacity: 0.5;
 }
 
-kbd {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 4px;
+.status-bar kbd {
+  background: var(--sub-alt-color);
+  padding: 1px 4px;
   border-radius: 3px;
-  color: var(--text-color);
-  font-size: 0.7rem;
-  font-family: 'Consolas', 'Monaco', monospace;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--main-color);
+  font-size: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glass-panel {

@@ -54,11 +54,11 @@
 }
 
 .metric-item .value-large {
-  font-size: 4rem;
-  font-weight: 900;
+  font-size: 3rem;
+  font-weight: 800;
   color: var(--main-color);
   line-height: 1;
-  text-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.2);
+  text-shadow: 0 0 15px rgba(var(--main-color-rgb), 0.15);
 }
 
 .results-graph-wrapper {
@@ -93,8 +93,8 @@
 }
 
 .stat-pill .val {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--text-color);
 }
 
@@ -111,10 +111,11 @@
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 700;
+  gap: 8px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid transparent;

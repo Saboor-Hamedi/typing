@@ -41,6 +41,7 @@ import { memo, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useSettings } from '../contexts'
 import { UI } from '../constants'
+import { FastForward } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
 import './TypingEngine.css'
 
@@ -135,6 +136,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     isGhostEnabled,
     ghostPos,
     isTyping,
+    skipReplay,
     startTime
   } = engine
 
@@ -178,6 +180,21 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
       window.removeEventListener('keydown', handleGlobalKeyDown)
     }
   }, [testMode, testLimit, words, isFinished, isOverlayActive])
+
+  // Replay shortcuts
+  useEffect(() => {
+    if (!isReplaying) return
+
+    const handleReplayKeyDown = (e) => {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        e.preventDefault()
+        skipReplay()
+      }
+    }
+
+    window.addEventListener('keydown', handleReplayKeyDown)
+    return () => window.removeEventListener('keydown', handleReplayKeyDown)
+  }, [isReplaying, skipReplay])
 
   // --- FIX: Place invisible char--1 span absolutely at the left of the first letter ---
   // Find the first word's first letter span after render and align char--1 to its left/top
@@ -253,6 +270,20 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
               }}
               style={{ left: 0, top: 0 }}
             />
+            
+            {isReplaying && (
+              <motion.button
+                className="skip-replay-btn"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={skipReplay}
+                title="Skip Replay (Esc)"
+              >
+                <FastForward size={16} />
+                <span>Skip Replay</span>
+              </motion.button>
+            )}
+
             <div className="word-wrapper">
               <span id="char--1" style={{position: 'absolute', left: 0, top: 0, width: 0, height: 0, pointerEvents: 'none'}} />
               {words.map((word, i) => {

@@ -35,6 +35,9 @@ import { soundEngine } from '../../utils/SoundEngine'
 import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
 import { LoadingSpinner, KeyboardShortcutsModal } from '../Common'
+import CommandPalette from '../CommandPalette/CommandPalette'
+import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield } from 'lucide-react'
+import './AppLayout.css'
 
 // Lazy load views for code splitting
 const HistoryView = lazy(() => import('../History/HistoryView'))
@@ -87,6 +90,7 @@ const AppLayout = ({ addToast }) => {
   const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false)
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false)
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false)
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
 
   // Engine hook
   const engine = useEngine(testMode, testLimit)
@@ -109,6 +113,9 @@ const AppLayout = ({ addToast }) => {
     ghostSpeed,
     setGhostSpeed
   } = engine
+
+  // Derived state for immersive mode
+  const isCurrentlyTyping = !!startTime && !isFinished && engine.isTyping
 
   // Account manager hook
   const account = useAccountManager(engine, addToast)
@@ -226,7 +233,7 @@ const AppLayout = ({ addToast }) => {
   }, [])
 
   // Detect if any modal/overlay is currently active
-  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen
+  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen || isCommandPaletteOpen
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -264,6 +271,13 @@ const AppLayout = ({ addToast }) => {
         setIsShortcutsModalOpen(true)
         return
       }
+
+      // Ctrl/Cmd + P: Open Command Palette
+      if (ctrlKey && e.key === 'p') {
+        e.preventDefault()
+        setIsCommandPaletteOpen(prev => !prev)
+        return
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -277,14 +291,38 @@ const AppLayout = ({ addToast }) => {
     return testMode === 'time' ? testLimit : '—'
   })()
 
+  // Define Command Palette Actions
+  const commandPaletteActions = [
+    { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', onSelect: () => engine.resetGame() },
+    { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, onSelect: () => setActiveTab('typing') },
+    { id: 'leaderboard', label: 'Global Leaderboard', icon: <Globe size={18} />, onSelect: () => setActiveTab('leaderboard') },
+    { id: 'history', label: 'Test History', icon: <History size={18} />, onSelect: () => setActiveTab('history') },
+    { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, onSelect: () => setActiveTab('dashboard') },
+    { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', onSelect: () => setIsThemeModalOpen(true) },
+    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', onSelect: () => setActiveTab('settings') },
+    { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', onSelect: () => setIsShortcutsModalOpen(true) },
+    isLoggedIn 
+      ? { id: 'logout', label: 'Sign Out', icon: <LogOut size={18} />, onSelect: () => toggleLogoutModal(true) }
+      : { id: 'login', label: 'Sign In / Register', icon: <User size={18} />, onSelect: () => toggleLoginModal(true) }
+  ]
+
   return (
     <div 
-      className="app-container" 
+      className={`app-container ${isCurrentlyTyping ? 'is-typing' : ''}`}
       onClick={handleGlobalInteraction} 
       onKeyDown={handleGlobalInteraction}
       style={{ paddingTop: isWeb ? '0' : '32px' }}
       id="main-content"
     >
+      {/* Flow Progress Bar */}
+      {isCurrentlyTyping && testMode === 'time' && (
+        <motion.div 
+          className="flow-progress-bar"
+          initial={{ width: '0%' }}
+          animate={{ width: `${(timeLeft / testLimit) * 100}%` }}
+          transition={{ duration: 0.1, ease: 'linear' }}
+        />
+      )}
       {!isWeb && <TitleBar />}
       
       <Sidebar
@@ -452,6 +490,13 @@ const AppLayout = ({ addToast }) => {
       <KeyboardShortcutsModal
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
+      />
+
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        actions={commandPaletteActions}
+        theme={theme}
       />
     </div>
   )

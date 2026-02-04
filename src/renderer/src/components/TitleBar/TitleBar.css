@@ -7,9 +7,9 @@
   user-select: none;
   position: fixed;
   top: 0;
-  left: 50px; /* Shifted to accommodate fixed sidebar */
+  left: 0;
   right: 0;
-  z-index: 9999;
+  z-index: 10005; /* Top most */
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 

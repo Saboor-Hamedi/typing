@@ -48,6 +48,7 @@ export function useEngine(testMode, testLimit) {
   const [startTime, setStartTime] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
   const [isReplaying, setIsReplaying] = useState(false);
+  const replayTimeoutRef = useRef(null);
   const [results, setResults] = useState({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
   const [keystrokes, setKeystrokes] = useState([]);
   const [testHistory, setTestHistory] = useState([]);
@@ -395,6 +396,21 @@ export function useEngine(testMode, testLimit) {
     }
     setUserInput(value);
   }, [isFinished, isReplaying, startTime, testMode, words, finishTest, testLimit, isSoundEnabled]);
+
+  const skipReplay = useCallback(() => {
+    if (!isReplaying) return;
+    if (replayTimeoutRef.current) {
+      clearTimeout(replayTimeoutRef.current);
+      replayTimeoutRef.current = null;
+    }
+    setIsReplaying(false);
+    setIsFinished(true);
+    // Set user input to the final value
+    if (keystrokes.length > 0) {
+      setUserInput(keystrokes[keystrokes.length - 1].value);
+    }
+  }, [isReplaying, keystrokes]);
+
   const runReplay = useCallback(() => {
     if (keystrokes.length === 0) return;
     stopTimer();
@@ -416,9 +432,9 @@ export function useEngine(testMode, testLimit) {
       if (i < keystrokes.length - 1) {
         const delay = keystrokes[i+1].timestamp - keystrokes[i].timestamp;
         i++;
-        setTimeout(playNext, Math.min(delay, 500));
+        replayTimeoutRef.current = setTimeout(playNext, Math.min(delay, 500));
       } else {
-        setTimeout(() => {
+        replayTimeoutRef.current = setTimeout(() => {
           setIsReplaying(false);
           setIsFinished(true);
         }, 500);
@@ -582,13 +598,14 @@ export function useEngine(testMode, testLimit) {
     setIsGhostEnabled,
     ghostPos,
     isTyping,
+    skipReplay,
     testHistory,
     clearAllData,
     ghostSpeed,
     setGhostSpeed
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, caretPos,
-    timeLeft, elapsedTime, resetGame, handleInput, runReplay, liveWpm, pb,
+    timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
     ghostSpeed

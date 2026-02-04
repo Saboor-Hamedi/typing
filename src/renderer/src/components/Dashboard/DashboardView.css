@@ -51,25 +51,23 @@
 
 .avatar-wrapper {
   position: relative;
-  width: 110px;
-  height: 110px;
-  filter: drop-shadow(0 0 15px rgba(var(--main-color-rgb), 0.2));
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 0 20px rgba(var(--main-color-rgb), 0.25));
   cursor: pointer;
 }
 
 .profile-img {
   width: 100%;
   height: 100%;
-  border-radius: 20px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, 0.1);
+  border: 4px solid var(--sub-alt-color);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .avatar-wrapper:hover .profile-img {
-  transform: scale(1.05);
   border-color: var(--main-color);
-  box-shadow: 0 0 25px rgba(var(--main-color-rgb), 0.4);
 }
 
 .avatar-edit-hint {
@@ -85,7 +83,7 @@
   letter-spacing: 1px;
   opacity: 0;
   transition: opacity 0.2s ease;
-  border-radius: 20px;
+  border-radius: 50%;
   pointer-events: none;
 }
 

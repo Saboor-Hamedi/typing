@@ -1,0 +1,40 @@
+.flow-progress-bar {
+  position: fixed;
+  top: 32px; /* Just below TitleBar */
+  left: 0;
+  height: 3px;
+  background: var(--main-color);
+  box-shadow: 0 0 10px var(--main-color), 0 0 20px var(--main-color);
+  z-index: 10001;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Add a subtle glow to the viewport when typing */
+.app-container.is-typing .main-viewport::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, transparent 40%, rgba(var(--main-color-rgb), 0.03) 100%);
+  pointer-events: none;
+  z-index: 5;
+  animation: breathing 4s ease-in-out infinite;
+}
+
+@keyframes breathing {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+/* Hide title bar buttons in immersive mode if needed */
+.app-container.is-typing .title-bar-controls {
+  opacity: 0.1;
+  transition: opacity 0.3s ease;
+}
+
+.app-container.is-typing .title-bar-controls:hover {
+  opacity: 1;
+}

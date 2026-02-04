@@ -50,7 +50,6 @@
   margin-bottom: 1rem; /* Reduced from 1.5rem */
   display: flex;
   justify-content: center;
-  filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.3));
 }
 
 .error-title {
