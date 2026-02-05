@@ -5,7 +5,7 @@
 class SoundEngine {
   constructor() {
     this.audioCtx = null
-    this.profile = 'thocky'
+    this.profile = 'asmr'
     this.hallEffect = true
     this.reverbNode = null
   }
@@ -143,6 +143,11 @@ class SoundEngine {
         body: { type: 'triangle', freq: 180, decay: 0.1, gain: 0.5 },
         low: { type: 'sine', freq: 90, decay: 0.12, gain: 0.4 },
         noise: { filter: 'bandpass', freq: 400, decay: 0.04, gain: 0.15 }
+      },
+      asmr: {
+        body: { type: 'sine', freq: 110, decay: 0.18, gain: 0.4 },
+        low: { type: 'sine', freq: 55, decay: 0.25, gain: 0.6 },
+        noise: { filter: 'lowpass', freq: 350, decay: 0.1, gain: 0.15 }
       }
     }
 

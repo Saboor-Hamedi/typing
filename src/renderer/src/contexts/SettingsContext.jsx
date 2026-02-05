@@ -78,7 +78,7 @@ export const SettingsProvider = ({ children }) => {
   })
 
   const [soundProfile, setSoundProfile] = useState(() => {
-    return localStorage.getItem(STORAGE_KEYS.SOUND_PROFILE) || 'thocky'
+    return localStorage.getItem(STORAGE_KEYS.SOUND_PROFILE) || 'asmr'
   })
 
   const [isCenteredScrolling, setIsCenteredScrolling] = useState(() => {
@@ -110,9 +110,9 @@ export const SettingsProvider = ({ children }) => {
   const [dictionary, setDictionary] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES)
     try {
-      return { sentences: saved ? JSON.parse(saved) : [] }
+      return { content: saved ? JSON.parse(saved) : [] }
     } catch (e) {
-      return { sentences: [] }
+      return { content: [] }
     }
   })
 
@@ -156,8 +156,7 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get(STORAGE_KEYS.SETTINGS.DIFFICULTY),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_NUMBERS),
-          window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS),
-          window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS)
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -177,16 +176,16 @@ export const SettingsProvider = ({ children }) => {
         if (savedCaps !== undefined) setHasCaps(savedCaps)
 
         // Load content store separately to prevent Promise failures
-        if (window.api.content) {
+        if (window.api?.content) {
           try {
-             // Explicitly check for content to ensure we don't overwrite with empty
              const savedSentences = await window.api.content.get(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES)
-             if (Array.isArray(savedSentences)) {
-               console.log("Loading custom sentences from content store:", savedSentences.length)
-               setDictionary({ sentences: savedSentences })
-               // Also sync to localStorage for next boot
-               localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(savedSentences))
-             }
+             
+             // Single Source of Truth: If store gives us data (even empty), use it.
+             // If it's undefined/null (file deleted), assume empty.
+             const finalContent = Array.isArray(savedSentences) ? savedSentences : []
+             
+             setDictionary({ content: finalContent })
+             localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(finalContent))
           } catch (e) {
              console.error("Failed to load custom content:", e)
           }
@@ -247,11 +246,11 @@ export const SettingsProvider = ({ children }) => {
     if (!isSettingsLoaded) return
 
     // Save to localStorage
-    localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(dictionary.sentences))
+    localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(dictionary.content))
     
     // Save to electron-store (content.json)
     if (window.api?.content) {
-       window.api.content.set(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, dictionary.sentences)
+       window.api.content.set(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, dictionary.content)
     }
   }, [dictionary, isSettingsLoaded])
 
@@ -287,7 +286,13 @@ export const SettingsProvider = ({ children }) => {
   const updateSentences = useCallback((sentences) => {
     // Ensure uniqueness to prevent content "mixing" or duplicates
     const unique = [...new Set(sentences)]
-    setDictionary({ sentences: unique })
+    
+    // Preventive check to avoid unnecessary re-renders in useEngine
+    setDictionary(prev => {
+      // If content is identical, do not trigger a state update
+      if (JSON.stringify(prev.content) === JSON.stringify(unique)) return prev
+      return { content: unique }
+    })
   }, [])
 
   const value = useMemo(() => ({

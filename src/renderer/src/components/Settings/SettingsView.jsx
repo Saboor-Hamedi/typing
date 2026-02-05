@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './SettingsView.css'
 import { motion } from 'framer-motion'
 import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play, Hash, CaseSensitive, Quote, Flame, BookOpen } from 'lucide-react'
-import { useSettings } from '../../contexts'
+import { useSettings } from '../../contexts/SettingsContext'
 import CustomContentModal from '../Modals/CustomContentModal'
 
 /**
@@ -415,6 +415,7 @@ const SettingsView = ({ onClearHistory, openThemeModal, openContentModal }) => {
                 { id: 'clicky', name: 'Clicky', desc: 'Sharp & responsive' },
                 { id: 'raindrop', name: 'Raindrop', desc: 'Soft & damp' },
                 { id: 'wood', name: 'Wood', desc: 'Warm & organic' },
+                { id: 'asmr', name: 'ASMR', desc: 'Soft & relaxing' },
               ].map((profile) => (
                 <motion.div
                   key={profile.id}

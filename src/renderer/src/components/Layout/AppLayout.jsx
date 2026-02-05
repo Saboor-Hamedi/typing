@@ -32,7 +32,9 @@ import ConfirmationModal from '../Modals/ConfirmationModal'
 import { useEngine } from '../../engine/useEngine'
 import { useAccountManager } from '../../hooks/useAccountManager'
 import { useChameleonFlow } from '../../hooks/useChameleonFlow'
-import { useTheme, useSettings, useUser } from '../../contexts'
+import { useTheme } from '../../contexts/ThemeContext'
+import { useSettings } from '../../contexts/SettingsContext'
+import { useUser } from '../../contexts/UserContext'
 import { soundEngine } from '../../utils/SoundEngine'
 import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
@@ -346,7 +348,7 @@ const AppLayout = ({ addToast }) => {
 
   // Define Command Palette Actions
   // 1. Content Actions (Type this text) - Visible in default mode
-  const contentActions = (dictionary?.sentences || []).map((text, idx) => ({
+  const contentActions = (dictionary?.content || []).map((text, idx) => ({
     id: `content-${idx}`,
     label: text.length > 50 ? text.slice(0, 50) + '...' : text,
     icon: <Quote size={18} />,
@@ -358,7 +360,7 @@ const AppLayout = ({ addToast }) => {
   }))
 
   // 2. Edit Actions (Edit this text) - Visible in Command Mode (>)
-  const editActions = (dictionary?.sentences || []).map((text, idx) => ({
+  const editActions = (dictionary?.content || []).map((text, idx) => ({
     id: `edit-${idx}`,
     label: `Edit: "${text.length > 30 ? text.slice(0, 30) + '...' : text}"`,
     icon: <Edit size={18} />,

@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { useSettings } from '../../contexts'
+import { useSettings } from '../../contexts/SettingsContext'
 import ConfigBar from './ConfigBar'
 import './Header.css'
 

@@ -10,7 +10,7 @@ const BEGINNER_WORDS = [
   'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there',
   'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know',
   'take', 'person', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think',
-  'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us'
+  'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'exclusive', 'any', 'these', 'give', 'day', 'most', 'us'
 ];
 
 const INTERMEDIATE_WORDS = [
@@ -34,9 +34,9 @@ const ADVANCED_WORDS = [
 ];
 
 /**
- * Coherent Sentences for Intermediate and Advanced modes 
- * used to make the typing experience feel more human and structured.
- */
+* Coherent Sentences for Intermediate and Advanced modes 
+* used to make the typing experience feel more human and structured.
+*/
 const SENTENCES = [
   "the only way to do great work is to love what you do",
   "believe you can and you are halfway there",
@@ -76,15 +76,15 @@ const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const ATTACHABLE_PUNCTUATION = ['.', ',', '!', '?', ';', ':', '#', '@'];
 
 /**
- * Generate a list of words based on configuration
- */
+* Generate a list of words based on configuration
+*/
 export const generateWords = (count = 50, settings = {}) => {
   const {
     difficulty = 'beginner',
     hasPunctuation = false,
     hasNumbers = false,
     hasCaps = false,
-    customSentences = []
+    content = []
   } = settings;
 
   // 1. SELECT BASE WORD SOURCE
@@ -93,6 +93,29 @@ export const generateWords = (count = 50, settings = {}) => {
     baseList = [...BEGINNER_WORDS, ...INTERMEDIATE_WORDS];
   } else if (difficulty === 'advanced') {
     baseList = [...BEGINNER_WORDS, ...INTERMEDIATE_WORDS, ...ADVANCED_WORDS];
+  }
+
+  // 1b. SPECIAL CASE: CUSTOM DIFFICULTY
+  // If user is in custom mode, we want to type their EXACT sentences in order.
+  if (difficulty === 'custom' && content && content.length > 0) {
+    const result = [];
+    for (let i = 0; i < content.length; i++) {
+        const sentence = content[i];
+        const sentenceWords = sentence.trim().split(/\s+/);
+        
+        // Add all words from the sentence
+        for (let j = 0; j < sentenceWords.length; j++) {
+            let word = sentenceWords[j];
+            // If it's the last word in the sentence (and not the last sentence of the whole test),
+            // add a newline marker to it.
+            if (j === sentenceWords.length - 1 && i < content.length - 1) {
+                word += '\n';
+            }
+            result.push(word);
+        }
+    }
+    // Return the result immediately to bypass all randomizations and modifiers
+    return result;
   }
 
   // Final filter to remove single characters from the alpha list for standalone picks
@@ -105,51 +128,28 @@ export const generateWords = (count = 50, settings = {}) => {
   while (currentWordCount < count) {
     const isFirstInTest = result.length === 0;
 
-    // Use coherent sentences for intermediate/advanced/custom to make it feel human
-    const useSentence = (difficulty === 'intermediate' || difficulty === 'advanced' || difficulty === 'custom') && 
-                        (difficulty === 'custom' ? true : Math.random() > 0.4);
+    // Use coherent sentences for intermediate/advanced to make it feel human
+    const useSentence = (difficulty === 'intermediate' || difficulty === 'advanced') && Math.random() > 0.4;
 
     if (useSentence && !hasNumbers) {
-      let sentencePool = difficulty === 'custom' ? [...customSentences] : [...SENTENCES, ...customSentences];
+      // Pick ONLY from default SENTENCES pool for standard modes.
+      // Custom content is reserved for Custom mode to avoid mixing.
+      let sentencePool = [...SENTENCES];
       
-      // Safety fallback for custom mode if empty
-      if (difficulty === 'custom' && sentencePool.length === 0) {
-        sentencePool = ["Please add custom sentences in settings to use this mode."];
-      }
-      
-      if (sentencePool.length === 0) return result; 
-
-      // For custom mode, try to avoid repeating the same sentence immediately if possible
-      let sentence;
-      if (difficulty === 'custom' && sentencePool.length === 1) {
-          // If there's only one sentence, we have to use it.
-          sentence = sentencePool[0];
-      } else {
-      // Randomly pick effectively
-          sentence = sentencePool[Math.floor(Math.random() * sentencePool.length)];
-      }
-
+      const sentence = sentencePool[Math.floor(Math.random() * sentencePool.length)];
       const sentenceWords = sentence.trim().split(/\s+/);
       
       // Add words from sentence
       for (const word of sentenceWords) {
         if (!word) continue;
-        
-        // If we have satisfied the requested count, we can stop, 
-        // BUT for custom mode, we want to allow the full sentence to be typed 
-        // regardless of the limit (unless it's excessively long, e.g. 1000).
-        if (difficulty !== 'custom' && currentWordCount >= count) break;
+        if (currentWordCount >= count) break;
         
         let modifiedWord = word;
         
-        // Standard Behavior: START
+        // Always apply modifiers to system sentences in random modes
         if (hasCaps && (currentWordCount === 0 || Math.random() > 0.9)) {
           modifiedWord = modifiedWord.charAt(0).toUpperCase() + modifiedWord.slice(1);
         }
-        // Standard Behavior: END
-
-        // Apply internal punctuation naturally (already lowercase/clean in SENTENCES)
-        // We can add random dots/commas if punctuation is on
         if (hasPunctuation && Math.random() > 0.9) {
           const punc = ATTACHABLE_PUNCTUATION[Math.floor(Math.random() * ATTACHABLE_PUNCTUATION.length)];
           modifiedWord = modifiedWord + punc;
@@ -158,42 +158,24 @@ export const generateWords = (count = 50, settings = {}) => {
         result.push(modifiedWord);
         currentWordCount++;
       }
-      
-      // If we are in purely custom mode and we just finished a sentence,
-      // and we have basically reached or exceeded the target count (or are close),
-      // let's STOP to prevent repeating the same sentence 25 times if the user only added one.
-      // This makes "Custom Mode" act more like "Type these specific sentences".
-      if (difficulty === 'custom' && currentWordCount >= sentenceWords.length) {
-         // Optimization: If the user provides a custom sentence, they likely just want to type THAT sentence once
-         // or cycle through their list once.
-         // If we have just finished adding a full sentence, let's break the main loop 
-         // so we don't repeat it immediately unless the count is huge.
-         // Effectively, for custom mode, "Word Count" becomes "Max Words".
-         break;
-      }
-
       continue;
     }
 
-    // FALLBACK TO RANDOM WORDS (Mode functionality)
-    // 3. Determine if we should insert a standalone number
+    // FALLBACK TO RANDOM WORDS
     if (hasNumbers && !isFirstInTest && Math.random() > 0.88) {
       result.push(NUMBERS[Math.floor(Math.random() * NUMBERS.length)]);
       currentWordCount++;
       continue;
     }
 
-    // 4. Pick a base word randomly
     let word = source[Math.floor(Math.random() * source.length)];
 
-    // 5. Apply Capitalization
     if (hasCaps) {
         if (isFirstInTest || Math.random() > 0.8) {
             word = word.charAt(0).toUpperCase() + word.slice(1);
         }
     }
 
-    // 6. Apply Punctuation
     if (hasPunctuation && !isFirstInTest && Math.random() > 0.85) {
       const punc = ATTACHABLE_PUNCTUATION[Math.floor(Math.random() * ATTACHABLE_PUNCTUATION.length)];
       word = word + punc;

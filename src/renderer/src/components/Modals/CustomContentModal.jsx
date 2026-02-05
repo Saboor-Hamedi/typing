@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Edit2, X, BookOpen, Plus } from 'lucide-react'
-import { useSettings } from '../../contexts'
+import { useSettings } from '../../contexts/SettingsContext'
 import './CustomContentModal.css'
 
 const CustomContentModal = ({ isOpen, onClose, editingSentence = null }) => {
@@ -14,7 +14,7 @@ const CustomContentModal = ({ isOpen, onClose, editingSentence = null }) => {
   // Sync with dictionary when modal opens
   useEffect(() => {
     if (isOpen) {
-      setLocalSentences([...dictionary.sentences])
+      setLocalSentences([...dictionary.content])
       if (editingSentence) {
         setNewSentence(editingSentence)
       } else {
@@ -30,7 +30,7 @@ const CustomContentModal = ({ isOpen, onClose, editingSentence = null }) => {
         }
       }, 50)
     }
-  }, [isOpen, dictionary.sentences, editingSentence])
+  }, [isOpen, dictionary.content, editingSentence])
 
   const handleAddSentence = async () => {
     if (newSentence.trim()) {

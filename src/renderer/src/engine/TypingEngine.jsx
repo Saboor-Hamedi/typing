@@ -3,9 +3,9 @@
  *
  * Interactive typing surface that renders words/letters, caret(s), captures input, and shows results.
  */
-import { memo, useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react'
+import React, { memo, useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useSettings } from '../contexts'
+import { useSettings } from '../contexts/SettingsContext'
 import { UI } from '../constants'
 import { FastForward, Edit2 } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
@@ -319,7 +319,10 @@ const TypingEngine = ({
 
               {(() => {
                 let currentIndex = 0;
-                return words.map((word, i) => {
+                return words.map((wordWithN, i) => {
+                  const hasNewline = wordWithN.includes('\n');
+                  const word = wordWithN.replace('\n', '');
+                  
                   const startIndex = currentIndex;
                   const isCurrent = userInput.length >= startIndex && userInput.length <= startIndex + word.length;
                   const chunk = userInput.length >= startIndex 
@@ -330,16 +333,18 @@ const TypingEngine = ({
                   currentIndex += word.length + 1;
 
                   return (
-                    <Word
-                      key={i}
-                      word={word}
-                      chunk={chunk}
-                      isCurrent={isCurrent}
-                      startIndex={startIndex}
-                      isErrorFeedbackEnabled={isErrorFeedbackEnabled}
-                      isKineticEnabled={isKineticEnabled}
-                      activeLineTop={engine.activeLineTop}
-                    />
+                    <React.Fragment key={i}>
+                      <Word
+                        word={word}
+                        chunk={chunk}
+                        isCurrent={isCurrent}
+                        startIndex={startIndex}
+                        isErrorFeedbackEnabled={isErrorFeedbackEnabled}
+                        isKineticEnabled={isKineticEnabled}
+                        activeLineTop={engine.activeLineTop}
+                      />
+                      {hasNewline && <div style={{ flexBasis: '100%', height: 0 }} />}
+                    </React.Fragment>
                   );
                 });
               })()}

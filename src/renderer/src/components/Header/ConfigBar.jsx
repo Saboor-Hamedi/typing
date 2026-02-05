@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { Palette, Clock, Type, Eye, EyeOff, Hash, CaseSensitive, Quote, Flame, BookOpen } from 'lucide-react'
-import { useTheme, useSettings } from '../../contexts'
+import { useTheme } from '../../contexts/ThemeContext'
+import { useSettings } from '../../contexts/SettingsContext'
 import { Tooltip } from '../Common'
 
 /**

@@ -38,7 +38,7 @@ import { generateWords } from '../utils/words';
 import { soundEngine } from '../utils/SoundEngine';
 import { supabase } from '../utils/supabase';
 import { useGhostRacing } from '../hooks/useGhostRacing';
-import { useSettings } from '../contexts';
+import { useSettings } from '../contexts/SettingsContext';
 import { createCountdownTimer, createElapsedTimer } from '../utils/timer';
 import { CircularBuffer } from '../utils/helpers';
 
@@ -87,7 +87,8 @@ export function useEngine(testMode, testLimit) {
     hasPunctuation,
     hasNumbers,
     hasCaps,
-    dictionary
+    dictionary,
+    isSettingsLoaded
   } = useSettings();
   const ghostPos = useGhostRacing(
     isGhostEnabled,
@@ -276,7 +277,7 @@ export function useEngine(testMode, testLimit) {
     // Reset all state synchronously
     setUserInput('');
     setStartTime(null);
-    startTimeRef.current = null;
+    startTimeRef.current = -1; // LOCK: This protection shield prevents auto-reset from overwriting your selection.
     // For custom text, we treat it like 'words' mode with no limit display initially or just track elapsed
     setTimeLeft(null); 
     setElapsedTime(0);
@@ -337,8 +338,8 @@ export function useEngine(testMode, testLimit) {
     // Generate new words with robustness
     const wordCount = testMode === 'words' ? testLimit : Math.max(100, testLimit * 4);
     
-    // Memoize the dictionary sentences to prevent unnecessary re-runs
-    const sentences = dictionary?.sentences || [];
+    // Memoize the dictionary content to prevent unnecessary re-runs
+    const sentences = dictionary?.content || [];
 
     try {
       setWords(generateWords(wordCount, {
@@ -346,7 +347,7 @@ export function useEngine(testMode, testLimit) {
         hasPunctuation,
         hasNumbers,
         hasCaps,
-        customSentences: sentences
+        content: sentences
       }));
     } catch (err) {
       console.error('Word generation failed:', err);
@@ -395,14 +396,14 @@ export function useEngine(testMode, testLimit) {
     // Briefly show loader to make transition feel smooth
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 400);
-  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps, JSON.stringify(dictionary?.sentences)]);
+  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps, JSON.stringify(dictionary?.content)]);
   useEffect(() => {
-    // Only auto-reset if a test isn't currently active
-    // This prevents background settings syncs from wiping a live session
-    if (!startTimeRef.current && !isFinished && !isReplaying) {
+    // Only auto-reset if settings are fully settled FROM DISK
+    // and we're not currently in a test or selection lock.
+    if (isSettingsLoaded && startTimeRef.current === null && !isFinished && !isReplaying) {
       resetGame();
     }
-  }, [resetGame, isFinished, isReplaying]);
+  }, [resetGame, isFinished, isReplaying, isSettingsLoaded]);
   const handleInput = useCallback((e) => {
     const value = e.target.value;
     if (isFinished || isReplaying) return;
@@ -599,20 +600,23 @@ export function useEngine(testMode, testLimit) {
         const top_abs = targetRect.top - containerRect.top + container.scrollTop;
         const top_rel = targetRect.top - wordWrapperRect.top;
         
-        const targetHeight = targetRect.height;
         const targetWidth = targetRect.width;
+        const targetHeight = targetRect.height;
         const h = targetHeight * 0.85; 
         const caretY = top_abs + (targetHeight - h) / 2;
+        
+        // Round top_rel to prevent sub-pixel jitter from flickering the dim status
+        const roundedTop = Math.round(top_rel);
 
         // DIRECT DOM MANIPULATION: Bypass React for caret position
-        // This is significantly smoother at high speeds
         caret.style.transform = `translate3d(${left}px, ${caretY}px, 0)`;
         caret.style.height = `${h}px`;
         caret.style.width = `7px`; // User requested 7px thickness
         
         // Update activeLineTop for dimming
-        if (Math.abs(top_rel - activeLineTop) > 2) {
-          setActiveLineTop(top_rel);
+        // Increased threshold to 5px to avoid micro-adjustments causing re-renders
+        if (Math.abs(roundedTop - activeLineTop) > 5) {
+          setActiveLineTop(roundedTop);
           const containerHeight = container.clientHeight;
           
           if (isCenteredScrolling) {
