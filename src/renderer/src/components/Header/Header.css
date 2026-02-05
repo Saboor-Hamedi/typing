@@ -487,6 +487,29 @@
   background: rgba(226, 183, 20, 0.1);
 }
 
+.text-btn {
+  background: transparent;
+  border: none;
+  color: var(--sub-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: auto;
+}
+
+.text-btn:hover {
+  color: var(--text-color);
+}
+
+.text-btn.active {
+  color: var(--main-color);
+  font-weight: 700;
+}
+
 
 .live-metric-card {
   text-align: right;
@@ -643,4 +666,32 @@
     width: 12px; /* Smaller on mobile */
     height: 12px;
   }
+}
+
+/* Mode Options & Toggles */
+.mode-options {
+  display: flex !important;
+  gap: 4px !important;
+  align-items: center !important;
+}
+
+.mode-toggles {
+  display: flex !important;
+  gap: 2px !important;
+  background: rgba(0,0,0,0.2) !important;
+  padding: 2px !important;
+  border-radius: 6px !important;
+}
+
+.mode-btn {
+  padding: 4px 8px !important;
+}
+
+.mode-icon {
+  margin-right: 4px !important;
+}
+
+.mode-label {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
 }

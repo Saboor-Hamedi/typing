@@ -7,24 +7,45 @@ const CommandPalette = ({
   isOpen, 
   onClose, 
   actions,
-  theme 
+  theme,
+  initialQuery = '' 
 }) => {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef(null)
 
-  const filteredActions = actions.filter(action => 
-    action.label.toLowerCase().includes(query.toLowerCase()) ||
-    action.id.toLowerCase().includes(query.toLowerCase())
-  )
+  const isCommandMode = query.trim().startsWith('>')
+  const effectiveQuery = isCommandMode ? query.slice(1).trim() : query.trim()
+
+  const filteredActions = actions.filter(action => {
+    // If '>' mode, only show commands. Otherwise only show content.
+    if (isCommandMode) {
+      if (action.type !== 'command') return false
+    } else {
+      if (action.type !== 'content') return false
+    }
+
+    if (!effectiveQuery) return true; // Show all if no query typed
+
+    return (
+      action.label.toLowerCase().includes(effectiveQuery.toLowerCase()) ||
+      action.id.toLowerCase().includes(effectiveQuery.toLowerCase())
+    )
+  })
 
   useEffect(() => {
     if (isOpen) {
-      setQuery('')
+      setQuery(initialQuery)
       setSelectedIndex(0)
-      setTimeout(() => inputRef.current?.focus(), 10)
+      setTimeout(() => {
+        if (inputRef.current) {
+           inputRef.current.focus()
+           // If initial query exists, move cursor to end
+           inputRef.current.setSelectionRange(initialQuery.length, initialQuery.length)
+        }
+      }, 10)
     }
-  }, [isOpen])
+  }, [isOpen, initialQuery])
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {

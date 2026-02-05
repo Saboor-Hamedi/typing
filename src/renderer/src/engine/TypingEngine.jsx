@@ -7,7 +7,7 @@ import { memo, useEffect, useMemo, useRef, useState, useLayoutEffect } from 'rea
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../contexts'
 import { UI } from '../constants'
-import { FastForward } from 'lucide-react'
+import { FastForward, Edit2 } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
 import Loader from '../components/Common/Loader'
 import './TypingEngine.css'
@@ -129,13 +129,15 @@ const TypingEngine = ({
   testMode, 
   testLimit, 
   isSmoothCaret, 
-  isOverlayActive 
+  isOverlayActive,
+  onEditSentence
 }) => {
   const { 
     isSmoothCaret: ctxSmoothCaret, 
     caretStyle, 
     isErrorFeedbackEnabled,
-    isKineticEnabled 
+    isKineticEnabled,
+    difficulty 
   } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   
@@ -208,6 +210,7 @@ const TypingEngine = ({
         <AnimatePresence>
           {testMode === 'words' && !isFinished && engine.wordProgress && (
             <motion.div 
+              key="word-progress"
               className="live-progress-counter"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -216,6 +219,44 @@ const TypingEngine = ({
               <span>{engine.wordProgress.typed}</span>
               <span className="remaining">/ {engine.wordProgress.remaining}</span>
             </motion.div>
+          )}
+          
+          {/* Quick Edit Button for Custom/Advanced modes */}
+          {!isFinished && ['custom', 'intermediate', 'advanced'].includes(difficulty) && onEditSentence && (
+            <motion.button
+              key="edit-btn"
+              className="quick-edit-btn"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              whileHover={{ opacity: 1, scale: 1.1 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                // Join words to reconstruct the sentence.
+                // Note: This might include modifications (caps/punc) from the engine.
+                // The modal will try to match this against the dictionary.
+                onEditSentence(words.join(' '));
+              }}
+              title="Edit this sentence"
+              style={{
+                position: 'absolute',
+                top: '0.5rem',
+                right: '1rem',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '6px',
+                border: '1px solid var(--sub-alt-color)',
+                color: 'var(--sub-color)',
+                cursor: 'pointer',
+                padding: '0.4rem 0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                zIndex: 50,
+                backdropFilter: 'blur(4px)'
+              }}
+            >
+               <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Edit</span>
+               <Edit2 size={14} />
+            </motion.button>
           )}
         </AnimatePresence>
         {!isFinished ? (

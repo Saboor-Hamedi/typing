@@ -125,19 +125,20 @@ export const generateWords = (count = 50, settings = {}) => {
           // If there's only one sentence, we have to use it.
           sentence = sentencePool[0];
       } else {
-          // Randomly pick effectively
+      // Randomly pick effectively
           sentence = sentencePool[Math.floor(Math.random() * sentencePool.length)];
       }
 
-      const sentenceWords = sentence.split(' ');
+      const sentenceWords = sentence.trim().split(/\s+/);
       
       // Add words from sentence
       for (const word of sentenceWords) {
+        if (!word) continue;
+        
         // If we have satisfied the requested count, we can stop, 
-        // BUT for custom mode, it feels better to finish the current sentence so it doesn't cut off.
-        // However, standard logic is strict on count.
-        // Let's soft-break: if over count, stop.
-        if (currentWordCount >= count) break;
+        // BUT for custom mode, we want to allow the full sentence to be typed 
+        // regardless of the limit (unless it's excessively long, e.g. 1000).
+        if (difficulty !== 'custom' && currentWordCount >= count) break;
         
         let modifiedWord = word;
         

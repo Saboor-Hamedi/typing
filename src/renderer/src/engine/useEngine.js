@@ -250,6 +250,69 @@ export function useEngine(testMode, testLimit) {
       setTestHistory([]);
     }
   }, []);
+
+  const loadCustomText = useCallback((text) => {
+    stopTimer();
+    
+    // Clear all timers and timeouts
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    // Set words from generic text string
+    const generated = text.trim().split(/\s+/);
+    setWords(generated);
+
+    // Reset all state synchronously
+    setUserInput('');
+    setStartTime(null);
+    startTimeRef.current = null;
+    // For custom text, we treat it like 'words' mode with no limit display initially or just track elapsed
+    setTimeLeft(null); 
+    setElapsedTime(0);
+    setIsFinished(false);
+    setIsReplaying(false);
+    setKeystrokes([]);
+    telemetryBufferRef.current.clear();
+    setTelemetry([]);
+    setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
+    setIsTyping(false);
+
+    // Reset timers
+    if (countdownTimerRef.current) {
+        countdownTimerRef.current.stop();
+        countdownTimerRef.current = null;
+    }
+    if (elapsedTimerRef.current) {
+        elapsedTimerRef.current.reset();
+    } else {
+        // Ensure elapsed timer is ready for the run
+        elapsedTimerRef.current = createElapsedTimer((elapsed) => {
+            setElapsedTime(elapsed);
+        });
+    }
+
+    // Reset caret
+    setCaretPos({ left: 0, top: 0 });
+    lastLineTop.current = -1;
+
+    // Scroll to top
+    if (wordContainerRef.current) {
+      wordContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    // Focus input
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.value = '';
+        inputRef.current.focus();
+      }
+    });
+
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 300);
+  }, [stopTimer]);
   const resetGame = useCallback(() => {
     // Robust reset that works online and offline
     stopTimer();
@@ -262,13 +325,19 @@ export function useEngine(testMode, testLimit) {
 
     // Generate new words with robustness (tier-based + complexity meta)
     const wordCount = testMode === 'words' ? testLimit : Math.max(100, testLimit * 4);
-    setWords(generateWords(wordCount, {
-      difficulty,
-      hasPunctuation,
-      hasNumbers,
-      hasCaps,
-      customSentences: dictionary.sentences
-    }));
+    try {
+      setWords(generateWords(wordCount, {
+        difficulty,
+        hasPunctuation,
+        hasNumbers,
+        hasCaps,
+        customSentences: dictionary?.sentences || [] // Robust safe access
+      }));
+    } catch (err) {
+      console.error('Word generation failed:', err);
+      // Fallback to prevent crash
+      setWords(['system', 'error', 'please', 'check', 'settings']);
+    }
 
     // Reset all state synchronously (no async operations)
     setUserInput('');
@@ -389,18 +458,6 @@ export function useEngine(testMode, testLimit) {
         setTelemetry(telemetryBufferRef.current.toArray());
       });
       elapsedTimerRef.current.start();
-
-      // Legacy interval for backward compatibility (can be removed later)
-      timerRef.current = setInterval(() => {
-        const elapsedSec = Math.round((performance.now() - startTimeRef.current) / 1000);
-        if (elapsedSec <= 0) return;
-
-        // Only update telemetry if not using new timer
-        if (testMode !== 'time' && elapsedTimerRef.current) {
-          // Already handled by elapsedTimerRef
-          return;
-        }
-      }, 1000);
     }
     setKeystrokes(prev => [...prev, { value, timestamp: now }]);
     if (testMode === 'words') {
@@ -578,8 +635,17 @@ export function useEngine(testMode, testLimit) {
 
     // Also run in a frame to catch flexbox settling (essential for word wrapping)
     const frame = requestAnimationFrame(updateCaret);
+    let retryTimer;
+
+    // Retry logic handles cases where DOM isn't fully stable yet
+    if (retryCount < 20 && !document.getElementById(`char-${userInput.length}`)) {
+      retryTimer = setTimeout(updateCaret, 20);
+    }
     
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(retryTimer);
+    };
   }, [userInput, isFinished, words]);
   const liveWpm = useMemo(() => {
     if (!startTime || isFinished || isReplaying) return results.wpm;
@@ -648,12 +714,13 @@ export function useEngine(testMode, testLimit) {
     setGhostSpeed,
     wordProgress,
     isLoading,
-    activeLineTop
+    activeLineTop,
+    loadCustomText
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, caretPos,
     timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
-    ghostSpeed, wordProgress, isLoading, activeLineTop
+    ghostSpeed, wordProgress, isLoading, activeLineTop, loadCustomText
   ]);
 }

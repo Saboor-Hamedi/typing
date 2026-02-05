@@ -28,6 +28,10 @@ const api = {
     get: (key) => ipcRenderer.invoke('store-get', key),
     set: (key, val) => ipcRenderer.invoke('store-set', key, val)
   },
+  content: {
+    get: (key) => ipcRenderer.invoke('content-get', key),
+    set: (key, val) => ipcRenderer.invoke('content-set', key, val)
+  },
   getVersion: () => ipcRenderer.invoke('get-version'),
   openExternal: (url) => ipcRenderer.send('open-external', url),
   window: {

@@ -133,7 +133,7 @@ export const SettingsProvider = ({ children }) => {
           savedDifficulty,
           savedPunctuation,
           savedNumbers,
-          savedCaps,
+          savedCaps
         ] = await Promise.all([
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_MODE),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_LIMIT),
@@ -150,7 +150,7 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_NUMBERS),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS),
-          window.api.settings.get(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS),
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -168,7 +168,18 @@ export const SettingsProvider = ({ children }) => {
         if (savedPunctuation !== undefined) setHasPunctuation(savedPunctuation)
         if (savedNumbers !== undefined) setHasNumbers(savedNumbers)
         if (savedCaps !== undefined) setHasCaps(savedCaps)
-        if (savedSentences) setDictionary({ sentences: savedSentences })
+
+        // Load content store separately to prevent Promise failures
+        if (window.api.content) {
+          try {
+             const savedSentences = await window.api.content.get(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES)
+             if (Array.isArray(savedSentences)) {
+               setDictionary({ sentences: savedSentences })
+             }
+          } catch (e) {
+             console.error("Failed to load custom content:", e)
+          }
+        }
       }
       setIsSettingsLoaded(true)
     }
@@ -218,7 +229,12 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION, hasPunctuation)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_NUMBERS, hasNumbers)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, dictionary.sentences)
+    }
+
+    if (window.api?.content) {
+      // Only save if we have loaded settings, to avoid overwriting with initial empty state
+      // (This is redundant due to isSettingsLoaded check above, but safe)
+       window.api.content.set(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, dictionary.sentences)
     }
   }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, difficulty, hasPunctuation, hasNumbers, hasCaps, dictionary, isSettingsLoaded])
 
@@ -230,9 +246,9 @@ export const SettingsProvider = ({ children }) => {
     setTestMode(mode)
     // Set default limit for the mode
     if (mode === 'time') {
-      setTestLimit(30)
+      setTestLimit(15) // Default to 15 seconds per user request
     } else {
-      setTestLimit(25)
+      setTestLimit(25) // Default to 25 words per user request
     }
   }, [])
 

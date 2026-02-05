@@ -38,7 +38,7 @@ import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
 import { LoadingSpinner, KeyboardShortcutsModal, Tooltip } from '../Common'
 import CommandPalette from '../CommandPalette/CommandPalette'
-import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle, BookOpen } from 'lucide-react'
+import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle, BookOpen, Quote, Edit } from 'lucide-react'
 import './AppLayout.css'
 
 // Lazy load views for code splitting
@@ -75,7 +75,8 @@ const AppLayout = ({ addToast }) => {
     caretStyle,
     setCaretStyle,
     isErrorFeedbackEnabled,
-    setIsErrorFeedbackEnabled
+    setIsErrorFeedbackEnabled,
+    dictionary // Exposed dictionary for search
   } = useSettings()
   
   const { 
@@ -103,6 +104,18 @@ const AppLayout = ({ addToast }) => {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isCapsLockOn, setIsCapsLockOn] = useState(false)
+  const [editingSentence, setEditingSentence] = useState(null)
+  const [paletteInitialQuery, setPaletteInitialQuery] = useState('')
+
+  const handleEditSentence = (text) => {
+      setEditingSentence(text)
+      setIsContentModalOpen(true)
+  }
+
+  const closeContentModal = () => {
+      setIsContentModalOpen(false)
+      setEditingSentence(null)
+  }
 
   // Engine hook
   const engine = useEngine(testMode, testLimit)
@@ -178,7 +191,7 @@ const AppLayout = ({ addToast }) => {
     engine.resetGame()
   }, [engine])
 
-  // Persist active tab across reloads
+  // Persist activeTab active state
   useEffect(() => {
     if (typeof window === 'undefined') return
     localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab)
@@ -270,8 +283,8 @@ const AppLayout = ({ addToast }) => {
         if (isContentModalOpen) setIsContentModalOpen(false)
       }
 
-      // Don't intercept if a modal is open (except shortcuts modal)
-      if (isOverlayActive && !isShortcutsModalOpen) return
+      // Don't intercept if a modal is open (except shortcuts modal and command palette)
+      if (isOverlayActive && !isShortcutsModalOpen && !isCommandPaletteOpen && !isContentModalOpen) return
 
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
       const ctrlKey = isMac ? e.metaKey : e.ctrlKey
@@ -300,8 +313,14 @@ const AppLayout = ({ addToast }) => {
       }
 
       // Ctrl/Cmd + P: Open Command Palette
+      // Ctrl/Cmd + Shift + P: Open Settings/Commands Mode
       if (ctrlKey && e.key.toLowerCase() === 'p') {
         e.preventDefault()
+        if (e.shiftKey) {
+           setPaletteInitialQuery('>') // Command Mode
+        } else {
+           setPaletteInitialQuery('') // Content Mode
+        }
         setIsCommandPaletteOpen(prev => !prev)
         return
       }
@@ -326,38 +345,64 @@ const AppLayout = ({ addToast }) => {
   })()
 
   // Define Command Palette Actions
+  // 1. Content Actions (Type this text) - Visible in default mode
+  const contentActions = (dictionary?.sentences || []).map((text, idx) => ({
+    id: `content-${idx}`,
+    label: text.length > 50 ? text.slice(0, 50) + '...' : text,
+    icon: <Quote size={18} />,
+    type: 'content',
+    onSelect: () => {
+        setActiveTab('typing')
+        engine.loadCustomText(text)
+    }
+  }))
+
+  // 2. Edit Actions (Edit this text) - Visible in Command Mode (>)
+  const editActions = (dictionary?.sentences || []).map((text, idx) => ({
+    id: `edit-${idx}`,
+    label: `Edit: "${text.length > 30 ? text.slice(0, 30) + '...' : text}"`,
+    icon: <Edit size={18} />,
+    type: 'command',
+    onSelect: () => handleEditSentence(text)
+  }))
+
   const commandPaletteActions = [
-    { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', onSelect: () => engine.resetGame() },
-    { id: 'chameleon', label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, onSelect: () => setIsChameleonEnabled(!isChameleonEnabled) },
+    { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', type: 'command', onSelect: () => engine.resetGame() },
+    { id: 'chameleon', label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, type: 'command', onSelect: () => setIsChameleonEnabled(!isChameleonEnabled) },
     { 
       id: 'caret-style', 
       label: `Caret Style: ${caretStyle.toUpperCase()}`, 
       icon: <Type size={18} />, 
+      type: 'command',
       onSelect: () => {
         const styles = ['bar', 'block', 'fire'];
         const next = styles[(styles.indexOf(caretStyle) + 1) % styles.length];
         setCaretStyle(next);
       } 
     },
-    { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
-    { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
-    { id: 'sound', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
-    { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, onSelect: () => setIsHallEffect(!isHallEffect) },
-    { id: 'error-feedback', label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`, icon: <AlertCircle size={18} />, onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled) },
-    { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
-    { id: 'zen', label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`, icon: <Play size={18} />, onSelect: () => setIsZenMode(!isZenMode) },
-    { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, onSelect: () => setActiveTab('typing') },
-    { id: 'leaderboard', label: 'Global Leaderboard', icon: <Globe size={18} />, onSelect: () => setActiveTab('leaderboard') },
-    { id: 'history', label: 'Test History', icon: <History size={18} />, onSelect: () => setActiveTab('history') },
-    { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, onSelect: () => setActiveTab('dashboard') },
-    { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', onSelect: () => setIsThemeModalOpen(true) },
-    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', onSelect: () => setActiveTab('settings') },
-    { id: 'custom-content', label: 'Custom Content', icon: <BookOpen size={18} />, onSelect: () => setIsContentModalOpen(true) },
-    { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', onSelect: () => setIsShortcutsModalOpen(true) },
-    { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, onSelect: () => handleLogout() },
+    { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, type: 'command', onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
+    { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, type: 'command', onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
+    { id: 'sound', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, type: 'command', onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
+    { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, type: 'command', onSelect: () => setIsHallEffect(!isHallEffect) },
+    { id: 'error-feedback', label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`, icon: <AlertCircle size={18} />, type: 'command', onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled) },
+    { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, type: 'command', onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
+    { id: 'zen', label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`, icon: <Play size={18} />, type: 'command', onSelect: () => setIsZenMode(!isZenMode) },
+    { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, type: 'command', onSelect: () => setActiveTab('typing') },
+    { id: 'leaderboard', label: 'Global Leaderboard', icon: <Globe size={18} />, type: 'command', onSelect: () => setActiveTab('leaderboard') },
+    { id: 'history', label: 'Test History', icon: <History size={18} />, type: 'command', onSelect: () => setActiveTab('history') },
+    { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, type: 'command', onSelect: () => setActiveTab('dashboard') },
+    { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', type: 'command', onSelect: () => setIsThemeModalOpen(true) },
+    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', onSelect: () => setActiveTab('settings') },
+    { id: 'custom-content', label: 'Custom Content', icon: <BookOpen size={18} />, type: 'command', onSelect: () => setIsContentModalOpen(true) },
+    // Add custom content actions
+    ...contentActions,
+    // Add edit actions (only visible in command mode)
+    ...editActions,
+    { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', type: 'command', onSelect: () => setIsShortcutsModalOpen(true) },
+    { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => handleLogout() },
     isLoggedIn 
-      ? { id: 'logout', label: 'Sign Out', icon: <LogOut size={18} />, onSelect: () => toggleLogoutModal(true) }
-      : { id: 'login', label: 'Sign In / Register', icon: <User size={18} />, onSelect: () => toggleLoginModal(true) }
+      ? { id: 'logout', label: 'Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => toggleLogoutModal(true) }
+      : { id: 'login', label: 'Sign In / Register', icon: <User size={18} />, type: 'command', onSelect: () => toggleLoginModal(true) }
   ]
 
   return (
@@ -433,6 +478,7 @@ const AppLayout = ({ addToast }) => {
                     testLimit={testLimit}
                     isSmoothCaret={isSmoothCaret}
                     isOverlayActive={isOverlayActive}
+                    onEditSentence={handleEditSentence}
                   />
                 ) : activeTab === 'history' ? (
                   <HistoryView data={mergedHistory} />
@@ -544,7 +590,8 @@ const AppLayout = ({ addToast }) => {
 
       <CustomContentModal
         isOpen={isContentModalOpen}
-        onClose={() => setIsContentModalOpen(false)}
+        onClose={closeContentModal}
+        editingSentence={editingSentence}
       />
 
       <ConfirmationModal
@@ -584,6 +631,7 @@ const AppLayout = ({ addToast }) => {
         onClose={() => setIsCommandPaletteOpen(false)}
         actions={commandPaletteActions}
         theme={theme}
+        initialQuery={paletteInitialQuery}
       />
     </div>
   )

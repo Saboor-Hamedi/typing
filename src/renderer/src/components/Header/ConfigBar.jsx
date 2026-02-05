@@ -31,47 +31,28 @@ const ConfigBar = memo(({ openThemeModal, openContentModal }) => {
 
   return (
     <div className="master-config">
-      <Tooltip content="Change Theme">
-        <div className="config-group themes clickable" onClick={openThemeModal}>
-          <Palette size={14} />
-        </div>
-      </Tooltip>
-
-      <Tooltip content="Custom Content">
-        <div className="config-group clickable" onClick={openContentModal} style={{ marginLeft: '4px' }}>
-          <BookOpen size={14} />
-        </div>
-      </Tooltip>
-
-      <div className="config-divider" />
-
-      {/* Punctuation, Numbers, Caps Toggles */}
+      {/* Modifiers Group */}
       <div className="config-group modifiers">
         <Tooltip content="Punctuation">
           <button 
             onClick={() => setHasPunctuation(!hasPunctuation)}
             className={`config-btn ${hasPunctuation ? 'active' : ''}`}
-            aria-label="Punctuation"
           >
             <Quote size={14} />
           </button>
         </Tooltip>
-        
         <Tooltip content="Numbers">
           <button 
             onClick={() => setHasNumbers(!hasNumbers)}
             className={`config-btn ${hasNumbers ? 'active' : ''}`}
-            aria-label="Numbers"
           >
             <Hash size={14} />
           </button>
         </Tooltip>
-
         <Tooltip content="Capitalization">
           <button 
             onClick={() => setHasCaps(!hasCaps)}
             className={`config-btn ${hasCaps ? 'active' : ''}`}
-            aria-label="Capitals"
           >
             <CaseSensitive size={14} />
           </button>
@@ -80,103 +61,71 @@ const ConfigBar = memo(({ openThemeModal, openContentModal }) => {
 
       <div className="config-divider" />
 
-      {/* Mode Selector */}
-      <div className="config-group mode-switch">
-        <Tooltip content="Time Mode">
-          <button 
-            onClick={() => setTestMode('time')}
-            className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
-            aria-label="Time Mode"
-          >
-            <Clock size={14} />
-          </button>
-        </Tooltip>
-        
-        <Tooltip content="Words Mode">
-          <button 
-            onClick={() => setTestMode('words')}
-            className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
-            aria-label="Words Mode"
-          >
-            <Type size={14} />
-          </button>
-        </Tooltip>
+      {/* Mode & Limit Group - The "Shrinking" Part */}
+      <div className="config-group mode-options">
+        <div className="mode-toggles">
+          <Tooltip content="Time Mode">
+            <button 
+              onClick={() => setTestMode('time')}
+              className={`config-btn mode-btn ${testMode === 'time' ? 'active' : ''}`}
+            >
+              <Clock size={13} className="mode-icon" />
+              <span className="mode-label">Time</span>
+            </button>
+          </Tooltip>
+          <Tooltip content="Words Mode">
+            <button 
+              onClick={() => setTestMode('words')}
+              className={`config-btn mode-btn ${testMode === 'words' ? 'active' : ''}`}
+            >
+              <Type size={13} className="mode-icon" />
+              <span className="mode-label">Words</span>
+            </button>
+          </Tooltip>
+        </div>
+
+        {/* Dynamic Limits removed per user request */}
       </div>
 
       <div className="config-divider" />
 
-      {/* Difficulty Selector */}
+      {/* Difficulty Group */}
       <div className="config-group difficulty">
         {['beginner', 'intermediate', 'advanced', 'custom'].map(d => (
-          <Tooltip key={d} content={d === 'custom' ? 'Custom Content' : `${d.charAt(0).toUpperCase() + d.slice(1)} Words`}>
+          <Tooltip key={d} content={d === 'custom' ? 'Custom Content' : `${d.charAt(0).toUpperCase() + d.slice(1)} Mode`}>
             <button 
-              onClick={() => setDifficulty(d)}
-              className={`config-btn ${difficulty === d ? 'active' : ''}`}
+              onClick={() => {
+                setDifficulty(d)
+              }}
+              className={`text-btn ${difficulty === d ? 'active' : ''}`}
             >
-              {d === 'beginner' ? 'beg' : d === 'intermediate' ? 'int' : d === 'advanced' ? 'adv' : 'cus'}
+              {d === 'beginner' ? 'beg' : d === 'intermediate' ? 'int' : d === 'advanced' ? 'dev' : 'cus'}
             </button>
           </Tooltip>
         ))}
       </div>
 
-      <div className="config-divider" />
-
-      {/* Limit Selector */}
-      <div className="config-group limit-options">
-        {(testMode === 'time' ? [15, 30, 60] : [10, 25, 50]).map(v => (
-          <Tooltip key={v} content={`${v} ${testMode === 'time' ? 'seconds' : 'words'}`}>
-            <button 
-              onClick={() => setTestLimit(v)}
-              className={`config-btn ${testLimit === v ? 'active' : ''}`}
-            >
-              {v}
-            </button>
-          </Tooltip>
-        ))}
-      </div>
+      {/* Explicit Custom Content Manager */}
+      <Tooltip content="Manage Custom Content">
+        <button 
+          className="config-btn" 
+          onClick={openContentModal}
+          style={{ marginLeft: '4px' }}
+        >
+          <BookOpen size={14} />
+        </button>
+      </Tooltip>
 
       <div className="config-divider" />
 
-      {/* Caret Selector */}
-      <div className="config-group caret-switch">
-        <Tooltip content="Thin Caret">
-          <button 
-            onClick={() => setCaretStyle('bar')}
-            className={`config-btn ${caretStyle === 'bar' ? 'active' : ''}`}
-          >
-            <div style={{ width: 2, height: 12, background: 'currentColor' }} />
-          </button>
-        </Tooltip>
-        
-        <Tooltip content="Thick Caret">
-          <button 
-            onClick={() => setCaretStyle('block')}
-            className={`config-btn ${caretStyle === 'block' ? 'active' : ''}`}
-          >
-            <div style={{ width: 6, height: 12, background: 'currentColor' }} />
-          </button>
-        </Tooltip>
-
-        <Tooltip content="Flame Caret">
-          <button 
-            onClick={() => setCaretStyle('fire')}
-            className={`config-btn ${caretStyle === 'fire' ? 'active' : ''}`}
-          >
-            <Flame size={14} color={caretStyle === 'fire' ? '#ff4500' : 'currentColor'} />
-          </button>
-        </Tooltip>
-      </div>
-
-      <div className="config-divider" />
-
-      {/* Zen Toggle */}
-      <Tooltip content={isZenMode ? "Disable Zen Mode" : "Enable Zen Mode"} align="right">
-        <div 
-          className={`zen-box ${isZenMode ? 'active' : ''}`}
+      {/* Zen Toggle (Keep as it is useful for immersion) */}
+      <Tooltip content={isZenMode ? "Disable Zen Mode" : "Enable Zen Mode"}>
+        <button 
+          className={`config-btn ${isZenMode ? 'active' : ''}`}
           onClick={() => setIsZenMode(!isZenMode)}
         >
           {isZenMode ? <EyeOff size={14} /> : <Eye size={14} />}
-        </div>
+        </button>
       </Tooltip>
     </div>
   )

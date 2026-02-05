@@ -133,9 +133,11 @@ app.whenReady().then(() => {
   const Store = require('electron-store')
   const settingsStore = new Store({ name: 'settings' })
   const dataStore = new Store({ name: 'data' })
+  const contentStore = new Store({ name: 'content' })
   const legacyStore = new Store({ name: 'config' }) // Default was config.json
 
-  // Migration: Move legacy stats to data.json and legacy preferences to settings.json
+  // Migration: Move legacy stats to data.json, legacy preferences to settings.json
+  // AND move customSentences from settings.json to content.json
   const migrateLegacy = async () => {
     try {
       const legacyPb = legacyStore.get('pb')
@@ -156,6 +158,13 @@ app.whenReady().then(() => {
           if (legacyStore.has(key)) settingsStore.set(key, legacyStore.get(key))
         })
       }
+
+      // Migration: customSentences from settings.json -> content.json
+      if (settingsStore.has('customSentences') && !contentStore.has('customSentences')) {
+        const savedSentences = settingsStore.get('customSentences')
+        contentStore.set('customSentences', savedSentences)
+        settingsStore.delete('customSentences') // Clean up old location
+      }
     } catch (e) {
       console.error('Migration failed:', e)
     }
@@ -165,6 +174,10 @@ app.whenReady().then(() => {
   // Settings Handlers
   ipcMain.handle('settings-get', (event, key) => settingsStore.get(key))
   ipcMain.handle('settings-set', (event, key, val) => settingsStore.set(key, val))
+
+  // Content Handlers (Custom Sentences)
+  ipcMain.handle('content-get', (event, key) => contentStore.get(key))
+  ipcMain.handle('content-set', (event, key, val) => contentStore.set(key, val))
 
   // Deep Link Ready Handler (called by renderer when it's ready to listen)
   ipcMain.on('renderer-ready', () => {
