@@ -83,7 +83,8 @@ export const generateWords = (count = 50, settings = {}) => {
     difficulty = 'beginner',
     hasPunctuation = false,
     hasNumbers = false,
-    hasCaps = false
+    hasCaps = false,
+    customSentences = []
   } = settings;
 
   // 1. SELECT BASE WORD SOURCE
@@ -104,23 +105,47 @@ export const generateWords = (count = 50, settings = {}) => {
   while (currentWordCount < count) {
     const isFirstInTest = result.length === 0;
 
-    // Use coherent sentences for intermediate/advanced to make it feel human
-    const useSentence = (difficulty === 'intermediate' || difficulty === 'advanced') && Math.random() > 0.4;
+    // Use coherent sentences for intermediate/advanced/custom to make it feel human
+    const useSentence = (difficulty === 'intermediate' || difficulty === 'advanced' || difficulty === 'custom') && 
+                        (difficulty === 'custom' ? true : Math.random() > 0.4);
 
     if (useSentence && !hasNumbers) {
-      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+      let sentencePool = difficulty === 'custom' ? [...customSentences] : [...SENTENCES, ...customSentences];
+      
+      // Safety fallback for custom mode if empty
+      if (difficulty === 'custom' && sentencePool.length === 0) {
+        sentencePool = ["Please add custom sentences in settings to use this mode."];
+      }
+      
+      if (sentencePool.length === 0) return result; 
+
+      // For custom mode, try to avoid repeating the same sentence immediately if possible
+      let sentence;
+      if (difficulty === 'custom' && sentencePool.length === 1) {
+          // If there's only one sentence, we have to use it.
+          sentence = sentencePool[0];
+      } else {
+          // Randomly pick effectively
+          sentence = sentencePool[Math.floor(Math.random() * sentencePool.length)];
+      }
+
       const sentenceWords = sentence.split(' ');
       
-      // Add words from sentence, but don't exceed count significantly
+      // Add words from sentence
       for (const word of sentenceWords) {
+        // If we have satisfied the requested count, we can stop, 
+        // BUT for custom mode, it feels better to finish the current sentence so it doesn't cut off.
+        // However, standard logic is strict on count.
+        // Let's soft-break: if over count, stop.
         if (currentWordCount >= count) break;
         
         let modifiedWord = word;
         
-        // Apply Caps to sentence words if enabled (Sentence Case)
+        // Standard Behavior: START
         if (hasCaps && (currentWordCount === 0 || Math.random() > 0.9)) {
           modifiedWord = modifiedWord.charAt(0).toUpperCase() + modifiedWord.slice(1);
         }
+        // Standard Behavior: END
 
         // Apply internal punctuation naturally (already lowercase/clean in SENTENCES)
         // We can add random dots/commas if punctuation is on
@@ -132,6 +157,20 @@ export const generateWords = (count = 50, settings = {}) => {
         result.push(modifiedWord);
         currentWordCount++;
       }
+      
+      // If we are in purely custom mode and we just finished a sentence,
+      // and we have basically reached or exceeded the target count (or are close),
+      // let's STOP to prevent repeating the same sentence 25 times if the user only added one.
+      // This makes "Custom Mode" act more like "Type these specific sentences".
+      if (difficulty === 'custom' && currentWordCount >= sentenceWords.length) {
+         // Optimization: If the user provides a custom sentence, they likely just want to type THAT sentence once
+         // or cycle through their list once.
+         // If we have just finished adding a full sentence, let's break the main loop 
+         // so we don't repeat it immediately unless the count is huge.
+         // Effectively, for custom mode, "Word Count" becomes "Max Words".
+         break;
+      }
+
       continue;
     }
 

@@ -1,13 +1,15 @@
+import { useState } from 'react'
 import './SettingsView.css'
 import { motion } from 'framer-motion'
-import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play, Hash, CaseSensitive, Quote, Flame } from 'lucide-react'
+import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play, Hash, CaseSensitive, Quote, Flame, BookOpen } from 'lucide-react'
 import { useSettings } from '../../contexts'
+import CustomContentModal from '../Modals/CustomContentModal'
 
 /**
  * Settings View Component
  * Allows users to customize app behavior and appearance
  */
-const SettingsView = ({ onClearHistory, openThemeModal }) => {
+const SettingsView = ({ onClearHistory, openThemeModal, openContentModal }) => {
   const {
     isGhostEnabled,
     setIsGhostEnabled,
@@ -302,6 +304,19 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
               <option value="intermediate">Intermediate (Mixed)</option>
               <option value="advanced">Advanced (Long Words)</option>
             </select>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">
+                <BookOpen size={16} />
+                <span>Custom Content</span>
+              </div>
+              <p className="setting-description">Add your own sentences and quotes (Inter/Adv only).</p>
+            </div>
+            <button className="settings-action-btn" onClick={openContentModal}>
+              Manage Content
+            </button>
           </div>
 
           <div className="setting-item">

@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Palette, Clock, Type, Eye, EyeOff, Hash, CaseSensitive, Quote, Flame } from 'lucide-react'
+import { Palette, Clock, Type, Eye, EyeOff, Hash, CaseSensitive, Quote, Flame, BookOpen } from 'lucide-react'
 import { useTheme, useSettings } from '../../contexts'
 import { Tooltip } from '../Common'
 
@@ -8,7 +8,7 @@ import { Tooltip } from '../Common'
  * 
  * Configuration bar for test settings: theme, mode (time/words), limits, and zen mode.
  */
-const ConfigBar = memo(({ openThemeModal }) => {
+const ConfigBar = memo(({ openThemeModal, openContentModal }) => {
   const { theme } = useTheme()
   const { 
     testMode, 
@@ -34,6 +34,12 @@ const ConfigBar = memo(({ openThemeModal }) => {
       <Tooltip content="Change Theme">
         <div className="config-group themes clickable" onClick={openThemeModal}>
           <Palette size={14} />
+        </div>
+      </Tooltip>
+
+      <Tooltip content="Custom Content">
+        <div className="config-group clickable" onClick={openContentModal} style={{ marginLeft: '4px' }}>
+          <BookOpen size={14} />
         </div>
       </Tooltip>
 
@@ -101,13 +107,13 @@ const ConfigBar = memo(({ openThemeModal }) => {
 
       {/* Difficulty Selector */}
       <div className="config-group difficulty">
-        {['beginner', 'intermediate', 'advanced'].map(d => (
-          <Tooltip key={d} content={`${d.charAt(0).toUpperCase() + d.slice(1)} Words`}>
+        {['beginner', 'intermediate', 'advanced', 'custom'].map(d => (
+          <Tooltip key={d} content={d === 'custom' ? 'Custom Content' : `${d.charAt(0).toUpperCase() + d.slice(1)} Words`}>
             <button 
               onClick={() => setDifficulty(d)}
               className={`config-btn ${difficulty === d ? 'active' : ''}`}
             >
-              {d === 'beginner' ? 'beg' : d === 'intermediate' ? 'int' : 'adv'}
+              {d === 'beginner' ? 'beg' : d === 'intermediate' ? 'int' : d === 'advanced' ? 'adv' : 'cus'}
             </button>
           </Tooltip>
         ))}

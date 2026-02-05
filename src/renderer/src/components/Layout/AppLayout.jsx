@@ -27,6 +27,7 @@ import ConfigBar from '../Header/ConfigBar'
 import TypingEngine from '../../engine/TypingEngine'
 import ThemeModal from '../Modals/ThemeModal'
 import LoginModal from '../Modals/LoginModal'
+import CustomContentModal from '../Modals/CustomContentModal'
 import ConfirmationModal from '../Modals/ConfirmationModal'
 import { useEngine } from '../../engine/useEngine'
 import { useAccountManager } from '../../hooks/useAccountManager'
@@ -37,7 +38,7 @@ import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
 import { LoadingSpinner, KeyboardShortcutsModal, Tooltip } from '../Common'
 import CommandPalette from '../CommandPalette/CommandPalette'
-import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle } from 'lucide-react'
+import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle, BookOpen } from 'lucide-react'
 import './AppLayout.css'
 
 // Lazy load views for code splitting
@@ -98,6 +99,7 @@ const AppLayout = ({ addToast }) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false)
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false)
+  const [isContentModalOpen, setIsContentModalOpen] = useState(false)
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isCapsLockOn, setIsCapsLockOn] = useState(false)
@@ -242,7 +244,7 @@ const AppLayout = ({ addToast }) => {
   }, [])
 
   // Detect if any modal/overlay is currently active
-  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen || isCommandPaletteOpen
+  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen || isCommandPaletteOpen || isContentModalOpen
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -265,6 +267,7 @@ const AppLayout = ({ addToast }) => {
         if (isClearDataModalOpen) setIsClearDataModalOpen(false)
         if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
         if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
+        if (isContentModalOpen) setIsContentModalOpen(false)
       }
 
       // Don't intercept if a modal is open (except shortcuts modal)
@@ -297,7 +300,7 @@ const AppLayout = ({ addToast }) => {
       }
 
       // Ctrl/Cmd + P: Open Command Palette
-      if (ctrlKey && e.key === 'p') {
+      if (ctrlKey && e.key.toLowerCase() === 'p') {
         e.preventDefault()
         setIsCommandPaletteOpen(prev => !prev)
         return
@@ -313,7 +316,7 @@ const AppLayout = ({ addToast }) => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOverlayActive, isThemeModalOpen, isLoginModalOpen, isLogoutModalOpen, isClearDataModalOpen, isShortcutsModalOpen, isCommandPaletteOpen, engine])
+  }, [isOverlayActive, isThemeModalOpen, isLoginModalOpen, isLogoutModalOpen, isClearDataModalOpen, isShortcutsModalOpen, isCommandPaletteOpen, isContentModalOpen, engine])
 
   // Display value for header
   const displayValue = (() => {
@@ -349,6 +352,7 @@ const AppLayout = ({ addToast }) => {
     { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, onSelect: () => setActiveTab('dashboard') },
     { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', onSelect: () => setIsThemeModalOpen(true) },
     { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', onSelect: () => setActiveTab('settings') },
+    { id: 'custom-content', label: 'Custom Content', icon: <BookOpen size={18} />, onSelect: () => setIsContentModalOpen(true) },
     { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', onSelect: () => setIsShortcutsModalOpen(true) },
     { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, onSelect: () => handleLogout() },
     isLoggedIn 
@@ -405,6 +409,7 @@ const AppLayout = ({ addToast }) => {
             onNavigateDashboard={() => setActiveTab('dashboard')}
             liveWpm={liveWpm}
             openThemeModal={() => toggleThemeModal(true)}
+            openContentModal={() => setIsContentModalOpen(true)}
           />
         )}
 
@@ -435,6 +440,7 @@ const AppLayout = ({ addToast }) => {
                   <SettingsView
                     onClearHistory={() => toggleClearModal(true)}
                     openThemeModal={() => toggleThemeModal(true)}
+                    openContentModal={() => setIsContentModalOpen(true)}
                   />
                 ) : activeTab === 'dashboard' ? (
                   <DashboardView
@@ -534,6 +540,11 @@ const AppLayout = ({ addToast }) => {
         isOpen={isLoginModalOpen}
         onClose={() => toggleLoginModal(false)}
         onLogin={() => toggleLoginModal(false)}
+      />
+
+      <CustomContentModal
+        isOpen={isContentModalOpen}
+        onClose={() => setIsContentModalOpen(false)}
       />
 
       <ConfirmationModal

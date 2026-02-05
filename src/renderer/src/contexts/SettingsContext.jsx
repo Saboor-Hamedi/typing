@@ -106,6 +106,9 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : false
   })
 
+  // Custom Content
+  const [dictionary, setDictionary] = useState({ sentences: [] })
+
   // UI state
   const [isZenMode, setIsZenMode] = useState(false)
   
@@ -147,6 +150,7 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_NUMBERS),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES),
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -164,6 +168,7 @@ export const SettingsProvider = ({ children }) => {
         if (savedPunctuation !== undefined) setHasPunctuation(savedPunctuation)
         if (savedNumbers !== undefined) setHasNumbers(savedNumbers)
         if (savedCaps !== undefined) setHasCaps(savedCaps)
+        if (savedSentences) setDictionary({ sentences: savedSentences })
       }
       setIsSettingsLoaded(true)
     }
@@ -192,7 +197,8 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEYS.HAS_PUNCTUATION, hasPunctuation)
     localStorage.setItem(STORAGE_KEYS.HAS_NUMBERS, hasNumbers)
     localStorage.setItem(STORAGE_KEYS.HAS_CAPS, hasCaps)
-
+    localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(dictionary.sentences))
+    
     // Save to electron-store
     if (window.api?.settings) {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.TEST_MODE, testMode)
@@ -212,8 +218,9 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION, hasPunctuation)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_NUMBERS, hasNumbers)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
+      window.api.settings.set(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, dictionary.sentences)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, difficulty, hasPunctuation, hasNumbers, hasCaps, isSettingsLoaded])
+  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, difficulty, hasPunctuation, hasNumbers, hasCaps, dictionary, isSettingsLoaded])
 
   /**
    * Update test mode and set appropriate default limit
@@ -239,6 +246,14 @@ export const SettingsProvider = ({ children }) => {
       setTestLimit(limit)
     }
   }, [testMode])
+
+  /**
+   * Update custom sentences
+   * @param {string[]} sentences - New list of sentences
+   */
+  const updateSentences = useCallback((sentences) => {
+    setDictionary({ sentences })
+  }, [])
 
   const value = {
     // Test configuration
@@ -278,6 +293,8 @@ export const SettingsProvider = ({ children }) => {
     setHasNumbers,
     hasCaps,
     setHasCaps,
+    dictionary,
+    updateSentences,
 
     // UI state
     isZenMode,

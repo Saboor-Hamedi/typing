@@ -97,7 +97,7 @@ export const GAME = {
   WORD_LIMITS: [10, 25, 50],
   
   // Difficulty and Word Lists
-  DIFFICULTIES: ['beginner', 'intermediate', 'advanced'],
+  DIFFICULTIES: ['beginner', 'intermediate', 'advanced', 'custom'],
   DEFAULT_DIFFICULTY: 'beginner',
   
   // Modifiers
@@ -258,6 +258,7 @@ export const STORAGE_KEYS = {
     HAS_NUMBERS: 'hasNumbers',
     HAS_CAPS: 'hasCaps',
     GHOST_SPEED: 'ghostSpeed',
+    CUSTOM_SENTENCES: 'customSentences',
   },
 
   // Electron store keys (data.json)

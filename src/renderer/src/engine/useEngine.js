@@ -85,7 +85,8 @@ export function useEngine(testMode, testLimit) {
     difficulty,
     hasPunctuation,
     hasNumbers,
-    hasCaps
+    hasCaps,
+    dictionary
   } = useSettings();
   const ghostPos = useGhostRacing(
     isGhostEnabled,
@@ -265,7 +266,8 @@ export function useEngine(testMode, testLimit) {
       difficulty,
       hasPunctuation,
       hasNumbers,
-      hasCaps
+      hasCaps,
+      customSentences: dictionary.sentences
     }));
 
     // Reset all state synchronously (no async operations)
@@ -310,7 +312,7 @@ export function useEngine(testMode, testLimit) {
     // Briefly show loader to make transition feel smooth
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 400);
-  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps]);
+  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps, dictionary]);
   useEffect(() => {
     resetGame();
   }, [resetGame]);

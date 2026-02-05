@@ -13,7 +13,8 @@ const Header = memo(({
   selectedAvatarId = 1,
   onNavigateDashboard,
   liveWpm,
-  openThemeModal
+  openThemeModal,
+  openContentModal
 }) => {
   const { isZenMode } = useSettings()
 
@@ -34,7 +35,10 @@ const Header = memo(({
         
         <div className="header-right">
           {!testStarted && (
-            <ConfigBar openThemeModal={openThemeModal} />
+            <ConfigBar 
+              openThemeModal={openThemeModal} 
+              openContentModal={openContentModal}
+            />
           )}
         </div>
       </div>
