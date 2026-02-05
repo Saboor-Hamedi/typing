@@ -15,25 +15,24 @@ import './TypingEngine.css'
 /**
  * Letter Component
  */
-const Letter = memo(({ char, status, active, id, feedbackDisabled, isKineticEnabled }) => {
-  const displayStatus = status
-  
-  // High performance: use standard span for base letters to avoid Framer Motion overhead on static text
+const Letter = memo(({ char, status, active, id, isKineticEnabled }) => {
+  // If no kinetic effect or not active/correct, render simple span
   if (!isKineticEnabled || status !== 'correct') {
     return (
       <span 
         id={id} 
-        className={`letter ${displayStatus} ${active ? 'active' : ''}`} 
+        className={`letter ${status || ''} ${active ? 'active' : ''}`} 
       >
         {char}
       </span>
     )
   }
 
+  // Only use motion for kinetic effects on correct letters
   return (
     <motion.span 
       id={id} 
-      className={`letter ${displayStatus} ${active ? 'active' : ''}`} 
+      className={`letter ${status} ${active ? 'active' : ''}`} 
       initial={{ scale: 1, y: 0 }}
       animate={{
         scale: [1, 1.12, 1],
@@ -49,80 +48,89 @@ const Letter = memo(({ char, status, active, id, feedbackDisabled, isKineticEnab
       {char}
     </motion.span>
   )
+}, (prev, next) => {
+  // Custom equality check for performance
+  return prev.status === next.status && 
+         prev.active === next.active && 
+         prev.char === next.char &&
+         prev.isKineticEnabled === next.isKineticEnabled;
 })
 Letter.displayName = 'Letter'
 
-/**
- * Word Component
- */
 const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled, isKineticEnabled, activeLineTop }) => {
   const wordRef = useRef(null)
+  // Word dimming logic: 
+  // - Past words (above current line): Dimmed
+  // - Current/Future words: Bright
   const [isDimmed, setIsDimmed] = useState(false)
+
+  // Memoize letter map creation to simply splitting only when word changes
+  const letters = useMemo(() => word.split(''), [word]);
 
   useLayoutEffect(() => {
     if (wordRef.current && activeLineTop !== undefined) {
-      // If the word's top doesn't match the current active line top, dim it.
-      // We use a small threshold for sub-pixel differences
-      const myTop = wordRef.current.offsetTop
-      setIsDimmed(Math.abs(myTop - activeLineTop) > 5)
+       const myTop = wordRef.current.offsetTop
+       // ONLY dim if word is significantly ABOVE the active line (past words)
+       // This prevents the "typing into the dark" feeling
+       const shouldDim = myTop < activeLineTop - 10;
+       
+       if (isDimmed !== shouldDim) {
+         setIsDimmed(shouldDim);
+       }
     }
-  }, [activeLineTop])
-
-  const letterStatuses = useMemo(() => {
-    return word.split('').map((letter, i) => {
-      let status = ''
-      if (i < chunk.length && i < word.length) {
-        status = chunk[i] === letter ? 'correct' : 'incorrect'
-      }
-      return { 
-        letter, 
-        status, 
-        charIndex: startIndex + i, 
-        isActive: isCurrent && chunk.length === i 
-      }
-    })
-  }, [word, chunk, isCurrent, startIndex])
-
-  const spaceStatus = useMemo(() => {
-    if (chunk.length > word.length) {
-      return chunk[word.length] === ' ' ? 'correct' : 'incorrect'
-    }
-    return ''
-  }, [chunk, word.length])
-
-  const isSpaceActive = useMemo(() => {
-    return isCurrent && chunk.length === word.length
-  }, [isCurrent, chunk.length, word.length])
+  }, [activeLineTop, isDimmed])
 
   return (
     <div 
       ref={wordRef}
       className={`word ${isCurrent ? 'current' : ''} ${isDimmed ? 'dimmed' : ''}`} 
-      role="text"
     >
-      {letterStatuses.map(({ letter, status, charIndex, isActive }, i) => (
-        <Letter
-          key={i}
-          id={`char-${charIndex}`}
-          char={letter}
-          status={status}
-          active={isActive}
-          feedbackDisabled={!isErrorFeedbackEnabled}
-          isKineticEnabled={isKineticEnabled}
-        />
-      ))}
+      {letters.map((letter, i) => {
+        const charIndex = startIndex + i;
+        // Logic to determine status moved inline to avoid mapped array overhead
+        let status = '';
+        if (i < chunk.length) {
+            status = chunk[i] === letter ? 'correct' : 'incorrect';
+        }
+        const isActive = isCurrent && chunk.length === i;
+        
+        return (
+            <Letter
+                key={charIndex}
+                id={`char-${charIndex}`}
+                char={letter}
+                status={status}
+                active={isActive}
+                isKineticEnabled={isKineticEnabled}
+            />
+        )
+      })}
       <Letter
         id={`char-${startIndex + word.length}`}
         char={' '}
-        status={spaceStatus}
-        active={isSpaceActive}
-        feedbackDisabled={!isErrorFeedbackEnabled}
+        status={chunk.length > word.length ? (chunk[word.length] === ' ' ? 'correct' : 'incorrect') : ''}
+        active={isCurrent && chunk.length === word.length}
         isKineticEnabled={isKineticEnabled}
       />
     </div>
   )
+}, (prev, next) => {
+    // Critical Optimization: ONLY re-render if:
+    // 1. This is the CURRENT word (input changing)
+    // 2. This was the PREVIOUS word (status changing/finalizing)
+    // 3. Global settings changed (kinetic/feedback)
+    // 4. Listing position changed (activeLineTop) - though we can debouce this
+    
+    // If neither is current, and both have same chunk (likely empty or full), skipping render is safe
+    if (!prev.isCurrent && !next.isCurrent && prev.chunk === next.chunk && 
+        prev.activeLineTop === next.activeLineTop && 
+        prev.isKineticEnabled === next.isKineticEnabled) {
+        return true;
+    }
+    return false;
 })
 Word.displayName = 'Word'
+
 
 const TypingEngine = ({ 
   engine, 
@@ -147,7 +155,7 @@ const TypingEngine = ({
     isFinished,
     isReplaying,
     results,
-    caretPos,
+    caretRef,
     wordContainerRef,
     inputRef,
     resetGame,
@@ -270,30 +278,19 @@ const TypingEngine = ({
               />
             )}
             
-            <motion.div
-              className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
-              animate={{
-                x: caretPos.left,
-                y: caretPos.top,
-                height: caretPos.height,
-                width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
-                opacity: 1
-              }}
-              transition={smoothCaretEnabled ? {
-                type: 'spring',
-                stiffness: UI.CARET_STIFFNESS_SMOOTH,
-                damping: UI.CARET_DAMPING_SMOOTH,
-                mass: UI.CARET_MASS_SMOOTH
-              } : {
-                duration: 0
-              }}
+            <div
+              ref={caretRef}
+              className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle} ${smoothCaretEnabled ? 'smooth' : ''}`}
               style={{ 
                 position: 'absolute',
                 left: 0, 
                 top: 0,
                 zIndex: 10,
                 mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px')
+                borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px'),
+                // Default width/height to avoid jumpy init
+                width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
+                height: '1.2em'
               }}
             />
 

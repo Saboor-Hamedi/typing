@@ -120,6 +120,10 @@
   -webkit-font-smoothing: antialiased;
 }
 
+.caret.smooth {
+  transition: transform 0.08s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
 .caret.blinking:not(.typing) {
   animation: caret-blink 1s step-end infinite;
 }

@@ -50,7 +50,7 @@ export function useEngine(testMode, testLimit) {
   const [isReplaying, setIsReplaying] = useState(false);
   const replayTimeoutRef = useRef(null);
   const [results, setResults] = useState({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
-  const [keystrokes, setKeystrokes] = useState([]);
+  const keystrokesRef = useRef([]); // Optimized: Use ref instead of state to avoid re-renders
   const [testHistory, setTestHistory] = useState([]);
   const [caretPos, setCaretPos] = useState({ left: 0, top: 0 });
   const [pb, setPb] = useState(0);
@@ -58,6 +58,7 @@ export function useEngine(testMode, testLimit) {
   const telemetryBufferRef = useRef(new CircularBuffer(50)); // Optimized circular buffer
   const wordContainerRef = useRef(null);
   const inputRef = useRef(null);
+  const caretRef = useRef(null); // Ref for direct DOM manipulation of caret position
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
   const countdownTimerRef = useRef(null);
@@ -168,6 +169,9 @@ export function useEngine(testMode, testLimit) {
       setResults({ wpm, rawWpm, accuracy, errors, duration: durationSeconds, isNewPb });
       setIsFinished(true);
 
+      const finalKeystrokes = keystrokesRef.current;
+      // ... (Save logic continues using finalKeystrokes if needed)
+
       // Save to local storage
       if (window.api && window.api.data) {
         try {
@@ -260,9 +264,14 @@ export function useEngine(testMode, testLimit) {
       typingTimeoutRef.current = null;
     }
 
-    // Set words from generic text string
+    // Explicitly clear words first to prevent any merging visuals
+    setWords([]);
+
+    // Calculate new words
     const generated = text.trim().split(/\s+/);
-    setWords(generated);
+    
+    // Set new words
+    setWords([...generated]);
 
     // Reset all state synchronously
     setUserInput('');
@@ -273,7 +282,7 @@ export function useEngine(testMode, testLimit) {
     setElapsedTime(0);
     setIsFinished(false);
     setIsReplaying(false);
-    setKeystrokes([]);
+    keystrokesRef.current = [];
     telemetryBufferRef.current.clear();
     setTelemetry([]);
     setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
@@ -294,7 +303,9 @@ export function useEngine(testMode, testLimit) {
     }
 
     // Reset caret
-    setCaretPos({ left: 0, top: 0 });
+    if (caretRef.current) {
+        caretRef.current.style.transform = 'translate3d(0, 0, 0)';
+    }
     lastLineTop.current = -1;
 
     // Scroll to top
@@ -323,19 +334,22 @@ export function useEngine(testMode, testLimit) {
       typingTimeoutRef.current = null;
     }
 
-    // Generate new words with robustness (tier-based + complexity meta)
+    // Generate new words with robustness
     const wordCount = testMode === 'words' ? testLimit : Math.max(100, testLimit * 4);
+    
+    // Memoize the dictionary sentences to prevent unnecessary re-runs
+    const sentences = dictionary?.sentences || [];
+
     try {
       setWords(generateWords(wordCount, {
         difficulty,
         hasPunctuation,
         hasNumbers,
         hasCaps,
-        customSentences: dictionary?.sentences || [] // Robust safe access
+        customSentences: sentences
       }));
     } catch (err) {
       console.error('Word generation failed:', err);
-      // Fallback to prevent crash
       setWords(['system', 'error', 'please', 'check', 'settings']);
     }
 
@@ -347,7 +361,7 @@ export function useEngine(testMode, testLimit) {
     setElapsedTime(0);
     setIsFinished(false);
     setIsReplaying(false);
-    setKeystrokes([]);
+    keystrokesRef.current = [];
     telemetryBufferRef.current.clear();
     setTelemetry([]);
     setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
@@ -383,8 +397,12 @@ export function useEngine(testMode, testLimit) {
     setTimeout(() => setIsLoading(false), 400);
   }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps, dictionary]);
   useEffect(() => {
-    resetGame();
-  }, [resetGame]);
+    // Only auto-reset if a test isn't currently active
+    // This prevents background settings syncs from wiping a live session
+    if (!startTimeRef.current && !isFinished && !isReplaying) {
+      resetGame();
+    }
+  }, [resetGame, isFinished, isReplaying]);
   const handleInput = useCallback((e) => {
     const value = e.target.value;
     if (isFinished || isReplaying) return;
@@ -459,7 +477,7 @@ export function useEngine(testMode, testLimit) {
       });
       elapsedTimerRef.current.start();
     }
-    setKeystrokes(prev => [...prev, { value, timestamp: now }]);
+    keystrokesRef.current.push({ value, timestamp: now });
     if (testMode === 'words') {
       const totalRequired = words.join(' ').length;
       if (value.length >= totalRequired) {
@@ -478,31 +496,32 @@ export function useEngine(testMode, testLimit) {
     setIsReplaying(false);
     setIsFinished(true);
     // Set user input to the final value
-    if (keystrokes.length > 0) {
-      setUserInput(keystrokes[keystrokes.length - 1].value);
+    if (keystrokesRef.current.length > 0) {
+      setUserInput(keystrokesRef.current[keystrokesRef.current.length - 1].value);
     }
-  }, [isReplaying, keystrokes]);
+  }, [isReplaying]);
 
   const runReplay = useCallback(() => {
-    if (keystrokes.length === 0) return;
+    if (keystrokesRef.current.length === 0) return;
     stopTimer();
     setIsReplaying(true);
     setUserInput('');
     setIsFinished(false);
     let i = 0;
     const playNext = () => {
-      if (i >= keystrokes.length) {
+      const currentKeystrokes = keystrokesRef.current;
+      if (i >= currentKeystrokes.length) {
         setIsReplaying(false);
         setIsFinished(true);
         return;
       }
-      const val = keystrokes[i].value;
+      const val = currentKeystrokes[i].value;
       setUserInput(val);
       if (isSoundEnabled) {
         soundEngine.playKeySound(val[val.length - 1] === ' ' ? 'space' : 'key');
       }
-      if (i < keystrokes.length - 1) {
-        const delay = keystrokes[i+1].timestamp - keystrokes[i].timestamp;
+      if (i < currentKeystrokes.length - 1) {
+        const delay = currentKeystrokes[i+1].timestamp - currentKeystrokes[i].timestamp;
         i++;
         replayTimeoutRef.current = setTimeout(playNext, Math.min(delay, 500));
       } else {
@@ -513,7 +532,7 @@ export function useEngine(testMode, testLimit) {
       }
     };
     playNext();
-  }, [keystrokes, stopTimer, isSoundEnabled]);
+  }, [stopTimer, isSoundEnabled]);
   useEffect(() => {
     const handleKeyDown = (e) => {
       const active = document.activeElement;
@@ -566,8 +585,9 @@ export function useEngine(testMode, testLimit) {
     const updateCaret = () => {
       const charIndex = userInput.length;
       const target = document.getElementById(`char-${charIndex}`);
+      const caret = caretRef.current;
       
-      if (target) {
+      if (target && caret) {
         const containerRect = container.getBoundingClientRect();
         const wordWrapper = container.querySelector('.word-wrapper');
         const targetRect = target.getBoundingClientRect();
@@ -575,27 +595,22 @@ export function useEngine(testMode, testLimit) {
         if (!wordWrapper) return;
         const wordWrapperRect = wordWrapper.getBoundingClientRect();
         
-        // Position relative to the container's internal scroll surface
         const left = targetRect.left - containerRect.left + container.scrollLeft;
         const top_abs = targetRect.top - containerRect.top + container.scrollTop;
-        
-        // Position relative to the word-wrapper (for dimming logic)
         const top_rel = targetRect.top - wordWrapperRect.top;
         
         const targetHeight = targetRect.height;
         const targetWidth = targetRect.width;
-
         const h = targetHeight * 0.85; 
         const caretY = top_abs + (targetHeight - h) / 2;
 
-        setCaretPos({ 
-          left, 
-          top: caretY,
-          width: targetWidth,
-          height: h
-        });
+        // DIRECT DOM MANIPULATION: Bypass React for caret position
+        // This is significantly smoother at high speeds
+        caret.style.transform = `translate3d(${left}px, ${caretY}px, 0)`;
+        caret.style.height = `${h}px`;
+        caret.style.width = `${targetWidth || 2}px`;
         
-        // Update activeLineTop using the relative-to-words coordinate
+        // Update activeLineTop for dimming
         if (Math.abs(top_rel - activeLineTop) > 2) {
           setActiveLineTop(top_rel);
           const containerHeight = container.clientHeight;
@@ -607,8 +622,7 @@ export function useEngine(testMode, testLimit) {
             container.scrollTo({ top: top_abs - (containerHeight * 0.4), behavior: 'auto' });
           }
         }
-      }
- else if (charIndex > 0) {
+      } else if (charIndex > 0 && caret) {
         const lastTarget = document.getElementById(`char-${charIndex - 1}`);
         if (lastTarget) {
           const left = lastTarget.offsetLeft + lastTarget.offsetWidth;
@@ -616,17 +630,10 @@ export function useEngine(testMode, testLimit) {
           const h = lastTarget.offsetHeight * 0.7;
           const top = top_offset + (lastTarget.offsetHeight - h) / 2;
 
-          setCaretPos({
-            left,
-            top,
-            width: 2,
-            height: h
-          });
+          caret.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+          caret.style.height = `${h}px`;
+          caret.style.width = `2px`;
         }
-      }
- else if (retryCount < 20) {
-        retryCount++;
-        setTimeout(updateCaret, 20);
       }
     };
 
@@ -663,8 +670,11 @@ export function useEngine(testMode, testLimit) {
     
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
-      // A word is considered typed if the user has typed past its length + space
-      if (userInput.length >= charCount + word.length + 1) {
+      const isLastWord = i === words.length - 1;
+      // Word is actively typed if we have enough chars
+      const requiredLen = charCount + word.length + (isLastWord ? 0 : 1);
+      
+      if (userInput.length >= requiredLen) {
         typed++;
         charCount += word.length + 1;
       } else {
@@ -674,8 +684,8 @@ export function useEngine(testMode, testLimit) {
 
     return {
       typed,
-      total: testLimit,
-      remaining: Math.max(0, testLimit - typed)
+      total: words.length,
+      remaining: Math.max(0, words.length - typed)
     };
   }, [userInput, words, testMode, testLimit]);
 
@@ -686,7 +696,7 @@ export function useEngine(testMode, testLimit) {
     isFinished,
     isReplaying,
     results,
-    caretPos,
+    caretRef,
     wordContainerRef,
     inputRef,
     timeLeft,
@@ -717,7 +727,7 @@ export function useEngine(testMode, testLimit) {
     activeLineTop,
     loadCustomText
   }), [
-    words, userInput, startTime, isFinished, isReplaying, results, caretPos,
+    words, userInput, startTime, isFinished, isReplaying, results, 
     timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,

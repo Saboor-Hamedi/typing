@@ -107,7 +107,14 @@ export const SettingsProvider = ({ children }) => {
   })
 
   // Custom Content
-  const [dictionary, setDictionary] = useState({ sentences: [] })
+  const [dictionary, setDictionary] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES)
+    try {
+      return { sentences: saved ? JSON.parse(saved) : [] }
+    } catch (e) {
+      return { sentences: [] }
+    }
+  })
 
   // UI state
   const [isZenMode, setIsZenMode] = useState(false)
@@ -172,9 +179,13 @@ export const SettingsProvider = ({ children }) => {
         // Load content store separately to prevent Promise failures
         if (window.api.content) {
           try {
+             // Explicitly check for content to ensure we don't overwrite with empty
              const savedSentences = await window.api.content.get(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES)
              if (Array.isArray(savedSentences)) {
+               console.log("Loading custom sentences from content store:", savedSentences.length)
                setDictionary({ sentences: savedSentences })
+               // Also sync to localStorage for next boot
+               localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(savedSentences))
              }
           } catch (e) {
              console.error("Failed to load custom content:", e)
@@ -186,7 +197,7 @@ export const SettingsProvider = ({ children }) => {
     loadSettings()
   }, [])
 
-  // Persist settings changes
+  // Persist settings changes (except dictionary)
   useEffect(() => {
     if (!isSettingsLoaded) return
 
@@ -208,7 +219,6 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEYS.HAS_PUNCTUATION, hasPunctuation)
     localStorage.setItem(STORAGE_KEYS.HAS_NUMBERS, hasNumbers)
     localStorage.setItem(STORAGE_KEYS.HAS_CAPS, hasCaps)
-    localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(dictionary.sentences))
     
     // Save to electron-store
     if (window.api?.settings) {
@@ -230,13 +240,20 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_NUMBERS, hasNumbers)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
     }
+  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, difficulty, hasPunctuation, hasNumbers, hasCaps, isSettingsLoaded])
 
+  // Separate Persistence for Custom Content (content.json)
+  useEffect(() => {
+    if (!isSettingsLoaded) return
+
+    // Save to localStorage
+    localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(dictionary.sentences))
+    
+    // Save to electron-store (content.json)
     if (window.api?.content) {
-      // Only save if we have loaded settings, to avoid overwriting with initial empty state
-      // (This is redundant due to isSettingsLoaded check above, but safe)
        window.api.content.set(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, dictionary.sentences)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, difficulty, hasPunctuation, hasNumbers, hasCaps, dictionary, isSettingsLoaded])
+  }, [dictionary, isSettingsLoaded])
 
   /**
    * Update test mode and set appropriate default limit
@@ -268,7 +285,9 @@ export const SettingsProvider = ({ children }) => {
    * @param {string[]} sentences - New list of sentences
    */
   const updateSentences = useCallback((sentences) => {
-    setDictionary({ sentences })
+    // Ensure uniqueness to prevent content "mixing" or duplicates
+    const unique = [...new Set(sentences)]
+    setDictionary({ sentences: unique })
   }, [])
 
   const value = {
