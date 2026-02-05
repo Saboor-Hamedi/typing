@@ -593,7 +593,7 @@ export function useEngine(testMode, testLimit) {
       const target = document.getElementById(`char-${charIndex}`);
       const caret = caretRef.current;
       
-      if (target && caret) {
+      if (target) {
         const containerRect = container.getBoundingClientRect();
         const wordWrapper = container.querySelector('.word-wrapper');
         const targetRect = target.getBoundingClientRect();
@@ -613,10 +613,15 @@ export function useEngine(testMode, testLimit) {
         // Round top_rel to prevent sub-pixel jitter from flickering the dim status
         const roundedTop = Math.round(top_rel);
 
-        // DIRECT DOM MANIPULATION: Bypass React for caret position
-        caret.style.transform = `translate3d(${left}px, ${caretY}px, 0)`;
-        caret.style.height = `${h}px`;
-        caret.style.width = `7px`; // User requested 7px thickness
+        // Sync state to drive motion caret
+        setCaretPos({ left, top: caretY, height: h });
+
+        if (caret) {
+          // DIRECT DOM MANIPULATION: Bypass React for caret position
+          caret.style.transform = `translate3d(${left}px, ${caretY}px, 0)`;
+          caret.style.height = `${h}px`;
+          caret.style.width = `7px`; // User requested 7px thickness
+        }
         
         // Update activeLineTop for dimming
         // Increased threshold to 5px to avoid micro-adjustments causing re-renders
@@ -631,7 +636,7 @@ export function useEngine(testMode, testLimit) {
             container.scrollTo({ top: top_abs - (containerHeight * 0.4), behavior: 'auto' });
           }
         }
-      } else if (charIndex > 0 && caret) {
+      } else if (charIndex > 0) {
         const lastTarget = document.getElementById(`char-${charIndex - 1}`);
         if (lastTarget) {
           const left = lastTarget.offsetLeft + lastTarget.offsetWidth;
@@ -639,9 +644,13 @@ export function useEngine(testMode, testLimit) {
           const h = lastTarget.offsetHeight * 0.7;
           const top = top_offset + (lastTarget.offsetHeight - h) / 2;
 
-          caret.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-          caret.style.height = `${h}px`;
-          caret.style.width = `7px`; // Consistent 7px width
+          setCaretPos({ left, top, height: h });
+          
+          if (caret) {
+            caret.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+            caret.style.height = `${h}px`;
+            caret.style.width = `7px`; // Consistent 7px width
+          }
         }
       }
     };
@@ -734,12 +743,13 @@ export function useEngine(testMode, testLimit) {
     wordProgress,
     isLoading,
     activeLineTop,
-    loadCustomText
+    loadCustomText,
+    caretPos
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, 
     timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
-    ghostSpeed, wordProgress, isLoading, activeLineTop, loadCustomText
+    ghostSpeed, wordProgress, isLoading, activeLineTop, loadCustomText, caretPos
   ]);
 }

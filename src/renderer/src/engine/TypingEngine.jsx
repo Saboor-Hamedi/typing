@@ -277,21 +277,46 @@ const TypingEngine = ({
               />
             )}
             
-            <div
-              ref={caretRef}
-              className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle} ${smoothCaretEnabled ? 'smooth' : ''}`}
-              style={{ 
-                position: 'absolute',
-                left: 0, 
-                top: 0,
-                zIndex: 10,
-                mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px'),
-                // Default width/height to avoid jumpy init
-                width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
-                height: '1.2em'
-              }}
-            />
+            {smoothCaretEnabled ? (
+              <motion.div
+                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
+                animate={{ 
+                  x: engine.caretPos?.left || 0, 
+                  y: engine.caretPos?.top || 0,
+                  height: engine.caretPos?.height || '1.2em'
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: UI.CARET_STIFFNESS_SMOOTH,
+                  damping: UI.CARET_DAMPING_SMOOTH,
+                  mass: UI.CARET_MASS_SMOOTH
+                }}
+                style={{ 
+                  position: 'absolute',
+                  left: 0, 
+                  top: 0,
+                  zIndex: 10,
+                  mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
+                  borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px'),
+                  width: 7 // Fixed 7px width for heavy feel
+                }}
+              />
+            ) : (
+              <div
+                ref={caretRef}
+                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
+                style={{ 
+                  position: 'absolute',
+                  left: 0, 
+                  top: 0,
+                  zIndex: 10,
+                  mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
+                  borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px'),
+                  width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
+                  height: '1.2em'
+                }}
+              />
+            )}
 
             <div className="word-wrapper">
               <AnimatePresence>
