@@ -193,8 +193,18 @@ export const THEMES = {
     synthwave: [255, 126, 219],
   },
 
-  // Hot color for Chameleon Flow (red)
-  HOT_COLOR: [226, 68, 20],
+  // Theme-specific hot colors for Chameleon Flow
+  HOT_COLORS: {
+    carbon: [255, 78, 0],       // Deep Orange
+    nord: [255, 78, 0],         // Deep Orange
+    dracula: [255, 121, 198],    // Pink
+    serika_blue: [255, 255, 255], // Pure White
+    matrix: [0, 255, 65],       // Matrix Green
+    lavender: [255, 255, 255],   // White
+    rose_pine: [235, 111, 146],  // Love (Pink)
+    cyberpunk: [0, 255, 255],    // Cyan
+    synthwave: [254, 231, 21],   // Yellow
+  },
 }
 
 // ============================================

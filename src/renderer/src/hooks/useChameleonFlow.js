@@ -25,20 +25,24 @@ export const useChameleonFlow = (liveWpm, pb, isActive, isEnabled) => {
     if (!isEnabled || !isActive) return
 
     const baseColor = THEMES.COLORS[theme] || THEMES.COLORS[THEMES.DEFAULT]
-    const hotColor = THEMES.HOT_COLOR
     
     // Calculate target WPM (use PB or fallback)
     const targetWpm = pb > 0 ? pb : GAME.CHAMELEON_FALLBACK_TARGET
     
-    // Calculate heat factor (0-1)
-    const minThreshold = targetWpm * GAME.CHAMELEON_MIN_THRESHOLD
-    const maxThreshold = targetWpm * GAME.CHAMELEON_MAX_THRESHOLD
+    // Calculate heat factor (0-1) - More aggressive thresholds
+    const minThreshold = targetWpm * 0.5 // Start subtle shift at 50%
+    const maxThreshold = targetWpm * 1.0 // Fully hot at PB
     
     let heat = (liveWpm - minThreshold) / (maxThreshold - minThreshold)
-    heat = clamp(heat, 0, 1)
+    heat = clamp(heat, 0, 1.3) // Allow slightly "overheating" for extra glow
     
-    // Interpolate color
-    const interpolatedColor = lerpColor(baseColor, hotColor, heat)
+    // Use a power curve for more dramatic visual shift
+    const curveHeat = Math.pow(heat, 1.5)
+    // Safe lookup for hot colors
+    const themeHotColors = THEMES.HOT_COLORS || {}
+    const hotColor = themeHotColors[theme] || themeHotColors[THEMES.DEFAULT] || [255, 0, 0]
+    
+    const interpolatedColor = lerpColor(baseColor, hotColor, curveHeat)
     
     // Update CSS variable
     document.documentElement.style.setProperty(

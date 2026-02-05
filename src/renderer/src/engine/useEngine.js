@@ -395,7 +395,7 @@ export function useEngine(testMode, testLimit) {
     // Briefly show loader to make transition feel smooth
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 400);
-  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps, dictionary]);
+  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps, JSON.stringify(dictionary?.sentences)]);
   useEffect(() => {
     // Only auto-reset if a test isn't currently active
     // This prevents background settings syncs from wiping a live session
@@ -608,7 +608,7 @@ export function useEngine(testMode, testLimit) {
         // This is significantly smoother at high speeds
         caret.style.transform = `translate3d(${left}px, ${caretY}px, 0)`;
         caret.style.height = `${h}px`;
-        caret.style.width = `${targetWidth || 2}px`;
+        caret.style.width = `7px`; // User requested 7px thickness
         
         // Update activeLineTop for dimming
         if (Math.abs(top_rel - activeLineTop) > 2) {
@@ -632,7 +632,7 @@ export function useEngine(testMode, testLimit) {
 
           caret.style.transform = `translate3d(${left}px, ${top}px, 0)`;
           caret.style.height = `${h}px`;
-          caret.style.width = `2px`;
+          caret.style.width = `7px`; // Consistent 7px width
         }
       }
     };

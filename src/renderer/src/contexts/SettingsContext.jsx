@@ -12,7 +12,7 @@
  * - Exposes safe setters that validate/normalize values (e.g., `updateTestMode`, `updateTestLimit`).
  * - Provides `isSmoothCaret` toggle that directly controls caret animation behavior.
  */
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { GAME, STORAGE_KEYS } from '../constants'
 
 const SettingsContext = createContext(null)
@@ -290,7 +290,7 @@ export const SettingsProvider = ({ children }) => {
     setDictionary({ sentences: unique })
   }, [])
 
-  const value = {
+  const value = useMemo(() => ({
     // Test configuration
     testMode,
     testLimit,
@@ -337,7 +337,14 @@ export const SettingsProvider = ({ children }) => {
 
     // Loading state
     isSettingsLoaded,
-  }
+  }), [
+    testMode, testLimit, updateTestMode, updateTestLimit,
+    isChameleonEnabled, isKineticEnabled, isSmoothCaret,
+    isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled,
+    isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling,
+    difficulty, hasPunctuation, hasNumbers, hasCaps, dictionary,
+    updateSentences, isZenMode, isSettingsLoaded
+  ])
 
   return (
     <SettingsContext.Provider value={value}>
