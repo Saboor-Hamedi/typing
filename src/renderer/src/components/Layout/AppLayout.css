@@ -1,27 +1,55 @@
-.flow-progress-bar {
+.chameleon-progress-bar {
   position: fixed;
   top: 32px; /* Just below TitleBar */
   left: 0;
-  height: 3px;
+  height: 1.5px; /* Very slight as requested */
   background: var(--main-color);
-  box-shadow: 0 0 10px var(--main-color), 0 0 20px var(--main-color);
+  box-shadow: 0 0 8px var(--main-color);
   z-index: 10001;
   pointer-events: none;
   opacity: 0.8;
+  transition: background 0.3s ease;
 }
 
-/* Add a subtle glow to the viewport when typing */
-.app-container.is-typing .main-viewport::after {
-  content: '';
+/* Chameleon Ambient Effects */
+.chameleon-aura-layer {
+  position: fixed;
+  top: 32px;
+  bottom: 0; /* Very full bottom */
+  left: var(--sidebar-width);
+  right: 0;
+  pointer-events: none;
+  z-index: 0; 
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chameleon-flame-tongue {
   position: absolute;
-  top: 0;
+  bottom: 0;
+  width: 15%; /* Broad but overlapping */
+  pointer-events: none;
+  filter: blur(25px) brightness(1.2);
+  border-radius: 50% 50% 0 0;
+  will-change: height, opacity, transform;
+}
+
+.chameleon-fire-base {
+  position: absolute;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at center, transparent 40%, rgba(var(--main-color-rgb), 0.03) 100%);
-  pointer-events: none;
-  z-index: 5;
-  animation: breathing 4s ease-in-out infinite;
+  height: 40px;
+  background: linear-gradient(to top, rgba(var(--main-color-rgb), 0.3), transparent);
+  filter: blur(10px);
+  z-index: 1;
+}
+
+@keyframes fire-flicker {
+  0% { transform: translateY(0) scaleX(1); opacity: 0.95; }
+  100% { transform: translateY(-5px) scaleX(1.05); opacity: 1; }
 }
 
 @keyframes breathing {

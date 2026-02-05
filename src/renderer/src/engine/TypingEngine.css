@@ -372,9 +372,7 @@
   pointer-events: none;
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  z-index: 5;
-  letter-spacing: -1px;
+  gap: 0;
 }
 
 .live-progress-counter .remaining {

@@ -108,7 +108,7 @@ export const SettingsProvider = ({ children }) => {
 
   // Custom Content
   const [dictionary, setDictionary] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES)
+    const saved = localStorage.getItem('content') || localStorage.getItem('customSentences')
     try {
       return { content: saved ? JSON.parse(saved) : [] }
     } catch (e) {
@@ -178,14 +178,16 @@ export const SettingsProvider = ({ children }) => {
         // Load content store separately to prevent Promise failures
         if (window.api?.content) {
           try {
-             const savedSentences = await window.api.content.get(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES)
+             // Migration check: check both 'content' and 'customSentences'
+             let savedSentences = await window.api.content.get('content')
+             if (!savedSentences || !Array.isArray(savedSentences)) {
+               savedSentences = await window.api.content.get('customSentences')
+             }
              
-             // Single Source of Truth: If store gives us data (even empty), use it.
-             // If it's undefined/null (file deleted), assume empty.
              const finalContent = Array.isArray(savedSentences) ? savedSentences : []
              
              setDictionary({ content: finalContent })
-             localStorage.setItem(STORAGE_KEYS.SETTINGS.CUSTOM_SENTENCES, JSON.stringify(finalContent))
+             localStorage.setItem('content', JSON.stringify(finalContent))
           } catch (e) {
              console.error("Failed to load custom content:", e)
           }

@@ -38,36 +38,46 @@ const ADVANCED_WORDS = [
 * used to make the typing experience feel more human and structured.
 */
 const SENTENCES = [
-  "the only way to do great work is to love what you do",
-  "believe you can and you are halfway there",
-  "your time is limited so do not waste it living someone else's life",
-  "it always seems impossible until it is done",
-  "success is not final failure is not fatal it is the courage to continue that counts",
-  "if you can dream it you can do it",
-  "hardships often prepare ordinary people for an extraordinary destiny",
-  "it does not matter how slowly you go as long as you do not stop",
-  "everything you have ever wanted is on the other side of fear",
-  "the future belongs to those who believe in the beauty of their dreams",
-  "strive not to be a success but rather to be of value",
-  "you miss one hundred percent of the shots you do not take",
-  "the best way to predict your future is to create it",
-  "do what you can with what you have where you are",
-  "happiness is not something ready made it comes from your own actions",
-  "the only limit to our realization of tomorrow will be our doubts of today",
-  "what lies behind us and what lies before us are tiny matters compared to what lies within us",
-  "it is during our darkest moments that we must focus to see the light",
-  "change your thoughts and you change your world",
-  "the purpose of our lives is to be happy",
-  "life is what happens when you are busy making other plans",
-  "get busy living or get busy dying",
-  "you only live once but if you do it right once is enough",
-  "never let the fear of striking out keep you from playing the game",
-  "money and success don't change people they merely amplify what is already there",
-  "your time is limited so don't waste it living someone else's life",
-  "not how long but how well you have lived is the main thing",
-  "if life were predictable it would cease to be life and be without flavor",
-  "the whole secret of a successful life is to find out what is one's destiny to do and then do it",
-  "in order to write about life first you must live it"
+  "The only way to do great work is to love what you do.",
+  "Believe you can and you are halfway there.",
+  "Your time is limited, so do not waste it living someone else's life.",
+  "It always seems impossible until it is done.",
+  "Success is not final, failure is not fatal, it is the courage to continue that counts.",
+  "If you can dream it, you can do it.",
+  "Hardships often prepare ordinary people for an extraordinary destiny.",
+  "It does not matter how slowly you go as long as you do not stop.",
+  "Everything you have ever wanted is on the other side of fear.",
+  "The future belongs to those who believe in the beauty of their dreams.",
+  "Strive not to be a success, but rather to be of value.",
+  "You miss one hundred percent of the shots you do not take.",
+  "The best way to predict your future is to create it.",
+  "Do what you can, with what you have, where you are.",
+  "Happiness is not something ready made, it comes from your own actions.",
+  "The only limit to our realization of tomorrow will be our doubts of today.",
+  "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+  "It is during our darkest moments that we must focus to see the light.",
+  "Change your thoughts and you change your world.",
+  "The purpose of our lives is to be happy.",
+  "Life is what happens when you are busy making other plans.",
+  "Get busy living or get busy dying.",
+  "You only live once, but if you do it right, once is enough.",
+  "Never let the fear of striking out keep you from playing the game.",
+  "Money and success do not change people; they merely amplify what is already there.",
+  "Not how long, but how well you have lived is the main thing.",
+  "If life were predictable it would cease to be life, and be without flavor.",
+  "The whole secret of a successful life is to find out what is one's destiny to do, and then do it.",
+  "In order to write about life first you must live it.",
+  "Innovation distinguishes between a leader and a follower.",
+  "The way to get started is to quit talking and begin doing.",
+  "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+  "If you set your goals ridiculously high and it is a failure, you will fail above everyone else's success.",
+  "Your work is going to fill a large part of your life, and the only way to be truly satisfied is to do what you believe is great work.",
+  "If you look at what you have in life, you will always have more. If you look at what you do not have in life, you will never have enough.",
+  "If you really look closely, most overnight successes took a long time.",
+  "I find that the harder I work, the more luck I seem to have.",
+  "The starting point of all achievement is desire.",
+  "The successful warrior is the average man, with laser-like focus.",
+  "Successful people do what unsuccessful people are not willing to do. Do not wish it were easier; wish you were better."
 ];
 
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -99,22 +109,14 @@ export const generateWords = (count = 50, settings = {}) => {
   // If user is in custom mode, we want to type their EXACT sentences in order.
   if (difficulty === 'custom' && content && content.length > 0) {
     const result = [];
-    for (let i = 0; i < content.length; i++) {
-        const sentence = content[i];
-        const sentenceWords = sentence.trim().split(/\s+/);
-        
-        // Add all words from the sentence
-        for (let j = 0; j < sentenceWords.length; j++) {
-            let word = sentenceWords[j];
-            // If it's the last word in the sentence (and not the last sentence of the whole test),
-            // add a newline marker to it.
-            if (j === sentenceWords.length - 1 && i < content.length - 1) {
-                word += '\n';
-            }
-            result.push(word);
-        }
+    // Pick ONE random sentence from the custom content to avoid loading everything at once
+    const randomIndex = Math.floor(Math.random() * content.length);
+    const sentence = content[randomIndex];
+    const sentenceWords = sentence.trim().split(/\s+/);
+    
+    for (let j = 0; j < Math.min(sentenceWords.length, count); j++) {
+        result.push(sentenceWords[j]);
     }
-    // Return the result immediately to bypass all randomizations and modifiers
     return result;
   }
 

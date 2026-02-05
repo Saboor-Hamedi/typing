@@ -18,7 +18,7 @@
  * - `handleGlobalInteraction` warms up the SoundEngine on first user gesture.
  * - History clear confirmation uses `engine.clearAllData()` and toasts the outcome.
  */
-import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Header from '../Header/Header'
 import TitleBar from '../TitleBar/TitleBar'
@@ -78,6 +78,8 @@ const AppLayout = ({ addToast }) => {
     setCaretStyle,
     isErrorFeedbackEnabled,
     setIsErrorFeedbackEnabled,
+    difficulty,
+    setDifficulty,
     dictionary // Exposed dictionary for search
   } = useSettings()
   
@@ -142,19 +144,32 @@ const AppLayout = ({ addToast }) => {
   } = engine
 
   // Derived state for immersive mode
-  const isCurrentlyTyping = !!startTime && !isFinished && engine.isTyping
+  const isTestRunning = !!startTime && !isFinished
 
   // Account manager hook
   const account = useAccountManager(engine, addToast)
   const { mergedHistory, currentLevel } = account
 
   // Chameleon Flow (optimized)
-  useChameleonFlow(
+  const { heat } = useChameleonFlow(
     liveWpm,
     pb,
-    !!startTime && !isFinished,
+    isTestRunning,
     isChameleonEnabled
   )
+
+  // Combined Progress Calculation
+  const testProgress = useMemo(() => {
+    if (!isTestRunning) return 0
+    if (testMode === 'time') {
+      return 1 - (timeLeft / testLimit)
+    } else if (engine.wordProgress) {
+      const typed = engine.wordProgress.typed
+      const total = engine.words.length
+      return total > 0 ? typed / total : 0
+    }
+    return 0
+  }, [isTestRunning, testMode, timeLeft, testLimit, engine.wordProgress, engine.words.length])
 
   // Auto-unlock avatars when level increases (edge-triggered, separated, robust)
   const lastLevelRef = useRef(currentLevel)
@@ -355,6 +370,7 @@ const AppLayout = ({ addToast }) => {
     type: 'content',
     onSelect: () => {
         setActiveTab('typing')
+        if (difficulty !== 'custom') setDifficulty('custom')
         engine.loadCustomText(text)
     }
   }))
@@ -409,19 +425,30 @@ const AppLayout = ({ addToast }) => {
 
   return (
     <div 
-      className={`app-container ${isCurrentlyTyping ? 'is-typing' : ''}`}
+      className={`app-container ${isTestRunning ? 'is-typing' : ''}`}
       onClick={handleGlobalInteraction} 
       onKeyDown={handleGlobalInteraction}
       style={{ paddingTop: isWeb ? '0' : '32px' }}
       id="main-content"
     >
-      {/* Flow Progress Bar */}
-      {isCurrentlyTyping && testMode === 'time' && (
+
+
+      {/* Performance/Progress Hybrid Bar */}
+      {isTestRunning && (
         <motion.div 
-          className="flow-progress-bar"
+          className="chameleon-progress-bar"
           initial={{ width: '0%' }}
-          animate={{ width: `${(timeLeft / testLimit) * 100}%` }}
-          transition={{ duration: 0.1, ease: 'linear' }}
+          animate={{ 
+            width: `${testProgress * 100}%` 
+          }}
+          transition={{ 
+            width: { type: 'spring', stiffness: 300, damping: 30 },
+            layout: { duration: 0.2 }
+          }}
+          style={{
+            // Extra glow purely based on speed
+            filter: isChameleonEnabled ? `brightness(${1 + heat}) drop-shadow(0 0 ${heat * 10}px var(--main-color))` : 'none'
+          }}
         />
       )}
       {!isWeb && <TitleBar />}
@@ -444,6 +471,37 @@ const AppLayout = ({ addToast }) => {
       />
 
       <div className="main-viewport">
+        {/* Chameleon Ambient Aura & Fire Effect (Centered behind content) */}
+        {isTestRunning && isChameleonEnabled && (
+          <div className="chameleon-aura-layer">
+            {/* Ground Heat Base */}
+            <div className="chameleon-fire-base" />
+
+            {/* Real Full-Width Fire (Mellow slow flames) */}
+            {[...Array(16)].map((_, i) => (
+              <motion.div 
+                key={i}
+                className="chameleon-flame-tongue"
+                animate={{ 
+                  opacity: heat > 0.3 ? (heat - 0.3) * 0.6 : 0, 
+                  height: [`${2 + (heat * 15)}%`, `${5 + (heat * 25)}%`, `${3 + (heat * 18)}%`],
+                  scaleX: [1, 1.05, 0.98, 1],
+                  translateX: [`${(i/16 * 100) - 2}%`, `${(i/16 * 100) + 1}%`, `${(i/16 * 100) - 2}%`]
+                }}
+                transition={{ 
+                  height: { duration: 1.5 + (Math.random() * 1), repeat: Infinity, ease: "easeInOut" },
+                  scaleX: { duration: 2 + (Math.random() * 1), repeat: Infinity, ease: "easeInOut" },
+                  translateX: { duration: 3 + (Math.random() * 2), repeat: Infinity, ease: "easeInOut" },
+                  opacity: { duration: 0.5 }
+                }}
+                style={{
+                  left: `${(i / 16) * 100}%`,
+                  background: `linear-gradient(to top, rgba(var(--main-color-rgb), 0.45) 0%, rgba(var(--main-color-rgb), 0.15) 60%, transparent)`
+                }}
+              />
+            ))}
+          </div>
+        )}
         {!isOverlayActive && (
           <Header
             testStarted={!!startTime && !isFinished}

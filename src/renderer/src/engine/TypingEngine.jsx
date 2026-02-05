@@ -224,8 +224,7 @@ const TypingEngine = ({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
             >
-              <span>{engine.wordProgress.typed}</span>
-              <span className="remaining">/ {engine.wordProgress.remaining}</span>
+              <span>{engine.wordProgress.typed}</span><span className="remaining">/{engine.wordProgress.remaining}</span>
             </motion.div>
           )}
           

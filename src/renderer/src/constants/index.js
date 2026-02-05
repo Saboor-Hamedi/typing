@@ -268,7 +268,7 @@ export const STORAGE_KEYS = {
     HAS_NUMBERS: 'hasNumbers',
     HAS_CAPS: 'hasCaps',
     GHOST_SPEED: 'ghostSpeed',
-    CUSTOM_SENTENCES: 'customSentences',
+    CUSTOM_SENTENCES: 'content',
   },
 
   // Electron store keys (data.json)

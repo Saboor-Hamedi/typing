@@ -269,7 +269,12 @@ export function useEngine(testMode, testLimit) {
     setWords([]);
 
     // Calculate new words
-    const generated = text.trim().split(/\s+/);
+    let generated = text.trim().split(/\s+/);
+    
+    // Limit to 50 words if in Time mode
+    if (testMode === 'time') {
+      generated = generated.slice(0, 50);
+    }
     
     // Set new words
     setWords([...generated]);
@@ -336,7 +341,7 @@ export function useEngine(testMode, testLimit) {
     }
 
     // Generate new words with robustness
-    const wordCount = testMode === 'words' ? testLimit : Math.max(100, testLimit * 4);
+    const wordCount = testMode === 'words' ? testLimit : 50;
     
     // Memoize the dictionary content to prevent unnecessary re-runs
     const sentences = dictionary?.content || [];
