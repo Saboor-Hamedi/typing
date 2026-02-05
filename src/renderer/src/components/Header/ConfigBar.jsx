@@ -32,63 +32,66 @@ const ConfigBar = memo(({ openThemeModal, openContentModal }) => {
 
   return (
     <div className="master-config">
-      {/* Modifiers Group */}
-      <div className="config-group modifiers">
-        <Tooltip content="Punctuation">
-          <button 
-            onClick={() => setHasPunctuation(!hasPunctuation)}
-            className={`config-btn ${hasPunctuation ? 'active' : ''}`}
-          >
-            <Quote size={14} />
-          </button>
-        </Tooltip>
-        <Tooltip content="Numbers">
-          <button 
-            onClick={() => setHasNumbers(!hasNumbers)}
-            className={`config-btn ${hasNumbers ? 'active' : ''}`}
-          >
-            <Hash size={14} />
-          </button>
-        </Tooltip>
-        <Tooltip content="Capitalization">
-          <button 
-            onClick={() => setHasCaps(!hasCaps)}
-            className={`config-btn ${hasCaps ? 'active' : ''}`}
-          >
-            <CaseSensitive size={14} />
-          </button>
-        </Tooltip>
-      </div>
+      {difficulty !== 'custom' && (
+        <>
+          {/* Modifiers Group */}
+          <div className="config-group modifiers">
+            <Tooltip content="Punctuation">
+              <button 
+                onClick={() => setHasPunctuation(!hasPunctuation)}
+                className={`config-btn ${hasPunctuation ? 'active' : ''}`}
+              >
+                <Quote size={14} />
+              </button>
+            </Tooltip>
+            {/* ... other modifiers ... */}
+            <Tooltip content="Numbers">
+              <button 
+                onClick={() => setHasNumbers(!hasNumbers)}
+                className={`config-btn ${hasNumbers ? 'active' : ''}`}
+              >
+                <Hash size={14} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Capitalization">
+              <button 
+                onClick={() => setHasCaps(!hasCaps)}
+                className={`config-btn ${hasCaps ? 'active' : ''}`}
+              >
+                <CaseSensitive size={14} />
+              </button>
+            </Tooltip>
+          </div>
 
-      <div className="config-divider" />
+          <div className="config-divider" />
 
-      {/* Mode & Limit Group - The "Shrinking" Part */}
-      <div className="config-group mode-options">
-        <div className="mode-toggles">
-          <Tooltip content="Time Mode">
-            <button 
-              onClick={() => setTestMode('time')}
-              className={`config-btn mode-btn ${testMode === 'time' ? 'active' : ''}`}
-            >
-              <Clock size={13} className="mode-icon" />
-              <span className="mode-label">Time</span>
-            </button>
-          </Tooltip>
-          <Tooltip content="Words Mode">
-            <button 
-              onClick={() => setTestMode('words')}
-              className={`config-btn mode-btn ${testMode === 'words' ? 'active' : ''}`}
-            >
-              <Type size={13} className="mode-icon" />
-              <span className="mode-label">Words</span>
-            </button>
-          </Tooltip>
-        </div>
+          {/* Mode & Limit Group - The "Shrinking" Part */}
+          <div className="config-group mode-options">
+            <div className="mode-toggles">
+              <Tooltip content="Time Mode">
+                <button 
+                  onClick={() => setTestMode('time')}
+                  className={`config-btn mode-btn ${testMode === 'time' ? 'active' : ''}`}
+                >
+                  <Clock size={13} className="mode-icon" />
+                  <span className="mode-label">Time</span>
+                </button>
+              </Tooltip>
+              <Tooltip content="Words Mode">
+                <button 
+                  onClick={() => setTestMode('words')}
+                  className={`config-btn mode-btn ${testMode === 'words' ? 'active' : ''}`}
+                >
+                  <Type size={13} className="mode-icon" />
+                  <span className="mode-label">Words</span>
+                </button>
+              </Tooltip>
+            </div>
+          </div>
 
-        {/* Dynamic Limits removed per user request */}
-      </div>
-
-      <div className="config-divider" />
+          <div className="config-divider" />
+        </>
+      )}
 
       {/* Difficulty Group */}
       <div className="config-group difficulty">
@@ -97,6 +100,12 @@ const ConfigBar = memo(({ openThemeModal, openContentModal }) => {
             <button 
               onClick={() => {
                 setDifficulty(d)
+                if (d === 'custom') {
+                  setTestMode('words')
+                  setHasPunctuation(false)
+                  setHasNumbers(false)
+                  setHasCaps(false)
+                }
               }}
               className={`text-btn ${difficulty === d ? 'active' : ''}`}
             >

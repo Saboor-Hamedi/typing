@@ -140,7 +140,44 @@ header, footer, .main-sidebar, .config-bar-container {
   margin: 0;
   padding: 0;
   cursor: default; /* Typing-centric default */
-  -webkit-app-region: no-drag; /* Default to no drag so buttons work */
+  -webkit-app-region: no-drag;
+}
+
+/* Ensure all interactive elements show a pointer */
+button,
+a,
+select,
+label,
+input[type="button"],
+input[type="submit"],
+input[type="range"],
+[role="button"],
+.clickable,
+.config-btn,
+.text-btn,
+.mode-btn,
+.nav-item,
+.sidebar-item,
+.profile-trigger,
+.user-trigger,
+.settings-action-btn,
+.danger-btn,
+.preview-btn,
+.profile-card,
+.dropdown-item,
+.status-item,
+.modal-close,
+.branding {
+  cursor: pointer !important;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+textarea {
+  cursor: text !important;
 }
 
 input, textarea {

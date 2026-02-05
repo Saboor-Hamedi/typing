@@ -31,12 +31,22 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex: 1;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 2; /* Give more space to configuration */
 }
 
 .header-right {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 1rem;
+  flex: 1;
 }
 
 .branding {

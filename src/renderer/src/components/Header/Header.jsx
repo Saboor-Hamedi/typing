@@ -32,14 +32,18 @@ const Header = memo(({
         <div className="header-left">
            {/* Profile now in sidebar. Left side reserved for future use or branding if needed. */}
         </div>
-        
-        <div className="header-right">
+
+        <div className="header-center">
           {!testStarted && (
             <ConfigBar 
               openThemeModal={openThemeModal} 
               openContentModal={openContentModal}
             />
           )}
+        </div>
+        
+        <div className="header-right">
+          {/* Right side reserved for status metrics or other icons */}
         </div>
       </div>
     </header>

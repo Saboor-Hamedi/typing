@@ -114,10 +114,8 @@ export const generateWords = (count = 50, settings = {}) => {
     const sentence = content[randomIndex];
     const sentenceWords = sentence.trim().split(/\s+/);
     
-    for (let j = 0; j < Math.min(sentenceWords.length, count); j++) {
-        result.push(sentenceWords[j]);
-    }
-    return result;
+    // Return full sentence content without truncation
+    return sentenceWords;
   }
 
   // Final filter to remove single characters from the alpha list for standalone picks
