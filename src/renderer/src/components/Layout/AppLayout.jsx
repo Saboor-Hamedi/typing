@@ -19,6 +19,7 @@
  * - History clear confirmation uses `engine.clearAllData()` and toasts the outcome.
  */
 import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Header from '../Header/Header'
 import TitleBar from '../TitleBar/TitleBar'
 import Sidebar from '../Sidebar/Sidebar'
@@ -410,46 +411,57 @@ const AppLayout = ({ addToast }) => {
         {/* Config Bar moved to Header */}
 
         <main className="content-area">
-          <Suspense fallback={<LoadingSpinner />}>
-            {activeTab === 'typing' ? (
-              <TypingEngine
-                engine={engine}
-                testMode={testMode}
-                testLimit={testLimit}
-                isSmoothCaret={isSmoothCaret}
-                isOverlayActive={isOverlayActive}
-              />
-            ) : activeTab === 'history' ? (
-              <HistoryView data={mergedHistory} />
-            ) : activeTab === 'settings' ? (
-              <SettingsView
-                onClearHistory={() => toggleClearModal(true)}
-                openThemeModal={() => toggleThemeModal(true)}
-              />
-            ) : activeTab === 'dashboard' ? (
-              <DashboardView
-                stats={{ pb }}
-                history={mergedHistory}
-                username={username}
-                selectedAvatarId={selectedAvatarId}
-                unlockedAvatars={unlockedAvatars}
-                currentLevel={currentLevel}
-                onUpdateAvatar={updateAvatar}
-                setUsername={updateUsername}
-                isLoggedIn={isLoggedIn}
-                onDeleteAccount={() => toggleDeleteAccountModal(true)}
-                onLogout={() => toggleLogoutModal(true)}
-                onSettings={() => setActiveTab('settings')}
-              />
-            ) : activeTab === 'leaderboard' ? (
-              <LeaderboardView currentUser={username} />
-            ) : (
-              <NotFound 
-                activeTab={activeTab} 
-                onBackHome={() => setActiveTab('typing')} 
-              />
-            )}
-          </Suspense>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -10, filter: 'blur(8px)' }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <Suspense fallback={<LoadingSpinner />}>
+                {activeTab === 'typing' ? (
+                  <TypingEngine
+                    engine={engine}
+                    testMode={testMode}
+                    testLimit={testLimit}
+                    isSmoothCaret={isSmoothCaret}
+                    isOverlayActive={isOverlayActive}
+                  />
+                ) : activeTab === 'history' ? (
+                  <HistoryView data={mergedHistory} />
+                ) : activeTab === 'settings' ? (
+                  <SettingsView
+                    onClearHistory={() => toggleClearModal(true)}
+                    openThemeModal={() => toggleThemeModal(true)}
+                  />
+                ) : activeTab === 'dashboard' ? (
+                  <DashboardView
+                    stats={{ pb }}
+                    history={mergedHistory}
+                    username={username}
+                    selectedAvatarId={selectedAvatarId}
+                    unlockedAvatars={unlockedAvatars}
+                    currentLevel={currentLevel}
+                    onUpdateAvatar={updateAvatar}
+                    setUsername={updateUsername}
+                    isLoggedIn={isLoggedIn}
+                    onDeleteAccount={() => toggleDeleteAccountModal(true)}
+                    onLogout={() => toggleLogoutModal(true)}
+                    onSettings={() => setActiveTab('settings')}
+                  />
+                ) : activeTab === 'leaderboard' ? (
+                  <LeaderboardView currentUser={username} />
+                ) : (
+                  <NotFound 
+                    activeTab={activeTab} 
+                    onBackHome={() => setActiveTab('typing')} 
+                  />
+                )}
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         <footer className={`status-bar ${(!!startTime && !isFinished && isZenMode) ? 'zen-active' : ''}`}>

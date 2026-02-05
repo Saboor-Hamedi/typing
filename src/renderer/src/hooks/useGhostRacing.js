@@ -79,16 +79,20 @@ export const useGhostRacing = (
     const ghostLetter = getElement(ghostCharIndex)
     
     if (ghostLetter) {
-      // Use offset properties for high performance RAF loop
-      const left = ghostLetter.offsetLeft;
-      const top_offset = ghostLetter.offsetTop;
-      const h = ghostLetter.offsetHeight * 0.7;
-      const top = top_offset + (ghostLetter.offsetHeight - h) / 2;
+      const container = containerRef.current
+      const containerRect = container.getBoundingClientRect()
+      const targetRect = ghostLetter.getBoundingClientRect()
+      
+      // Calculate absolute position within the scrollable content
+      const left = targetRect.left - containerRect.left + container.scrollLeft;
+      const top_abs = targetRect.top - containerRect.top + container.scrollTop;
+      const h = targetRect.height * 0.7;
+      const top = top_abs + (targetRect.height - h) / 2;
 
       setGhostPos({
         left,
         top,
-        width: ghostLetter.offsetWidth,
+        width: targetRect.width,
         height: h
       })
     }

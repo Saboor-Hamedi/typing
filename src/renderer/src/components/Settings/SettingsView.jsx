@@ -190,10 +190,10 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
           <div className="setting-item">
             <div className="setting-info">
               <div className="setting-label">
-                <Map size={16} className="kinetic-accent" />
-                <span className="kinetic-accent">Kinetic Heatmaps</span>
+                <Zap size={16} className="kinetic-accent" />
+                <span className="kinetic-accent">Kinetic Popping</span>
               </div>
-              <p className="setting-description">Track finger bottlenecks and transition speeds per key.</p>
+              <p className="setting-description">Letters "pop" and glow with kinetic energy when typed correctly.</p>
             </div>
             <label className="toggle-switch specialized">
               <input 
@@ -384,25 +384,56 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
             </label>
           </div>
 
-          <div className="setting-item">
-            <div className="setting-info">
+          <div className="setting-item-column">
+            <div className="setting-info" style={{ marginBottom: '1rem' }}>
               <div className="setting-label">
                 <Volume2 size={16} />
                 <span>Sound Profile</span>
               </div>
               <p className="setting-description">Choose your preferred mechanical switch acoustic profile.</p>
             </div>
-            <select 
-              className="settings-select"
-              value={soundProfile}
-              onChange={(e) => setSoundProfile(e.target.value)}
-            >
-              <option value="thocky">Thocky (Deep)</option>
-              <option value="creamy">Creamy (Marble)</option>
-              <option value="clicky">Clicky (Crisp)</option>
-              <option value="raindrop">Raindrop (Soft)</option>
-              <option value="wood">Wood Block (Warm)</option>
-            </select>
+            
+            <div className="sound-profile-grid">
+              {[
+                { id: 'thocky', name: 'Thocky', desc: 'Deep & satisfying' },
+                { id: 'creamy', name: 'Creamy', desc: 'Smooth & marble-like' },
+                { id: 'clicky', name: 'Clicky', desc: 'Sharp & responsive' },
+                { id: 'raindrop', name: 'Raindrop', desc: 'Soft & damp' },
+                { id: 'wood', name: 'Wood', desc: 'Warm & organic' },
+              ].map((profile) => (
+                <motion.div
+                  key={profile.id}
+                  className={`profile-card ${soundProfile === profile.id ? 'active' : ''}`}
+                  onClick={() => setSoundProfile(profile.id)}
+                  whileHover={{ y: -4, backgroundColor: 'rgba(var(--main-color-rgb), 0.05)' }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="profile-info">
+                    <span className="profile-name">{profile.name}</span>
+                    <span className="profile-desc">{profile.desc}</span>
+                  </div>
+                  <button 
+                    className="preview-btn" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Temporary profile change to hear it
+                      const old = soundProfile;
+                      setSoundProfile(profile.id);
+                      setTimeout(() => {
+                        import('../../utils/SoundEngine').then(({ soundEngine }) => {
+                          soundEngine.playKeySound('space');
+                        });
+                      }, 10);
+                    }}
+                  >
+                    <Play size={12} fill="currentColor" />
+                  </button>
+                  {soundProfile === profile.id && (
+                    <motion.div className="active-dot" layoutId="soundActive" />
+                  )}
+                </motion.div>
+              ))}
+            </div>
           </div>
 
           <div className="setting-item">

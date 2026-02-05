@@ -65,6 +65,7 @@ export function useEngine(testMode, testLimit) {
   const [timeLeft, setTimeLeft] = useState(testLimit);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [activeLineTop, setActiveLineTop] = useState(0);
   const [isStoreLoaded, setIsStoreLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const typingTimeoutRef = useRef(null);
@@ -162,7 +163,8 @@ export function useEngine(testMode, testLimit) {
       const accuracy = finalInput.length > 0 ? Math.round((correctChars / finalInput.length) * 100) : 100;
       const durationSeconds = Math.round((endTime - finalStartTime) / 1000);
 
-      setResults({ wpm, rawWpm, accuracy, errors, duration: durationSeconds });
+      const isNewPb = wpm > pb;
+      setResults({ wpm, rawWpm, accuracy, errors, duration: durationSeconds, isNewPb });
       setIsFinished(true);
 
       // Save to local storage
@@ -507,39 +509,47 @@ export function useEngine(testMode, testLimit) {
       const target = document.getElementById(`char-${charIndex}`);
       
       if (target) {
-        // use offset properties for better performance (no layout thrashing)
-        const left = target.offsetLeft;
-        const top_offset = target.offsetTop;
-        const targetHeight = target.offsetHeight;
-        const targetWidth = target.offsetWidth;
+        const containerRect = container.getBoundingClientRect();
+        const wordWrapper = container.querySelector('.word-wrapper');
+        const targetRect = target.getBoundingClientRect();
+        
+        if (!wordWrapper) return;
+        const wordWrapperRect = wordWrapper.getBoundingClientRect();
+        
+        // Position relative to the container's internal scroll surface
+        const left = targetRect.left - containerRect.left + container.scrollLeft;
+        const top_abs = targetRect.top - containerRect.top + container.scrollTop;
+        
+        // Position relative to the word-wrapper (for dimming logic)
+        const top_rel = targetRect.top - wordWrapperRect.top;
+        
+        const targetHeight = targetRect.height;
+        const targetWidth = targetRect.width;
 
-        const h = targetHeight * 0.7;
-        const top = top_offset + (targetHeight - h) / 2;
+        const h = targetHeight * 0.85; 
+        const caretY = top_abs + (targetHeight - h) / 2;
 
         setCaretPos({ 
           left, 
-          top,
+          top: caretY,
           width: targetWidth,
           height: h
         });
         
-        // Scrolling logic
-        if (Math.abs(top - lastLineTop.current) > 2) {
+        // Update activeLineTop using the relative-to-words coordinate
+        if (Math.abs(top_rel - activeLineTop) > 2) {
+          setActiveLineTop(top_rel);
           const containerHeight = container.clientHeight;
-          const wordWrapper = target.closest('.word-wrapper');
-          if (wordWrapper) {
-            const absoluteTop = wordWrapper.offsetTop + top;
-            
-            if (isCenteredScrolling) {
-              const targetScroll = absoluteTop - (containerHeight / 2) + (targetHeight / 2);
-              container.scrollTo({ top: targetScroll, behavior: 'smooth' });
-            } else {
-              container.scrollTo({ top: absoluteTop - (containerHeight * 0.4), behavior: 'smooth' });
-            }
-            lastLineTop.current = top;
+          
+          if (isCenteredScrolling) {
+            const targetScroll = top_abs - (containerHeight / 2) + (targetHeight / 2);
+            container.scrollTo({ top: targetScroll, behavior: 'auto' });
+          } else {
+            container.scrollTo({ top: top_abs - (containerHeight * 0.4), behavior: 'auto' });
           }
         }
-      } else if (charIndex > 0) {
+      }
+ else if (charIndex > 0) {
         const lastTarget = document.getElementById(`char-${charIndex - 1}`);
         if (lastTarget) {
           const left = lastTarget.offsetLeft + lastTarget.offsetWidth;
@@ -564,7 +574,7 @@ export function useEngine(testMode, testLimit) {
     // Run IMMEDIATELY to avoid the (0,0) jump
     updateCaret();
 
-    // Also run in a frame to catch flexbox settling
+    // Also run in a frame to catch flexbox settling (essential for word wrapping)
     const frame = requestAnimationFrame(updateCaret);
     
     return () => cancelAnimationFrame(frame);
@@ -635,12 +645,13 @@ export function useEngine(testMode, testLimit) {
     ghostSpeed,
     setGhostSpeed,
     wordProgress,
-    isLoading
+    isLoading,
+    activeLineTop
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, caretPos,
     timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
-    ghostSpeed, wordProgress, isLoading
+    ghostSpeed, wordProgress, isLoading, activeLineTop
   ]);
 }

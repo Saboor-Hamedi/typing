@@ -66,6 +66,12 @@
   display: inline-flex;
   color: var(--sub-color);
   white-space: nowrap;
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+.word.dimmed {
+  opacity: 0.25;
+  filter: saturate(0.5) blur(0.5px);
 }
 
 .letter {
@@ -74,27 +80,30 @@
   white-space: pre;
   margin: 0;
   padding: 0;
+  transition: color 0.15s ease, text-shadow 0.2s ease;
+}
+
+.letter.active {
+  color: var(--text-color);
+  text-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.2);
 }
 
 /* Typing Feedback */
 /* Typing Feedback - Optimized for performance */
 .letter.correct {
   color: #00ffaa;
-  /* Removed expensive text-shadow and filters */
+  text-shadow: 0 0 5px rgba(0, 255, 170, 0.3);
 }
 
 .letter.incorrect {
-  color: #ff4444;
-  /* Kept transform-based shake as it is hardware accelerated */
-  animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
+  color: #ff0000 !important;
+  opacity: 1 !important;
+  filter: saturate(2) brightness(1.2) !important;
+  text-shadow: 0 0 5px rgba(255, 0, 0, 0.8), 0 0 10px rgba(255, 0, 0, 0.5) !important;
+  transition: none !important;
+  -webkit-text-fill-color: #ff0000 !important; /* Force color on some rendering engines */
 }
 
-@keyframes shake {
-  10%, 90% { transform: translateX(-1px); }
-  20%, 80% { transform: translateX(2px); }
-  30%, 50%, 70% { transform: translateX(-3px); }
-  40%, 60% { transform: translateX(3px); }
-}
 
 .caret {
   position: absolute;
@@ -103,7 +112,7 @@
   z-index: 10;
   pointer-events: none;
   border-radius: 1px;
-  box-shadow: 0 0 15px rgba(var(--main-color-rgb), 0.5);
+  box-shadow: 0 0 8px rgba(var(--main-color-rgb), 0.8);
   will-change: transform, opacity;
   /* Hardware acceleration for smoother animation */
   transform: translateZ(0);

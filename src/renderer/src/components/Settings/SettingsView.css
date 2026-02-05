@@ -230,6 +230,86 @@ input:checked + .slider:before {
   }
 }
 
+.setting-item-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.sound-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.profile-card {
+  background: rgba(var(--bg-color-rgb), 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.profile-card.active {
+  border-color: var(--main-color);
+  background: rgba(var(--main-color-rgb), 0.08);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.profile-desc {
+  font-size: 0.65rem;
+  color: var(--sub-color);
+  opacity: 0.8;
+}
+
+.preview-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: var(--sub-color);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preview-btn:hover {
+  background: var(--main-color);
+  color: var(--bg-color);
+  transform: scale(1.1);
+}
+
+.active-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--main-color);
+  box-shadow: 0 0 10px var(--main-color);
+}
+
+/* Redo existing select styles just in case they are used elsewhere */
 .settings-select {
   appearance: none;
   background: var(--sub-alt-color);
@@ -261,7 +341,7 @@ input:checked + .slider:before {
 }
 
 .settings-select option {
-  background: #1a1a1a; /* Force dark background for options */
+  background: #1a1a1a;
   color: #fff;
   padding: 10px;
 }

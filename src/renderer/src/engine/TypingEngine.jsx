@@ -3,7 +3,7 @@
  *
  * Interactive typing surface that renders words/letters, caret(s), captures input, and shows results.
  */
-import { memo, useEffect, useMemo } from 'react'
+import { memo, useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../contexts'
 import { UI } from '../constants'
@@ -16,7 +16,7 @@ import './TypingEngine.css'
  * Letter Component
  */
 const Letter = memo(({ char, status, active, id, feedbackDisabled, isKineticEnabled }) => {
-  const displayStatus = (status === 'incorrect' && feedbackDisabled) ? '' : status
+  const displayStatus = status
   
   // High performance: use standard span for base letters to avoid Framer Motion overhead on static text
   if (!isKineticEnabled || status !== 'correct') {
@@ -36,13 +36,13 @@ const Letter = memo(({ char, status, active, id, feedbackDisabled, isKineticEnab
       className={`letter ${displayStatus} ${active ? 'active' : ''}`} 
       initial={{ scale: 1, y: 0 }}
       animate={{
-        scale: [1, 1.1, 1],
+        scale: [1, 1.12, 1],
         y: [0, -2, 0],
         filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"]
       }}
       transition={{ 
         duration: 0.15,
-        times: [0, 0.2, 1],
+        times: [0, 0.4, 1],
         ease: "easeOut"
       }}
     >
@@ -55,7 +55,19 @@ Letter.displayName = 'Letter'
 /**
  * Word Component
  */
-const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled, isKineticEnabled }) => {
+const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled, isKineticEnabled, activeLineTop }) => {
+  const wordRef = useRef(null)
+  const [isDimmed, setIsDimmed] = useState(false)
+
+  useLayoutEffect(() => {
+    if (wordRef.current && activeLineTop !== undefined) {
+      // If the word's top doesn't match the current active line top, dim it.
+      // We use a small threshold for sub-pixel differences
+      const myTop = wordRef.current.offsetTop
+      setIsDimmed(Math.abs(myTop - activeLineTop) > 5)
+    }
+  }, [activeLineTop])
+
   const letterStatuses = useMemo(() => {
     return word.split('').map((letter, i) => {
       let status = ''
@@ -83,7 +95,11 @@ const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled,
   }, [isCurrent, chunk.length, word.length])
 
   return (
-    <div className={`word ${isCurrent ? 'current' : ''}`} role="text">
+    <div 
+      ref={wordRef}
+      className={`word ${isCurrent ? 'current' : ''} ${isDimmed ? 'dimmed' : ''}`} 
+      role="text"
+    >
       {letterStatuses.map(({ letter, status, charIndex, isActive }, i) => (
         <Letter
           key={i}
@@ -204,6 +220,41 @@ const TypingEngine = ({
         </AnimatePresence>
         {!isFinished ? (
           <>
+            {isGhostEnabled && startTime && !isFinished && (
+              <motion.div
+                className={`caret ghost blinking ${isTyping ? 'typing' : ''}`}
+                animate={{ x: ghostPos.left, y: ghostPos.top }}
+                transition={{ type: 'spring', stiffness: 700, damping: 30 }}
+                style={{ position: 'absolute', opacity: 0.2, background: 'var(--sub-color)', left: 0, top: 0, height: ghostPos.height, width: ghostPos.width, zIndex: 1 }}
+              />
+            )}
+            
+            <motion.div
+              className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
+              animate={{
+                x: caretPos.left,
+                y: caretPos.top,
+                height: caretPos.height,
+                width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
+                opacity: 1
+              }}
+              transition={smoothCaretEnabled ? {
+                type: 'spring',
+                stiffness: UI.CARET_STIFFNESS_SMOOTH,
+                damping: UI.CARET_DAMPING_SMOOTH,
+                mass: UI.CARET_MASS_SMOOTH
+              } : {
+                duration: 0
+              }}
+              style={{ 
+                position: 'absolute',
+                left: 0, 
+                top: 0,
+                zIndex: 10,
+                mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
+                borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px')
+              }}
+            />
 
             <div className="word-wrapper">
               <AnimatePresence>
@@ -227,39 +278,6 @@ const TypingEngine = ({
                   </motion.button>
                 )}
               </AnimatePresence>
-              {isGhostEnabled && startTime && !isFinished && (
-                <motion.div
-                  className={`caret ghost blinking ${isTyping ? 'typing' : ''}`}
-                  animate={{ x: ghostPos.left, y: ghostPos.top }}
-                  transition={{ type: 'spring', stiffness: 700, damping: 30 }}
-                  style={{ opacity: 0.2, background: 'var(--sub-color)', left: 0, top: 0, height: ghostPos.height, width: ghostPos.width }}
-                />
-              )}
-              
-              <motion.div
-                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
-                animate={{
-                  x: caretPos.left,
-                  y: caretPos.top,
-                  height: caretPos.height,
-                  width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
-                  opacity: 1
-                }}
-                transition={smoothCaretEnabled ? {
-                  type: 'spring',
-                  stiffness: UI.CARET_STIFFNESS_SMOOTH,
-                  damping: UI.CARET_DAMPING_SMOOTH,
-                  mass: UI.CARET_MASS_SMOOTH
-                } : {
-                  duration: 0
-                }}
-                style={{ 
-                  left: 0, 
-                  top: 0,
-                  mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                  borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px')
-                }}
-              />
 
               {(() => {
                 let currentIndex = 0;
@@ -282,6 +300,7 @@ const TypingEngine = ({
                       startIndex={startIndex}
                       isErrorFeedbackEnabled={isErrorFeedbackEnabled}
                       isKineticEnabled={isKineticEnabled}
+                      activeLineTop={engine.activeLineTop}
                     />
                   );
                 });
