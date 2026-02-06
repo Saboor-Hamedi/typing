@@ -137,6 +137,26 @@ export const PROGRESSION = {
     { id: 6, level: 40, name: 'Neon Specter' },
     { id: 7, level: 50, name: 'Void Walker' },
     { id: 8, level: 60, name: 'Ascended Zero' },
+    { id: 9, level: 70, name: 'Ember Soul' },
+    { id: 10, level: 80, name: 'Crimson Fury' },
+    { id: 11, level: 90, name: 'Solar Flare' },
+    { id: 12, level: 100, name: 'Dragon Breath' },
+    { id: 13, level: 115, name: 'Ancient Serpent' },
+    { id: 14, level: 130, name: 'Thunder God' },
+    { id: 15, level: 145, name: 'Glacial Knight' },
+    { id: 16, level: 160, name: 'Shadow Stalker' },
+    { id: 17, level: 175, name: 'Celestial Warden' },
+    { id: 18, level: 190, name: 'Nebula Phoenix' },
+    { id: 19, level: 205, name: 'Void Archon' },
+    { id: 20, level: 220, name: 'Chrono Master' },
+    { id: 21, level: 240, name: 'Diamond Aegis' },
+    { id: 22, level: 260, name: 'Astral Sovereign' },
+    { id: 23, level: 280, name: 'Inferno Titan' },
+    { id: 24, level: 300, name: 'Storm King' },
+    { id: 25, level: 325, name: 'Ethereal Blade' },
+    { id: 26, level: 350, name: 'Mystic Oracle' },
+    { id: 27, level: 375, name: 'Eternal Flame' },
+    { id: 28, level: 400, name: 'Omega Prime' }
   ],
 
   // Starting unlocked avatars
@@ -152,7 +172,7 @@ export const PROGRESSION = {
 
 export const AUDIO = {
   // Sound profiles
-  PROFILES: ['thocky', 'creamy', 'clicky'],
+  PROFILES: ['thocky', 'creamy', 'clicky', 'asmr', 'raindrop', 'wood'],
   DEFAULT_PROFILE: 'thocky',
 
   // Volume settings

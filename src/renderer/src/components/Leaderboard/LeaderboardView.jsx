@@ -30,9 +30,10 @@ const LeaderboardView = ({ currentUser }) => {
     if (!silent) setLoading(true)
     try {
       setError(null)
+      // Select essential columns first. We'll handle test_limit gracefully if it missing or null.
       let query = supabase
         .from('scores')
-        .select('id, wpm, accuracy, created_at, mode, user_id, test_limit')
+        .select('id, wpm, accuracy, created_at, mode, user_id')
         .order('wpm', { ascending: false })
 
       if (filter !== 'all') {
@@ -65,12 +66,14 @@ const LeaderboardView = ({ currentUser }) => {
       const uniqueScores = []
       const seenUsers = new Set()
       
-      for (const score of scoresData) {
-        if (!seenUsers.has(score.user_id)) {
-          uniqueScores.push(score)
-          seenUsers.add(score.user_id)
+      if (scoresData) {
+        for (const score of scoresData) {
+          if (!seenUsers.has(score.user_id)) {
+            uniqueScores.push(score)
+            seenUsers.add(score.user_id)
+          }
+          if (uniqueScores.length >= displayCount) break
         }
-        if (uniqueScores.length >= displayCount) break
       }
 
       // Step 3: Get Profiles manually

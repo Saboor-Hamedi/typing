@@ -96,46 +96,56 @@ export const useAccountManager = (engine, addToast) => {
     }
   }, [testHistory, fetchCloudHistory, addToast])
 
+  // EFFECT: Initial load of local storage XP floor
+  useEffect(() => {
+    const initStore = async () => {
+      if (window.api?.data) {
+        const xp = await window.api.data.get(STORAGE_KEYS.DATA.XP)
+        if (typeof xp === 'number' && xp > 0) {
+          setHighWaterMarkXP(xp)
+          setIsSettingsLoaded(true) 
+        }
+      }
+    }
+    initStore()
+  }, [])
+
   // EFFECT: Reactive Cloud Data Loading
   useEffect(() => {
-    // Load stored XP for level floor (prevents visible drops during sync)
-    const loadStoredXp = async () => {
-      try {
-        if (window.api?.data) {
-          const xp = await window.api.data.get(STORAGE_KEYS.DATA.XP)
-          if (typeof xp === 'number' && xp > 0) {
-            storedXpRef.current = xp
-            lastStableLevelRef.current = levelFromXP(xp).level
-          }
-        }
-      } catch {}
-    }
-    loadStoredXp()
+    let active = true
+    
     const loadAccountData = async () => {
       if (isLoggedIn) {
+        // Use getSession for immediate access to current user
         const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          // Push any local-only scores first
-          await syncLocalToCloud(session.user.id)
+        const userId = session?.user?.id
+        
+        if (userId && active) {
+          // 1. Fetch cloud history immediately
+          const cloudDataPromise = fetchCloudHistory(userId)
+          
+          // 2. While fetching, check if we need to sync any local stuff
+          if (testHistory.length > 0) {
+            await syncLocalToCloud(userId)
+          }
 
-          // Fetch cloud history
-          const cloudData = await fetchCloudHistory(session.user.id)
-
-          // Only overwrite local view if cloud has data; otherwise, keep current until retry
-          if (cloudData && cloudData.length > 0) {
-            setFullHistory(cloudData)
-            const cloudPb = Math.max(...cloudData.map(d => d.wpm))
-            if (cloudPb > pb && typeof setPb === 'function') setPb(cloudPb)
-          } else {
-            // Retry shortly — allows DB to reflect newly inserted rows
-            setTimeout(async () => {
-              const retry = await fetchCloudHistory(session.user.id)
-              if (retry && retry.length > 0) {
-                setFullHistory(retry)
-                const retryPb = Math.max(...retry.map(d => d.wpm))
-                if (retryPb > pb && typeof setPb === 'function') setPb(retryPb)
-              }
-            }, 800)
+          const cloudData = await cloudDataPromise
+          
+          if (active) {
+            if (cloudData && cloudData.length > 0) {
+              setFullHistory(cloudData)
+              const cloudPb = Math.max(...cloudData.map(d => d.wpm))
+              if (cloudPb > pb && typeof setPb === 'function') setPb(cloudPb)
+            } else {
+              // Minimal delay for DB consistency if we just inserted
+              setTimeout(async () => {
+                if (!active) return
+                const retry = await fetchCloudHistory(userId)
+                if (retry && retry.length > 0) {
+                  setFullHistory(retry)
+                }
+              }, 1000)
+            }
           }
         }
       } else {
@@ -145,7 +155,8 @@ export const useAccountManager = (engine, addToast) => {
     }
 
     loadAccountData()
-  }, [isLoggedIn, syncLocalToCloud, fetchCloudHistory, pb, setPb, testHistory])
+    return () => { active = false }
+  }, [isLoggedIn, testHistory.length === 0]) // Only re-run if login status or local history presence changes
 
   const mergedHistory = useMemo(() => {
     const combined = [...fullHistory, ...testHistory];
@@ -155,32 +166,39 @@ export const useAccountManager = (engine, addToast) => {
   }, [fullHistory, testHistory])
 
   // Avoid transient drops by caching the last non-empty level and persisting XP
-  const lastStableLevelRef = useRef(1)
-  const storedXpRef = useRef(0)
-  // Initialize last stable level from local history if present
+  const [highWaterMarkXP, setHighWaterMarkXP] = useState(0)
+
+  // Initialize floor XP from local history if present
   useEffect(() => {
     if (testHistory && testHistory.length > 0) {
-      lastStableLevelRef.current = calculateLevel(testHistory).level
+      const { experience } = calculateLevel(testHistory)
+      if (experience > highWaterMarkXP) setHighWaterMarkXP(experience)
     }
   }, [testHistory])
-  const currentLevel = useMemo(() => {
-    const stats = calculateLevel(mergedHistory)
-    const lvl = stats.level
-    const xp = stats.experience
 
-    if (mergedHistory.length > 0) {
-      lastStableLevelRef.current = lvl
-      // Persist only when XP increases; never overwrite with 0
-      if (typeof xp === 'number' && xp > storedXpRef.current) {
-        storedXpRef.current = xp
-        window.api?.data?.set(STORAGE_KEYS.DATA.XP, xp)
-      }
-      return lvl
+  const currentLevel = useMemo(() => {
+    // 1. Calculate pure local stats (Offline/Guest View)
+    const localStats = calculateLevel(testHistory)
+    
+    // 2. Calculate merged stats (Online View)
+    const mergedStats = calculateLevel(mergedHistory)
+    
+    // If NOT logged in, we strictly show local progress to avoid confusion
+    if (!isLoggedIn) {
+       return localStats.level
     }
 
-    // If history is empty, use the last stable level derived from stored XP/local
-    return lastStableLevelRef.current
-  }, [mergedHistory])
+    // If logged in, we use the "High Water Mark" logic to prevent drops during sync
+    const xp = mergedStats.experience
+    const effectiveXP = Math.max(xp || 0, highWaterMarkXP)
+
+    if (effectiveXP > highWaterMarkXP) {
+      setHighWaterMarkXP(effectiveXP)
+      window.api?.data?.set(STORAGE_KEYS.DATA.XP, effectiveXP)
+    }
+
+    return levelFromXP(effectiveXP).level
+  }, [mergedHistory, testHistory, highWaterMarkXP, isLoggedIn])
 
   return {
     fullHistory,

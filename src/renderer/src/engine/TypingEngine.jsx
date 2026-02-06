@@ -15,38 +15,14 @@ import './TypingEngine.css'
 /**
  * Letter Component
  */
-const Letter = memo(({ char, status, active, id, isKineticEnabled }) => {
-  // If no kinetic effect or not active/correct, render simple span
-  if (!isKineticEnabled || status !== 'correct') {
-    return (
-      <span 
-        id={id} 
-        className={`letter ${status || ''} ${active ? 'active' : ''}`} 
-      >
-        {char}
-      </span>
-    )
-  }
-
-  // Only use motion for kinetic effects on correct letters
+const Letter = memo(({ char, status, active, id }) => {
   return (
-    <motion.span 
+    <span 
       id={id} 
-      className={`letter ${status} ${active ? 'active' : ''}`} 
-      initial={{ scale: 1, y: 0 }}
-      animate={{
-        scale: [1, 1.12, 1],
-        y: [0, -2, 0],
-        filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"]
-      }}
-      transition={{ 
-        duration: 0.15,
-        times: [0, 0.4, 1],
-        ease: "easeOut"
-      }}
+      className={`letter ${status || ''} ${active ? 'active' : ''}`} 
     >
       {char}
-    </motion.span>
+    </span>
   )
 }, (prev, next) => {
   // Custom equality check for performance
@@ -115,19 +91,25 @@ const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled,
     </div>
   )
 }, (prev, next) => {
-    // Critical Optimization: ONLY re-render if:
-    // 1. This is the CURRENT word (input changing)
-    // 2. This was the PREVIOUS word (status changing/finalizing)
-    // 3. Global settings changed (kinetic/feedback)
-    // 4. Listing position changed (activeLineTop) - though we can debouce this
+    // Optimization: ONLY re-render if:
+    // 1. This word IS or WAS current (status/caret position)
+    if (prev.isCurrent !== next.isCurrent) return false;
     
-    // If neither is current, and both have same chunk (likely empty or full), skipping render is safe
-    if (!prev.isCurrent && !next.isCurrent && prev.chunk === next.chunk && 
-        prev.activeLineTop === next.activeLineTop && 
-        prev.isKineticEnabled === next.isKineticEnabled) {
-        return true;
+    // 2. The input chunk for this word changed
+    if (prev.chunk !== next.chunk) return false;
+    
+    // 3. Settings changed
+    if (prev.isKineticEnabled !== next.isKineticEnabled || 
+        prev.isErrorFeedbackEnabled !== next.isErrorFeedbackEnabled) return false;
+    
+    // 4. Line position changed significantly (dimming logic)
+    // We only care about line shifts if they might cross the dimming threshold
+    // Using a 20px buffer to avoid micro-adjustments causing re-renders
+    if (Math.abs(prev.activeLineTop - next.activeLineTop) > 20) {
+        return false;
     }
-    return false;
+    
+    return true; // Use memoized version
 })
 Word.displayName = 'Word'
 
@@ -165,7 +147,8 @@ const TypingEngine = ({
     ghostPos,
     isTyping,
     skipReplay,
-    startTime
+    startTime,
+    isLoading
   } = engine
 
   // Focus management
@@ -203,7 +186,7 @@ const TypingEngine = ({
         className="hidden-input"
         value={userInput}
         onChange={handleInput}
-        disabled={isReplaying}
+        disabled={isReplaying || isLoading}
         autoFocus
       />
       <div
@@ -211,86 +194,50 @@ const TypingEngine = ({
         ref={wordContainerRef}
       >
 
-        <AnimatePresence>
-          {testMode === 'words' && !isFinished && engine.wordProgress && (
-            <motion.div 
-              key="word-progress"
-              className="live-progress-counter"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <span>{engine.wordProgress.typed}</span><span className="remaining">/{engine.wordProgress.total}</span>
-            </motion.div>
-          )}
-          
-
-        </AnimatePresence>
+        {testMode === 'words' && !isFinished && engine.wordProgress && (
+          <div className="live-progress-counter">
+            <span>{engine.wordProgress.typed}</span><span className="remaining">/{engine.wordProgress.total}</span>
+          </div>
+        )}
         {!isFinished ? (
           <>
             {isGhostEnabled && startTime && !isFinished && (
-              <motion.div
+              <div
                 className="caret ghost"
-                initial={{ x: ghostPos.left, y: ghostPos.top }}
-                animate={{ x: ghostPos.left, y: ghostPos.top }}
-                transition={{ 
-                  x: { type: 'spring', stiffness: 300, damping: 35 },
-                  y: { type: 'tween', ease: "easeInOut", duration: 0.12 }
-                }}
                 style={{ 
                   position: 'absolute', 
-                  left: -10, // Center the ghost icon on the caret position
+                  left: -10, 
                   top: -5,
                   zIndex: 1,
-                  pointerEvents: 'none'
+                  pointerEvents: 'none',
+                  transform: `translate3d(${ghostPos.left}px, ${ghostPos.top}px, 0)`,
+                  opacity: ghostPos.opacity ?? 1,
+                  transition: 'transform 0.1s ease-out, opacity 0.2s'
                 }}
               >
                 <div className="ghost-icon">
                   <GhostIcon size={20} />
                 </div>
-              </motion.div>
+              </div>
             )}
             
-            {smoothCaretEnabled ? (
-              <motion.div
-                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle} ${isFireCaretEnabled ? 'style-fire' : ''}`}
-                animate={{ 
-                  x: engine.caretPos?.left || 0, 
-                  y: engine.caretPos?.top || 0,
-                  height: engine.caretPos?.height || '1.2em',
-                  width: engine.caretPos?.width || (caretStyle === 'block' ? 7 : 2)
-                }}
-                transition={{
-                  type: 'spring',
-                  stiffness: UI.CARET_STIFFNESS_SMOOTH,
-                  damping: UI.CARET_DAMPING_SMOOTH,
-                  mass: UI.CARET_MASS_SMOOTH
-                }}
-                style={{ 
-                  position: 'absolute',
-                  left: 0, 
-                  top: 0,
-                  zIndex: 10,
-                  mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                  borderRadius: caretStyle === 'block' ? '2px' : '1px'
-                }}
-              />
-            ) : (
-              <div
-                ref={caretRef}
-                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle} ${isFireCaretEnabled ? 'style-fire' : ''}`}
-                style={{ 
-                  position: 'absolute',
-                  left: 0, 
-                  top: 0,
-                  zIndex: 10,
-                  mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                  borderRadius: caretStyle === 'block' ? '2px' : '1px',
-                  width: caretStyle === 'block' ? 7 : 2,
-                  height: '1.2em'
-                }}
-              />
-            )}
+            <div
+              ref={caretRef}
+              className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle} ${isFireCaretEnabled ? 'style-fire' : ''}`}
+              style={{ 
+                position: 'absolute',
+                left: 0, 
+                top: 0,
+                zIndex: 10,
+                mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
+                borderRadius: caretStyle === 'block' ? '2px' : '1px',
+                width: engine.caretPos?.width || (caretStyle === 'block' ? 7 : 2),
+                height: engine.caretPos?.height || '1.2em',
+                transform: `translate3d(${engine.caretPos?.left || 0}px, ${engine.caretPos?.top || 0}px, 0)`,
+                transition: smoothCaretEnabled ? 'transform 0.08s cubic-bezier(0.2, 0, 0.2, 1), height 0.08s, width 0.08s' : 'none',
+                opacity: isLoading ? 0 : 1
+              }}
+            />
 
             <div className="word-wrapper">
               <AnimatePresence>

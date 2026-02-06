@@ -47,6 +47,7 @@ import './AppLayout.css'
 const SettingsView = lazy(() => import('../Settings/SettingsView'))
 const DashboardView = lazy(() => import('../Dashboard/DashboardView'))
 const LeaderboardView = lazy(() => import('../Leaderboard/LeaderboardView'))
+const HistoryView = lazy(() => import('../History/HistoryView'))
 const NotFound = lazy(() => import('../Views/NotFound'))
 
 /**
@@ -88,8 +89,10 @@ const AppLayout = ({ addToast }) => {
     unlockedAvatars,
     updateAvatar,
     unlockAvatar,
+    setUnlockedAvatars,
     handleLogout,
-    updateUsername
+    updateUsername,
+    isUserLoaded
   } = useUser()
 
   // Local UI state
@@ -121,6 +124,8 @@ const AppLayout = ({ addToast }) => {
     setIsSoundEnabled,
     isHallEffect,
     setIsHallEffect,
+    soundProfile,
+    setSoundProfile,
     isGhostEnabled,
     setIsGhostEnabled,
     testHistory,
@@ -157,34 +162,33 @@ const AppLayout = ({ addToast }) => {
     return 0
   }, [isTestRunning, testMode, timeLeft, testLimit, engine.wordProgress, engine.words.length])
 
-  // Auto-unlock avatars when level increases (edge-triggered, separated, robust)
-  const lastLevelRef = useRef(currentLevel)
+  // Synchronize unlocked avatars with current level (Add-only Sync)
   useEffect(() => {
-    // Only act on level increases to avoid render churn
-    const prev = lastLevelRef.current
-    if (typeof currentLevel !== 'number' || currentLevel <= prev) {
-      lastLevelRef.current = currentLevel
-      return
+    if (!isUserLoaded || typeof currentLevel !== 'number') return
+
+    // Calculate which avatars SHOULD be unlocked based on current level
+    const eligibleIds = PROGRESSION.AVATAR_UNLOCK_LEVELS
+        .filter(entry => currentLevel >= entry.level)
+        .map(entry => entry.id)
+
+    // Merge existing persistsed unlocks with new eligible ones (never remove)
+    const updatedUnlocked = [...new Set([...unlockedAvatars, ...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...eligibleIds])]
+    const currentUnlockedSorted = [...unlockedAvatars].sort((a, b) => a - b)
+    const updatedUnlockedSorted = [...updatedUnlocked].sort((a, b) => a - b)
+
+    // Only update if there are NEW unlocks
+    if (JSON.stringify(updatedUnlockedSorted) !== JSON.stringify(currentUnlockedSorted)) {
+       const newlyUnlocked = updatedUnlocked.filter(id => !unlockedAvatars.includes(id))
+       if (newlyUnlocked.length > 0) {
+         newlyUnlocked.forEach(id => {
+           const def = PROGRESSION.AVATAR_UNLOCK_LEVELS.find(a => a.id === id)
+           if (def) addToast?.(`${SUCCESS_MESSAGES.AVATAR_UNLOCKED}: ${def.name}`, 'success')
+         })
+         // Persist the new unlock set
+         setUnlockedAvatars(updatedUnlocked)
+       }
     }
-
-    // Identify newly eligible avatars
-    const newlyEligible = PROGRESSION.AVATAR_UNLOCK_LEVELS.filter(({ id, level }) => (
-      currentLevel >= level && !unlockedAvatars.includes(id)
-    ))
-
-    if (newlyEligible.length === 0) {
-      lastLevelRef.current = currentLevel
-      return
-    }
-
-    // Unlock each separately and toast per unlock for clarity
-    newlyEligible.forEach(({ id, name }) => {
-      unlockAvatar(id)
-      addToast?.(`${SUCCESS_MESSAGES.AVATAR_UNLOCKED}: ${name}`, 'success')
-    })
-
-    lastLevelRef.current = currentLevel
-  }, [currentLevel, unlockedAvatars, unlockAvatar, addToast])
+  }, [currentLevel, unlockedAvatars, setUnlockedAvatars, addToast, isUserLoaded])
 
   // Global interactions
   const handleGlobalInteraction = useCallback(() => soundEngine.warmUp(), [])
@@ -361,6 +365,17 @@ const AppLayout = ({ addToast }) => {
     { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, type: 'command', onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
     { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, type: 'command', onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
     { id: 'sound', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, type: 'command', onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
+    { 
+      id: 'sound-profile', 
+      label: `Sound Profile: ${soundProfile.charAt(0).toUpperCase() + soundProfile.slice(1)}`, 
+      icon: <Cpu size={18} />, 
+      type: 'command', 
+      onSelect: () => {
+        const profiles = ['thocky', 'creamy', 'clicky', 'asmr', 'raindrop', 'wood'];
+        const next = profiles[(profiles.indexOf(soundProfile) + 1) % profiles.length];
+        engine.setSoundProfile(next);
+      } 
+    },
     { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, type: 'command', onSelect: () => setIsHallEffect(!isHallEffect) },
     { id: 'error-feedback', label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`, icon: <AlertCircle size={18} />, type: 'command', onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled) },
     { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, type: 'command', onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
@@ -488,6 +503,7 @@ const AppLayout = ({ addToast }) => {
                     onDeleteAccount={() => toggleDeleteAccountModal(true)}
                     onLogout={() => toggleLogoutModal(true)}
                     onSettings={() => setActiveTab('settings')}
+                    openLoginModal={() => toggleLoginModal(true)}
                   />
                 ) : activeTab === 'leaderboard' ? (
                   <LeaderboardView currentUser={username} />

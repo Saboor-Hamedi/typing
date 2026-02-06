@@ -90,6 +90,9 @@ export function useEngine(testMode, testLimit) {
     hasCaps,
     isSentenceMode,
     caretStyle,
+    setCaretStyle,
+    isFireCaretEnabled,
+    setIsFireCaretEnabled,
     isSettingsLoaded
   } = useSettings();
 
@@ -105,9 +108,6 @@ export function useEngine(testMode, testLimit) {
   useEffect(() => {
     if (!isSettingsLoaded) {
       setIsLoading(true);
-    } else {
-      const timer = setTimeout(() => setIsLoading(false), 100);
-      return () => clearTimeout(timer);
     }
   }, [isSettingsLoaded]);
 
@@ -307,7 +307,6 @@ export function useEngine(testMode, testLimit) {
     }
     
     // ... (rest of reset logic) ...
-    setCaretPos({ left: 0, top: 0 });
     lastLineTop.current = -1;
 
     if (wordContainerRef.current) {
@@ -560,13 +559,14 @@ export function useEngine(testMode, testLimit) {
 
     const container = wordContainerRef.current;
     let retryCount = 0;
+    let retryTimer;
 
     const updateCaret = () => {
       const charIndex = userInput.length;
       const target = document.getElementById(`char-${charIndex}`);
       const caret = caretRef.current;
       
-      if (target) {
+      if (target && container) {
         const containerRect = container.getBoundingClientRect();
         const wordWrapper = container.querySelector('.word-wrapper');
         const targetRect = target.getBoundingClientRect();
@@ -583,71 +583,52 @@ export function useEngine(testMode, testLimit) {
         const h = targetHeight * 0.85; 
         const caretY = top_abs + (targetHeight - h) / 2;
         
-        // Dynamic width: 7px for thick/block, 2px for normal bar
         const caretWidth = caretStyle === 'block' ? 7 : 2;
-        
-        // Round top_rel to prevent sub-pixel jitter from flickering the dim status
         const roundedTop = Math.round(top_rel);
+        const roundedLeft = Math.round(left);
+        const roundedCaretY = Math.round(caretY);
+        const roundedH = Math.round(h);
 
-        // Sync state to drive motion caret
-        setCaretPos({ left, top: caretY, height: h, width: caretWidth });
+        setCaretPos({ left: roundedLeft, top: roundedCaretY, height: roundedH, width: caretWidth });
 
         if (caret) {
-          // DIRECT DOM MANIPULATION: Bypass React for caret position
-          caret.style.transform = `translate3d(${left}px, ${caretY}px, 0)`;
-          caret.style.height = `${h}px`;
+          caret.style.transform = `translate3d(${roundedLeft}px, ${roundedCaretY}px, 0)`;
+          caret.style.height = `${roundedH}px`;
           caret.style.width = `${caretWidth}px`;
         }
         
-        // Update activeLineTop for dimming
-        // Increased threshold to 5px to avoid micro-adjustments causing re-renders
-        if (Math.abs(roundedTop - activeLineTop) > 5) {
+        // Use a much larger buffer and rounded values to prevent line-jitter
+        if (Math.abs(roundedTop - activeLineTop) > 25) { 
           setActiveLineTop(roundedTop);
           const containerHeight = container.clientHeight;
+          const containerScrollTop = Math.round(top_abs);
           
           if (isCenteredScrolling) {
-            const targetScroll = top_abs - (containerHeight / 2) + (targetHeight / 2);
+            const targetScroll = containerScrollTop - (containerHeight / 2) + (targetHeight / 2);
             container.scrollTo({ top: targetScroll, behavior: 'auto' });
           } else {
-            container.scrollTo({ top: top_abs - (containerHeight * 0.4), behavior: 'auto' });
+            container.scrollTo({ top: containerScrollTop - (containerHeight * 0.4), behavior: 'auto' });
           }
         }
-      } else if (charIndex > 0) {
-        const lastTarget = document.getElementById(`char-${charIndex - 1}`);
-        if (lastTarget) {
-          const left = lastTarget.offsetLeft + lastTarget.offsetWidth;
-          const top_offset = lastTarget.offsetTop;
-          const h = lastTarget.offsetHeight * 0.7;
-          const top = top_offset + (lastTarget.offsetHeight - h) / 2;
-
-          setCaretPos({ left, top, height: h });
-          
-          if (caret) {
-            caret.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-            caret.style.height = `${h}px`;
-            caret.style.width = `7px`; // Consistent 7px width
-          }
-        }
+      } else if (retryCount < 30) {
+        // Retry logic: If target isn't found, it might be due to a reset or rapid line wrap.
+        // We avoid snap-resetting to (0,0) by doing nothing and retrying.
+        retryCount++;
+        retryTimer = setTimeout(updateCaret, 16);
       }
     };
 
     // Run IMMEDIATELY to avoid the (0,0) jump
     updateCaret();
 
-    // Also run in a frame to catch flexbox settling (essential for word wrapping)
+    // Also run in a frame to catch flexbox settling
     const frame = requestAnimationFrame(updateCaret);
-    let retryTimer;
-
-    // Retry logic handles cases where DOM isn't fully stable yet
-    if (retryCount < 20 && !document.getElementById(`char-${userInput.length}`)) {
-      retryTimer = setTimeout(updateCaret, 20);
-    }
     
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(retryTimer);
     };
-  }, [userInput, isFinished, words]);
+  }, [userInput, isFinished, words, caretStyle, isFireCaretEnabled, isCenteredScrolling]);
   const liveWpm = useMemo(() => {
     if (!startTime || isFinished || isReplaying) return results.wpm;
     const now = performance.now();

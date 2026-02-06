@@ -126,7 +126,7 @@ export const useGhostRacing = (
       const topA = rectA.top - containerRect.top + container.scrollTop
       const topB = rectB.top - containerRect.top + container.scrollTop
       
-      let left, top, height;
+      let left, top, height, opacity = 1;
       
       // If on same line, interpolate left smoothly
       if (Math.abs(topA - topB) < 5) {
@@ -134,21 +134,27 @@ export const useGhostRacing = (
                ((rectB.left - rectA.left) * factor);
         height = rectA.height * 0.7;
         top = topA + (rectA.height - height) / 2;
+        opacity = 1;
       } else {
-        // Line break: Move along with charA until factor > 0.8, then snap to B
-        // This prevents awkward diagonal sliding across the screen
-        if (factor < 0.9) {
+        // Line break: Phasing Effect (Fade out -> Teleport -> Fade in)
+        // This prevents the "ugly" sweep/jump across lines
+        height = rectA.height * 0.7;
+        if (factor < 0.5) {
+          // Fade out at end of Line A
+          const fadeFactor = 1 - (factor * 2);
           left = rectA.left - containerRect.left + container.scrollLeft;
-          height = rectA.height * 0.7;
           top = topA + (rectA.height - height) / 2;
+          opacity = fadeFactor;
         } else {
+          // Fade in at start of Line B
+          const fadeFactor = (factor - 0.5) * 2;
           left = rectB.left - containerRect.left + container.scrollLeft;
-          height = rectB.height * 0.7;
           top = topB + (rectB.height - height) / 2;
+          opacity = fadeFactor;
         }
       }
 
-      setGhostPos({ left, top, width: 2, height })
+      setGhostPos({ left, top, width: 2, height, opacity })
     }
 
     // Schedule next frame

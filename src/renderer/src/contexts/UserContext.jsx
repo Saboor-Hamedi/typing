@@ -346,6 +346,7 @@ export const UserProvider = ({ children, addToast }) => {
     updateUsername,
     selectedAvatarId,
     unlockedAvatars,
+    setUnlockedAvatars,
     updateAvatar,
     unlockAvatar,
     handleLogout,

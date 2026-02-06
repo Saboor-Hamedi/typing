@@ -12,7 +12,7 @@
  */
 import './DashboardView.css'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity, Trash2, Settings, LogOut, Edit2 } from 'lucide-react'
+import { Trophy, Zap, Target, Flame, TrendingUp, Calendar, Map, Activity, Trash2, Settings, LogOut, Edit2, User } from 'lucide-react'
 import ProgressGraph from '../Analytics/ProgressGraph'
 import dashboardBg from '../../assets/dashboard_bg.png'
 import { calculateLevel } from '../../utils/Leveling'
@@ -21,8 +21,9 @@ import { Lock, Check } from 'lucide-react'
 
 // Avatar Registry
 import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
+import UniversalAvatar from '../Common/UniversalAvatar'
 
-const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, unlockedAvatars = [1], onUpdateAvatar, setUsername, isLoggedIn, onDeleteAccount, onLogout, onSettings }) => {
+const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, unlockedAvatars = [1], currentLevel, onUpdateAvatar, setUsername, isLoggedIn, onDeleteAccount, onLogout, onSettings, openLoginModal }) => {
   const [isEditingName, setIsEditingName] = useState(false)
   const [tempName, setTempName] = useState(username)
   
@@ -47,24 +48,50 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
   
   return (
     <div className="dashboard-container">
-      {/* Hero Section */}
-      <div className="dashboard-hero" style={{ backgroundImage: `url(${dashboardBg})` }}>
-        <div className="hero-overlay" />
-        <div className="hero-content">
+      {/* Facebook-style Cover & Profile Section */}
+      <div className="profile-header-container">
+        <div className="profile-cover" style={{ backgroundImage: `url(${dashboardBg})` }}>
+          <div className="cover-overlay" />
+          <div className="hero-actions">
+            {!isLoggedIn && (
+              <button className="hero-btn join" onClick={openLoginModal} title="Join TypingZone">
+                <User size={18} />
+              </button>
+            )}
+            <button className="hero-btn" onClick={onSettings} title="Settings">
+               <Settings size={18} />
+            </button>
+            {isLoggedIn && (
+              <button className="hero-btn logout" onClick={onLogout} title="Sign Out">
+                 <LogOut size={18} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="profile-main-info-row">
           <motion.div 
-            className="profile-section"
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+            className="profile-avatar-section"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
           >
-            <div className="avatar-wrapper">
-              <img src={AVATAR_MAP[selectedAvatarId] || AVATAR_MAP[0]} alt="Profile" className="profile-img" />
+            <div className="avatar-wrapper-fb">
+              <UniversalAvatar 
+                avatarId={selectedAvatarId} 
+                theme={AVATAR_DEFS.find(a => a.id === selectedAvatarId)?.theme}
+                size={100}
+                className="profile-img-fb"
+              />
               <div className="status-indicator online" />
             </div>
-            <div className="profile-info">
+          </motion.div>
+
+          <div className="profile-text-section">
+            <div className="name-and-badges">
               {isEditingName ? (
                 <input
                   type="text"
-                  className="username-input-large"
+                  className="username-input-fb"
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
                   onBlur={() => {
@@ -84,28 +111,28 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
                   maxLength={12}
                 />
               ) : (
-                <div className="name-display-row" onClick={() => { setIsEditingName(true); setTempName(username); }}>
+                <div className="name-display-row-fb" onClick={() => { setIsEditingName(true); setTempName(username); }}>
                   <h1>{username || 'Pro Typist'}</h1>
-                  <Edit2 size={16} className="edit-icon" />
+                  <Edit2 size={16} className="edit-icon-fb" />
                 </div>
               )}
-              <div className="level-badge">LEVEL {level}</div>
-              <div className="level-progress-container">
-                <div className="level-progress-bar" style={{ width: `${levelProgress}%` }} />
-              </div>
-              <p className="exp-text">{experience} XP • {xpToNext} XP to next level</p>
             </div>
-          </motion.div>
-          
-          <div className="hero-actions">
-            <button className="hero-btn" onClick={onSettings} title="Settings">
-               <Settings size={20} />
-            </button>
-            {isLoggedIn && (
-              <button className="hero-btn logout" onClick={onLogout} title="Sign Out">
-                 <LogOut size={20} />
-              </button>
-            )}
+
+            <div className="profile-xp-stats">
+              <div className="xp-info-mini">
+                 <div className="xp-top-row">
+                    <span className="exp-text-fb">{experience} XP</span>
+                    <div className="rank-and-level">
+                       <span className="rank-text-fb">{AVATAR_DEFS.findLast(a => level >= a.level)?.name || 'Novice'}</span>
+                       <span className="lv-text-fb">LVL {level}</span>
+                    </div>
+                 </div>
+                 <div className="level-progress-container-fb">
+                    <div className="level-progress-bar-fb" style={{ width: `${levelProgress}%` }} />
+                 </div>
+                 <span className="xp-remaining-fb">{xpToNext} XP to next level</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -128,30 +155,30 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
             </div>
             <div className="activity-grid">
               {history.length > 0 ? history.slice(0, 10).map((test, i) => (
-                <div key={i} className="session-card">
+                <div key={i} className={`session-card ${test.wpm >= 100 ? 'tier-high' : test.wpm >= 60 ? 'tier-mid' : 'tier-base'}`}>
+                  <div className="session-icon">
+                    {test.mode === 'time' ? <Calendar size={18} /> : <TrendingUp size={18} />}
+                  </div>
                   <div className="session-time">
                     <span className="date">{new Date(test.date).toLocaleDateString()}</span>
                     <span className="time">{new Date(test.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <div className="session-main">
-                    <div className="mode-badge">{test.mode} {test.limit || ''}</div>
+                    <div className="mode-badge">
+                      {test.mode} {test.limit || ''}
+                    </div>
                     <div className="stats-row">
-                      <div className="stat-pill">
-                        <span className="label">WPM</span>
+                      <div className="stat-pill wpm">
                         <span className="value">{test.wpm}</span>
+                        <span className="label">WPM</span>
                       </div>
-                      <div className="stat-pill">
-                        <span className="label">ACC</span>
+                      <div className="stat-pill acc">
                         <span className="value">{test.accuracy}%</span>
+                        <span className="label">ACC</span>
                       </div>
                     </div>
                   </div>
-                  <motion.div 
-                    className="session-marker" 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }}
-                    style={{ background: test.wpm >= 100 ? 'var(--main-color)' : 'rgba(255,255,255,0.1)' }}
-                  />
+                  <div className="session-marker" />
                 </div>
               )) : (
                 <div className="empty-state">No sessions recorded yet. Get typing!</div>
@@ -218,7 +245,11 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
                     }}
                   >
                     <div className="img-container">
-                      <img src={av.img} alt={av.name} />
+                      <UniversalAvatar 
+                        avatarId={av.id} 
+                        theme={av.theme}
+                        className="wardrobe-avatar-img"
+                      />
                       {!isUnlocked && (
                         <div className="lock-overlay">
                           <Lock size={12} />
@@ -240,35 +271,35 @@ const DashboardView = ({ stats, history = [], username, selectedAvatarId = 1, un
               <span>Milestones</span>
             </div>
             <div className="milestones-list">
-              <div className={`milestone-item ${statsCore.total > 0 ? 'achieved' : 'locked'}`}>
+              <div className={`milestone-item m-zap ${statsCore.total > 0 ? 'achieved' : 'locked'}`}>
                 <div className="m-icon"><Zap size={14} /></div>
                 <div className="m-info">
                   <span className="m-title">First Blood</span>
                   <span className="m-desc">Complete your first test</span>
                 </div>
               </div>
-              <div className={`milestone-item ${bestWpm >= 80 ? 'achieved' : 'locked'}`}>
+              <div className={`milestone-item m-speed ${bestWpm >= 80 ? 'achieved' : 'locked'}`}>
                 <div className="m-icon"><Flame size={14} /></div>
                 <div className="m-info">
                   <span className="m-title">Speed Demon</span>
                   <span className="m-desc">Reach 80 WPM</span>
                 </div>
               </div>
-              <div className={`milestone-item ${bestWpm >= 120 ? 'achieved' : 'locked'}`}>
+              <div className={`milestone-item m-flame ${bestWpm >= 120 ? 'achieved' : 'locked'}`}>
                 <div className="m-icon"><Flame size={14} /></div>
                 <div className="m-info">
                   <span className="m-title">Elite</span>
                   <span className="m-desc">Reach 120 WPM</span>
                 </div>
               </div>
-              <div className={`milestone-item ${level >= 40 ? 'achieved' : 'locked'}`}>
+              <div className={`milestone-item m-cyber ${level >= 40 ? 'achieved' : 'locked'}`}>
                 <div className="m-icon"><Activity size={14} /></div>
                 <div className="m-info">
                   <span className="m-title">Cyber Ghost</span>
                   <span className="m-desc">Reach Level 40</span>
                 </div>
               </div>
-              <div className={`milestone-item ${level >= 60 ? 'achieved' : 'locked'}`}>
+              <div className={`milestone-item m-trophy ${level >= 60 ? 'achieved' : 'locked'}`}>
                 <div className="m-icon"><Trophy size={14} /></div>
                 <div className="m-info">
                   <span className="m-title">Ascended</span>

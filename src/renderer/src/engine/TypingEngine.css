@@ -11,6 +11,14 @@
   min-height: 0;
 }
 
+/* Hard Lock: Disable ALL transitions during active typing to stop shuffling */
+.typing-canvas:has(.typing) .word,
+.typing-canvas:has(.typing) .letter,
+.typing-canvas:has(.typing) .caret {
+  transition: none !important;
+  animation-play-state: paused !important;
+}
+
 /* Standardize container dimensions and add transitions */
 .typing-container {
   position: relative;
@@ -72,7 +80,7 @@
 
 .word.dimmed {
   opacity: 0.25;
-  filter: saturate(0.5) blur(0.5px);
+  /* Removed filter: blur to prevent layout reshaping/jitter */
 }
 
 .letter {
@@ -82,6 +90,11 @@
   margin: 0;
   padding: 0;
   transition: color 0.15s ease, text-shadow 0.2s ease;
+  /* Jitter Fix: Force strict monospace properties */
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+  font-kerning: none;
+  text-rendering: optimizeSpeed;
 }
 
 .letter.active {

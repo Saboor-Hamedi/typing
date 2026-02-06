@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, memo } from 'react'
 import { User, Activity, LogOut, LayoutDashboard } from 'lucide-react'
-import { AVATAR_MAP } from '../../assets/avatars'
+import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
+import UniversalAvatar from '../Common/UniversalAvatar'
 
 /**
  * UserDropdown Component
@@ -75,7 +76,11 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
         type="button"
       >
         <div className="trigger-avatar">
-          <img src={AVATAR_MAP[selectedAvatarId]} alt="User" />
+          <UniversalAvatar 
+            avatarId={selectedAvatarId} 
+            theme={AVATAR_DEFS.find(a => a.id === selectedAvatarId)?.theme}
+            size={36}
+          />
           {isLoggedIn && <div className="online-indicator" aria-label="Online" />}
         </div>
       </button>

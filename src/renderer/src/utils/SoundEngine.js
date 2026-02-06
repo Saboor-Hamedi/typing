@@ -145,9 +145,9 @@ class SoundEngine {
         noise: { filter: 'bandpass', freq: 400, decay: 0.04, gain: 0.15 }
       },
       asmr: {
-        body: { type: 'sine', freq: 110, decay: 0.18, gain: 0.4 },
-        low: { type: 'sine', freq: 55, decay: 0.25, gain: 0.6 },
-        noise: { filter: 'lowpass', freq: 350, decay: 0.1, gain: 0.15 }
+        body: { type: 'sine', freq: 180, decay: 0.15, gain: 0.5 },
+        low: { type: 'sine', freq: 90, decay: 0.2, gain: 0.4 },
+        noise: { filter: 'bandpass', freq: 1400, decay: 0.08, gain: 0.25 }
       }
     }
 

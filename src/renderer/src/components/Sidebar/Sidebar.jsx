@@ -1,7 +1,8 @@
 import './Sidebar.css'
 import { Keyboard, History, Settings, Info, Trophy, Command, Globe, ArrowUpCircle, RefreshCw } from 'lucide-react'
 import { useState, useEffect, memo } from 'react'
-import { AVATAR_MAP } from '../../assets/avatars'
+import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
+import UniversalAvatar from '../Common/UniversalAvatar'
 
 const Sidebar = memo(({ 
   activeTab, 
@@ -128,7 +129,12 @@ const Sidebar = memo(({
           >
              {/* We need the avatar image here. Since `UserDropdown` handles it via ID map, we should probably do same or pass src */}
              {/* Simplified: Rendering a div that will be filled by css or passed child */}
-             <img src={AVATAR_MAP[selectedAvatarId] || AVATAR_MAP[0]} alt="Profile" className="profile-img-sidebar" onError={(e) => e.target.style.display='none'} />
+             <UniversalAvatar 
+               avatarId={selectedAvatarId} 
+               theme={AVATAR_DEFS.find(a => a.id === selectedAvatarId)?.theme}
+               size={34}
+               className="profile-img-sidebar" 
+             />
              {/* Fallback icon if image fails */}
              <Settings size={20} className="fallback-icon" style={{position:'absolute', zIndex:-1}}/> 
           </div>

@@ -33,28 +33,36 @@ export const generateBaseWords = (count = 50, isSentenceMode = false) => {
 
   while (currentWordCount < count) {
     if (isSentenceMode) {
-      // Sentence Mode: Pick quotes
+      // Sentence Mode: Pick quotes and ALWAYS finish them
       const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
-      const wordsInSentence = sentence.split(/\s+/);
-      for (const w of wordsInSentence) {
-        if (!w || currentWordCount >= count) break;
-        result.push({ text: w, type: 'quote' }); // Tag as quote
+      const wordsInSentence = sentence.split(/\s+/).filter(Boolean);
+      for (let i = 0; i < wordsInSentence.length; i++) {
+        const w = wordsInSentence[i];
+        result.push({ 
+          text: w, 
+          type: 'quote', 
+          isStart: i === 0, 
+          isEnd: i === wordsInSentence.length - 1 
+        });
         currentWordCount++;
       }
-      if (currentWordCount >= count) break;
       continue;
     }
 
     // Standard Mode
-    // Occasional sentence injection
+    // Occasional sentence injection - ALWAYS finish the sentence
     if (Math.random() < useSentenceChance) {
       const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
-      const wordsInSentence = sentence.split(/\s+/);
-      for (const w of wordsInSentence) {
-        if (!w || currentWordCount >= count) break;
-        // Strip punctuation/quotes for standard mode base
+      const wordsInSentence = sentence.split(/\s+/).filter(Boolean);
+      for (let i = 0; i < wordsInSentence.length; i++) {
+        const w = wordsInSentence[i];
         const cleanW = w.replace(/[",]/g, ''); 
-        result.push({ text: cleanW, type: 'quote' });
+        result.push({ 
+          text: cleanW, 
+          type: 'quote', 
+          isStart: i === 0, 
+          isEnd: i === wordsInSentence.length - 1 
+        });
         currentWordCount++;
       }
       continue;
@@ -105,22 +113,31 @@ export const applyModifiers = (baseWords, settings) => {
 
     // 1. Handling Quote Words (Sentence Mode or Injected)
     if (isQuote) {
-       // If Quote, apply settings (Stripping/Lowercasing)
-       if (!hasCaps) {
+       // If Quote start, handle capitalization
+       if (hasCaps && item.isStart) {
+         word = word.charAt(0).toUpperCase() + word.slice(1);
+       } else if (!hasCaps) {
          word = word.toLowerCase();
        }
-       // If standard mode, we might want to strip all punc if hasPunctuation is false
-       // If sentence mode, we might respect the quote's punc unless explicitly disabled
+
+       // Handle punctuation
        if (!hasPunctuation) {
+          // Force strip everything if punc is OFF
           word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/\s{2,}/g, " ");
+       } else if (item.isEnd) {
+          // If punc is ON and it's the end of a sentence, ensure a period exists
+          const lastChar = word.slice(-1);
+          if (!['.', '!', '?', ';', ':'].includes(lastChar)) {
+            word = word + '.';
+          }
        }
        
        result.push(word);
        
-       // Handle number injection (User requested numbers allowed in sentence mode)
+       // Handle number injection
        tryAddNumber();
        
-       // Update sentence state based on THIS word's punc (for next word if mixed)
+       // Update sentence state for next word
        const lastChar = word.slice(-1);
        sentenceStart = ['.', '!', '?'].includes(lastChar);
        continue;
