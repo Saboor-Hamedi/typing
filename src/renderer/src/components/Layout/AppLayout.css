@@ -31,7 +31,7 @@
   bottom: 0;
   width: 15%; /* Broad but overlapping */
   pointer-events: none;
-  filter: blur(25px) brightness(1.2);
+  filter: blur(15px) brightness(1.2);
   border-radius: 50% 50% 0 0;
   will-change: height, opacity, transform;
 }
@@ -43,7 +43,7 @@
   right: 0;
   height: 40px;
   background: linear-gradient(to top, rgba(var(--main-color-rgb), 0.3), transparent);
-  filter: blur(10px);
+  filter: blur(8px);
   z-index: 1;
 }
 

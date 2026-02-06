@@ -205,14 +205,11 @@ const TypingEngine = ({
         disabled={isReplaying}
         autoFocus
       />
-      <AnimatePresence>
-        {engine.isLoading && <Loader />}
-      </AnimatePresence>
-
       <div
         className={`typing-container ${testMode === 'time' ? 'time-mode' : 'words-mode'}`}
         ref={wordContainerRef}
       >
+
         <AnimatePresence>
           {testMode === 'words' && !isFinished && engine.wordProgress && (
             <motion.div 
@@ -346,7 +343,45 @@ const TypingEngine = ({
             onReplay={runReplay}
           />
         )}
+        <AnimatePresence>
+          {engine.isLoading && (
+            <motion.div
+              key="loader"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                height: '2px',
+                width: '100%',
+                maxWidth: '600px',
+                background: 'var(--bg-color)', 
+                position: 'absolute',
+                bottom: '10px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                overflow: 'hidden',
+                borderRadius: '1px',
+                zIndex: 50
+              }}
+            >
+               <motion.div 
+                 style={{ 
+                   position: 'absolute',
+                   top: 0,
+                   left: 0,
+                   height: '100%',
+                   width: '100%',
+                   background: 'linear-gradient(90deg, transparent, var(--main-color), transparent)',
+                   transform: 'translateX(-100%)'
+                 }}
+                 animate={{ transform: 'translateX(100%)' }}
+                 transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+               />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+ 
     </div>
   )
 }

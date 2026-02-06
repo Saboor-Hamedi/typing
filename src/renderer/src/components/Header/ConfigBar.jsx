@@ -72,26 +72,22 @@ const ConfigBar = memo(({ openThemeModal }) => {
 
       {/* Mode & Limit Group */}
       <div className="config-group mode-options">
-        <div className="mode-toggles">
-          <Tooltip content="Time Mode">
-            <button 
-              onClick={() => setTestMode('time')}
-              className={`config-btn mode-btn ${testMode === 'time' ? 'active' : ''}`}
-            >
-              <Clock size={13} className="mode-icon" />
-              <span className="mode-label">Time</span>
-            </button>
-          </Tooltip>
-          <Tooltip content="Words Mode">
-            <button 
-              onClick={() => setTestMode('words')}
-              className={`config-btn mode-btn ${testMode === 'words' ? 'active' : ''}`}
-            >
-              <Type size={13} className="mode-icon" />
-              <span className="mode-label">Words</span>
-            </button>
-          </Tooltip>
-        </div>
+        <Tooltip content="Time Mode">
+          <button 
+            onClick={() => setTestMode('time')}
+            className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
+          >
+            <Clock size={14} />
+          </button>
+        </Tooltip>
+        <Tooltip content="Words Mode">
+          <button 
+            onClick={() => setTestMode('words')}
+            className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
+          >
+            <Type size={14} />
+          </button>
+        </Tooltip>
       </div>
 
       <div className="config-divider" />

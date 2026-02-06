@@ -19,7 +19,8 @@
   margin: 0 auto;
   overflow-y: visible;
   padding: 4rem 0.5rem 2rem 0.5rem; 
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Removed transition: all to prevent layout shaking */
+  /* transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1); */
   display: flex;
   flex-direction: column;
   justify-content: flex-start; /* Align to top to prevent vertical jumping on growth */
@@ -59,7 +60,7 @@
 /* Inherit unified font size */
 .word-wrapper {
   font-size: 2rem; /* Sync with container */
-  transition: font-size 0.3s ease-in-out;
+  /* Removed font-size transition to prevent layout shifts */
 }
 
 .word {

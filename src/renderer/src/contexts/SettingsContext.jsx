@@ -294,7 +294,7 @@ export const SettingsProvider = ({ children }) => {
     isChameleonEnabled, isKineticEnabled, isSmoothCaret,
     isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled,
     isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling,
-    hasPunctuation, hasNumbers, hasCaps, isZenMode, isSettingsLoaded
+    hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isZenMode, isSettingsLoaded
   ])
 
   return (

@@ -39,11 +39,11 @@ import { SUCCESS_MESSAGES, PROGRESSION, STORAGE_KEYS } from '../../constants'
 import { deleteUserData } from '../../utils/supabase'
 import { LoadingSpinner, KeyboardShortcutsModal, Tooltip } from '../Common'
 import CommandPalette from '../CommandPalette/CommandPalette'
+import ChameleonAura from '../Effects/ChameleonAura'
 import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle, BookOpen, Quote, Edit } from 'lucide-react'
 import './AppLayout.css'
 
 // Lazy load views for code splitting
-const HistoryView = lazy(() => import('../History/HistoryView'))
 const SettingsView = lazy(() => import('../Settings/SettingsView'))
 const DashboardView = lazy(() => import('../Dashboard/DashboardView'))
 const LeaderboardView = lazy(() => import('../Leaderboard/LeaderboardView'))
@@ -430,36 +430,9 @@ const AppLayout = ({ addToast }) => {
 
       <div className="main-viewport">
         {/* Chameleon Ambient Aura & Fire Effect (Centered behind content) */}
-        {isTestRunning && isChameleonEnabled && (
-          <div className="chameleon-aura-layer">
-            {/* Ground Heat Base */}
-            <div className="chameleon-fire-base" />
-
-            {/* Real Full-Width Fire (Mellow slow flames) */}
-            {[...Array(16)].map((_, i) => (
-              <motion.div 
-                key={i}
-                className="chameleon-flame-tongue"
-                animate={{ 
-                  opacity: heat > 0.3 ? (heat - 0.3) * 0.6 : 0, 
-                  height: [`${2 + (heat * 15)}%`, `${5 + (heat * 25)}%`, `${3 + (heat * 18)}%`],
-                  scaleX: [1, 1.05, 0.98, 1],
-                  translateX: [`${(i/16 * 100) - 2}%`, `${(i/16 * 100) + 1}%`, `${(i/16 * 100) - 2}%`]
-                }}
-                transition={{ 
-                  height: { duration: 1.5 + (Math.random() * 1), repeat: Infinity, ease: "easeInOut" },
-                  scaleX: { duration: 2 + (Math.random() * 1), repeat: Infinity, ease: "easeInOut" },
-                  translateX: { duration: 3 + (Math.random() * 2), repeat: Infinity, ease: "easeInOut" },
-                  opacity: { duration: 0.5 }
-                }}
-                style={{
-                  left: `${(i / 16) * 100}%`,
-                  background: `linear-gradient(to top, rgba(var(--main-color-rgb), 0.45) 0%, rgba(var(--main-color-rgb), 0.15) 60%, transparent)`
-                }}
-              />
-            ))}
-          </div>
-        )}
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+           <ChameleonAura heat={heat} isEnabled={isTestRunning && isChameleonEnabled} />
+        </div>
         {!isOverlayActive && (
           <Header
             testStarted={!!startTime && !isFinished}

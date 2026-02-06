@@ -96,9 +96,56 @@ const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const ATTACHABLE_PUNCTUATION = ['.', ',', '!', '?', ';', ':'];
 
 /**
- * Generate a list of words based on configuration
+ * Generate a list of base words (without dynamic modifiers)
  */
-export const generateWords = (count = 50, settings = {}) => {
+export const generateBaseWords = (count = 50, isSentenceMode = false) => {
+  const result = [];
+  let currentWordCount = 0;
+  
+  // Reduced sentence frequency for more standard flow
+  const useSentenceChance = 0.15;
+
+  while (currentWordCount < count) {
+    if (isSentenceMode) {
+      // Sentence Mode: Pick quotes
+      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+      const wordsInSentence = sentence.split(/\s+/);
+      for (const w of wordsInSentence) {
+        if (!w || currentWordCount >= count) break;
+        result.push({ text: w, type: 'quote' }); // Tag as quote
+        currentWordCount++;
+      }
+      if (currentWordCount >= count) break;
+      continue;
+    }
+
+    // Standard Mode
+    // Occasional sentence injection
+    if (Math.random() < useSentenceChance) {
+      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+      const wordsInSentence = sentence.split(/\s+/);
+      for (const w of wordsInSentence) {
+        if (!w || currentWordCount >= count) break;
+        // Strip punctuation/quotes for standard mode base
+        const cleanW = w.replace(/[",]/g, ''); 
+        result.push({ text: cleanW, type: 'quote' });
+        currentWordCount++;
+      }
+      continue;
+    }
+
+    // Random Words
+    let word = ADVANCED_WORDS[Math.floor(Math.random() * ADVANCED_WORDS.length)];
+    result.push({ text: word, type: 'word' });
+    currentWordCount++;
+  }
+  return result;
+};
+
+/**
+ * Apply modifiers (Punc, Caps, Numbers) to base words
+ */
+export const applyModifiers = (baseWords, settings) => {
   const {
     hasPunctuation = false,
     hasNumbers = false,
@@ -106,106 +153,95 @@ export const generateWords = (count = 50, settings = {}) => {
     isSentenceMode = false
   } = settings;
 
-  // Use the standard Monkeytype-style list (mostly lowercase common words)
-  const source = [...ADVANCED_WORDS];
-  
   const result = [];
-  let currentWordCount = 0;
+  
+  // Helper to inject numbers
+  const tryAddNumber = () => {
+    if (hasNumbers && Math.random() > 0.85) {
+       const len = Math.floor(Math.random() * 3) + 1;
+       let numStr = '';
+       for(let i=0; i<len; i++) {
+         numStr += NUMBERS[Math.floor(Math.random() * NUMBERS.length)];
+       }
+       result.push(numStr);
+    }
+  };
 
-  // Reduced sentence frequency for more standard flow
-  // Only use sentences 15% of the time, and NEVER if numbers are enabled (keeps it clean)
-  const useSentenceChance = 0.15; 
+  // State for caps flow
+  let sentenceStart = true;
 
-  while (currentWordCount < count) {
-    // SENTENCE MODE LOGIC: Force coherent sentences or structured random words
-    if (isSentenceMode && !hasNumbers) {
-      // Pick a real sentence
-      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
-      // Always keep punctuation/caps for Sentence Mode (it's "Real" text)
-      const wordsInSentence = sentence.split(/\s+/);
-      
-      for (const w of wordsInSentence) {
-        if (!w || currentWordCount >= count) break;
-        result.push(w);
-        currentWordCount++;
-      }
-      // If we filled the count, stop
-      if (currentWordCount >= count) break;
-      continue;
+  for (let i = 0; i < baseWords.length; i++) {
+    const item = baseWords[i];
+    let word = item.text;
+    const isQuote = item.type === 'quote';
+
+    // 1. Handling Quote Words (Sentence Mode or Injected)
+    if (isQuote) {
+       // If Quote, apply settings (Stripping/Lowercasing)
+       if (!hasCaps) {
+         word = word.toLowerCase();
+       }
+       // If standard mode, we might want to strip all punc if hasPunctuation is false
+       // If sentence mode, we might respect the quote's punc unless explicitly disabled
+       if (!hasPunctuation) {
+          word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/\s{2,}/g, " ");
+       }
+       
+       result.push(word);
+       
+       // Handle number injection (User requested numbers allowed in sentence mode)
+       tryAddNumber();
+       
+       // Update sentence state based on THIS word's punc (for next word if mixed)
+       const lastChar = word.slice(-1);
+       sentenceStart = ['.', '!', '?'].includes(lastChar);
+       continue;
     }
 
-    // ... standard logic ...
-    const isFirstInTest = result.length === 0;
-
-    // OPTIONAL: Inject a coherent sentence occasionally for variety (Standard Mode)
-    if (!isSentenceMode && !hasNumbers && Math.random() < useSentenceChance) {
-      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
-      // Remove trailing punctuation from sentence if punctuation mode is OFF, 
-      // otherwise keep it naturally.
-      let cleanSentence = sentence;
-      if (!hasPunctuation) {
-        cleanSentence = sentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/\s{2,}/g, " ");
-      }
-      
-      if (!hasCaps) {
-        cleanSentence = cleanSentence.toLowerCase();
-      }
-
-      const wordsInSentence = cleanSentence.split(/\s+/);
-      
-      for (const w of wordsInSentence) {
-        if (!w || currentWordCount >= count) break;
-        result.push(w);
-        currentWordCount++;
-      }
-      continue;
-    }
-
-    // STANDARD RANDOM WORD GENERATION
+    // 2. Handling Standard Random Words
     
-    // 1. Numbers Mode
-    if (hasNumbers && !isFirstInTest && Math.random() > 0.85) {
-      // Generate a random number string (1-3 digits) for realistic number typing
-      const len = Math.floor(Math.random() * 3) + 1;
-      let numStr = '';
-      for(let i=0; i<len; i++) {
-        numStr += NUMBERS[Math.floor(Math.random() * NUMBERS.length)];
-      }
-      result.push(numStr);
-      currentWordCount++;
-      continue;
-    }
+    // Numbers injection
+    tryAddNumber();
 
-    // 2. Standard Word
-    let word = source[Math.floor(Math.random() * source.length)];
-
-    // 3. Apply Modifiers (Only if not in Sentence Mode, or if mixing)
+    // Caps Logic
+    let shouldCap = false;
     if (hasCaps) {
-      // Capitalize first letter randomly
-      if (Math.random() > 0.8 || isFirstInTest) {
-        word = word.charAt(0).toUpperCase() + word.slice(1);
-      }
+       if (hasPunctuation) {
+         // Strict Flow
+         shouldCap = sentenceStart;
+       } else {
+         // Random Caps
+         shouldCap = Math.random() > 0.8 || i === 0;
+       }
     }
 
-    if (hasPunctuation && !isFirstInTest && Math.random() > 0.85) {
+    if (shouldCap) {
+      word = word.charAt(0).toUpperCase() + word.slice(1);
+    } else if (!hasCaps) {
+      word = word.toLowerCase();
+    }
+
+    // Punctuation Logic
+    if (hasPunctuation && Math.random() > 0.85) {
       const punc = ATTACHABLE_PUNCTUATION[Math.floor(Math.random() * ATTACHABLE_PUNCTUATION.length)];
       word = word + punc;
+      
+      if (['.', '!', '?'].includes(punc)) {
+         sentenceStart = true;
+      } else {
+         sentenceStart = false; 
+      }
+    } else {
+       sentenceStart = false; 
     }
 
     result.push(word);
-    currentWordCount++;
-  }
-
-  // Ensure no immediate repeats
-  for (let i = 1; i < result.length; i++) {
-    if (result[i] === result[i-1]) {
-      let newWord;
-      do {
-        newWord = source[Math.floor(Math.random() * source.length)];
-      } while (newWord === result[i-1]);
-      result[i] = newWord;
-    }
   }
 
   return result;
+};
+
+export const generateWords = (count = 50, settings = {}) => {
+  const base = generateBaseWords(count, settings.isSentenceMode);
+  return applyModifiers(base, settings);
 };

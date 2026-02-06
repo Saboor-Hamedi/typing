@@ -18,6 +18,7 @@ export const useChameleonFlow = (liveWpm, pb, isActive, isEnabled) => {
   const [heat, setHeat] = useState(0)
   const rafIdRef = useRef(null)
   const lastUpdateRef = useRef(0)
+  const lastColorRef = useRef('')
 
   /**
    * Update color with RAF throttling
@@ -52,8 +53,13 @@ export const useChameleonFlow = (liveWpm, pb, isActive, isEnabled) => {
     
     // Update CSS variable on both html and body for maximum override dominance
     const colorStr = interpolatedColor.join(', ')
-    document.documentElement.style.setProperty('--main-color-rgb', colorStr)
-    document.body.style.setProperty('--main-color-rgb', colorStr)
+    
+    // Optimization: Skip DOM update if color hasn't changed
+    if (lastColorRef.current !== colorStr) {
+      document.documentElement.style.setProperty('--main-color-rgb', colorStr)
+      document.body.style.setProperty('--main-color-rgb', colorStr)
+      lastColorRef.current = colorStr
+    }
     
     lastUpdateRef.current = performance.now()
   }), [theme, pb, isEnabled, isActive, liveWpm])

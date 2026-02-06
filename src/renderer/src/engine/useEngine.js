@@ -34,7 +34,7 @@
  * ```
  */
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
-import { generateWords } from '../utils/words';
+import { generateWords, generateBaseWords, applyModifiers } from '../utils/words';
 import { soundEngine } from '../utils/SoundEngine';
 import { supabase } from '../utils/supabase';
 import { useGhostRacing } from '../hooks/useGhostRacing';
@@ -44,6 +44,7 @@ import { CircularBuffer } from '../utils/helpers';
 
 export function useEngine(testMode, testLimit) {
   const [words, setWords] = useState([]);
+  const [baseWords, setBaseWords] = useState([]);
   const [userInput, setUserInput] = useState('');
   const [startTime, setStartTime] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
@@ -254,7 +255,8 @@ export function useEngine(testMode, testLimit) {
   }, []);
 
 
-  const resetGame = useCallback(() => {
+  const resetGame = useCallback((options = {}) => {
+    console.log('resetGame called', options); 
     stopTimer();
 
     if (typingTimeoutRef.current) {
@@ -265,7 +267,17 @@ export function useEngine(testMode, testLimit) {
     const wordCount = testMode === 'words' ? testLimit : 50;
     
     try {
-      setWords(generateWords(wordCount, {
+      // Logic for preserving base words on modifier toggle
+      // If options.keepBase is true, reuse existing baseWords
+      const keepBase = options.keepBase === true && baseWords.length > 0;
+      let currentBase = baseWords;
+
+      if (!keepBase) {
+        currentBase = generateBaseWords(wordCount, isSentenceMode);
+        setBaseWords(currentBase);
+      }
+
+      setWords(applyModifiers(currentBase, {
         hasPunctuation,
         hasNumbers,
         hasCaps,
@@ -312,13 +324,15 @@ export function useEngine(testMode, testLimit) {
 
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 400);
-  }, [testMode, testLimit, stopTimer, hasPunctuation, hasNumbers, hasCaps, isSentenceMode]);
+  }, [testMode, testLimit, stopTimer, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, baseWords]);
 
   const latestUserInputRef = useRef('');
 
   useEffect(() => {
     latestUserInputRef.current = userInput;
   }, [userInput]);
+
+  const prevConfigRef = useRef({ testMode, testLimit, isSentenceMode });
 
   useEffect(() => {
     // HARDENED AUTO-RESET
@@ -330,14 +344,28 @@ export function useEngine(testMode, testLimit) {
     // 2. Guard: Test must NOT be running (startTime must be null)
     if (startTimeRef.current !== null) return;
 
-    // 3. Guard: User input must be empty (prevent reset on backspace-to-empty or initial keystroke race)
-    if (latestUserInputRef.current !== '') return;
+    // 3. Guard: User input must be empty
+    if (latestUserInputRef.current !== '') {
+      return;
+    }
 
     // 4. Guard: Replay/Finished states
     if (isFinished || isReplaying) return;
 
-    console.log('Safe Auto-reset triggered');
-    resetGame();
+    const prev = prevConfigRef.current;
+    // Structural changes that require new base words:
+    // - Mode change (Time vs Words)
+    // - Limit change (Word count needs to match)
+    // - Sentence Mode change (Source material changes from Random to Quotes)
+    const isStructuralChange = 
+      prev.testMode !== testMode || 
+      prev.testLimit !== testLimit ||
+      prev.isSentenceMode !== isSentenceMode;
+
+    prevConfigRef.current = { testMode, testLimit, isSentenceMode };
+
+    console.log('Safe Auto-reset triggered. Deps:', { testMode, testLimit, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isStructuralChange });
+    resetGame({ keepBase: !isStructuralChange });
   }, [
     isSettingsLoaded, 
     testMode, 
@@ -346,8 +374,6 @@ export function useEngine(testMode, testLimit) {
     hasNumbers, 
     hasCaps,
     isSentenceMode
-    // Explicitly EXCLUDE resetGame to prevent identity-change triggers
-    // EXCLUDE userInput to prevent typing triggers
   ]);
 
   const handleInput = useCallback((e) => {
