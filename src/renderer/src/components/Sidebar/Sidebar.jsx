@@ -11,6 +11,7 @@ const Sidebar = memo(({
   isZenMode,
   onNotification,
   selectedAvatarId,
+  currentLevel,
   isLoggedIn,
   onProfileClick
 }) => {
@@ -135,6 +136,11 @@ const Sidebar = memo(({
                size={34}
                className="profile-img-sidebar" 
              />
+             {currentLevel !== undefined && (
+               <div className="sidebar-level-badge">
+                 {currentLevel}
+               </div>
+             )}
              {/* Fallback icon if image fails */}
              <Settings size={20} className="fallback-icon" style={{position:'absolute', zIndex:-1}}/> 
           </div>

@@ -43,6 +43,29 @@
   border-color: var(--main-color);
 }
 
+.sidebar-level-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: var(--main-color);
+  color: var(--bg-color);
+  font-size: 0.65rem;
+  font-weight: 900;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 4px; /* Squarish but rounded for robustness */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  border: 1px solid var(--bg-color);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 10;
+  pointer-events: none;
+  font-family: var(--font-family);
+  user-select: none;
+}
+
 
 @media (max-width: 768px) {
   .main-sidebar {

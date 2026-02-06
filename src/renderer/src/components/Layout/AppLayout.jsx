@@ -304,6 +304,13 @@ const AppLayout = ({ addToast }) => {
         return
       }
 
+      // Ctrl/Cmd + Shift + R: Reload Window
+      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault()
+        window.location.reload()
+        return
+      }
+
       // Ctrl/Cmd + ,: Open settings
       if (ctrlKey && e.key === ',') {
         e.preventDefault()
@@ -386,8 +393,8 @@ const AppLayout = ({ addToast }) => {
     { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, type: 'command', onSelect: () => setActiveTab('dashboard') },
     { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', type: 'command', onSelect: () => setIsThemeModalOpen(true) },
     { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', onSelect: () => setActiveTab('settings') },
-    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', onSelect: () => setActiveTab('settings') },
     { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', type: 'command', onSelect: () => setIsShortcutsModalOpen(true) },
+    { id: 'reload-window', label: 'Reload Window', icon: <RefreshCw size={18} />, shortcut: 'Ctrl+Shift+R', type: 'command', onSelect: () => window.location.reload() },
     { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => handleLogout() },
     isLoggedIn 
       ? { id: 'logout', label: 'Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => toggleLogoutModal(true) }
@@ -431,6 +438,7 @@ const AppLayout = ({ addToast }) => {
         isZenMode={isZenMode}
         onNotification={addToast}
         selectedAvatarId={selectedAvatarId}
+        currentLevel={currentLevel}
         isLoggedIn={isLoggedIn}
         onProfileClick={() => {
           if (isLoggedIn) {
