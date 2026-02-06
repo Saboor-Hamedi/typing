@@ -137,15 +137,13 @@ const TypingEngine = ({
   testMode, 
   testLimit, 
   isSmoothCaret, 
-  isOverlayActive,
-  onEditSentence
+  isOverlayActive
 }) => {
   const { 
     isSmoothCaret: ctxSmoothCaret, 
     caretStyle, 
     isErrorFeedbackEnabled,
-    isKineticEnabled,
-    difficulty 
+    isKineticEnabled
   } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   
@@ -224,47 +222,11 @@ const TypingEngine = ({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
             >
-              <span>{engine.wordProgress.typed}</span><span className="remaining">/{engine.wordProgress.remaining}</span>
+              <span>{engine.wordProgress.typed}</span><span className="remaining">/{engine.wordProgress.total}</span>
             </motion.div>
           )}
           
-          {/* Quick Edit Button for Custom/Advanced modes */}
-          {!isFinished && ['custom', 'intermediate', 'advanced'].includes(difficulty) && onEditSentence && (
-            <motion.button
-              key="edit-btn"
-              className="quick-edit-btn"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              whileHover={{ opacity: 1, scale: 1.1 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                // Join words to reconstruct the sentence.
-                // Note: This might include modifications (caps/punc) from the engine.
-                // The modal will try to match this against the dictionary.
-                onEditSentence(words.join(' '));
-              }}
-              title="Edit this sentence"
-              style={{
-                position: 'absolute',
-                top: '0.5rem',
-                right: '1rem',
-                background: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: '6px',
-                border: '1px solid var(--sub-alt-color)',
-                color: 'var(--sub-color)',
-                cursor: 'pointer',
-                padding: '0.4rem 0.8rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                zIndex: 50,
-                backdropFilter: 'blur(4px)'
-              }}
-            >
-               <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Edit</span>
-               <Edit2 size={14} />
-            </motion.button>
-          )}
+
         </AnimatePresence>
         {!isFinished ? (
           <>

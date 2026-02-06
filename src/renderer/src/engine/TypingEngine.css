@@ -29,8 +29,8 @@
 /* Unified font size to prevent jumping, with subtle adjustments if needed */
 .typing-container.words-mode,
 .typing-container.time-mode {
-  font-size: 1.5rem;
-  max-height: 32rem;
+  font-size: 2rem; /* Increased size to match Monkeytype default */
+  max-height: 40rem;
 }
 
 /* Allow expansion for results */
@@ -50,7 +50,7 @@
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 0 0; 
-  line-height: 1.5;
+  line-height: 1.6; /* Increased line height for better spacing */
   user-select: none;
   padding: 1rem 0; 
   min-height: fit-content;
@@ -58,7 +58,7 @@
 
 /* Inherit unified font size */
 .word-wrapper {
-  font-size: 1.5rem;
+  font-size: 2rem; /* Sync with container */
   transition: font-size 0.3s ease-in-out;
 }
 

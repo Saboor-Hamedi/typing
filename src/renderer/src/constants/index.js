@@ -59,9 +59,9 @@ export const UI = {
   // High stiffness = very fast response, still smooth
   // Balanced damping = controlled, minimal oscillation
   // Low mass = light, snappy movement
-  CARET_STIFFNESS_SMOOTH: 200,
-  CARET_DAMPING_SMOOTH: 40,
-  CARET_MASS_SMOOTH: 1.5,
+  CARET_STIFFNESS_SMOOTH: 300,
+  CARET_DAMPING_SMOOTH: 35,
+  CARET_MASS_SMOOTH: 1.0,
 
   // Caret animation stiffness (instant mode)
   CARET_STIFFNESS_INSTANT: 1000,
@@ -96,9 +96,7 @@ export const GAME = {
   TIME_LIMITS: [15, 30, 60],
   WORD_LIMITS: [10, 25, 50],
   
-  // Difficulty and Word Lists
-  DIFFICULTIES: ['beginner', 'intermediate', 'advanced', 'custom'],
-  DEFAULT_DIFFICULTY: 'beginner',
+
   
   // Modifiers
   MODIFIERS: {
@@ -241,7 +239,7 @@ export const STORAGE_KEYS = {
   SMOOTH_CARET: 'isSmoothCaret',
   SOUND_PROFILE: 'soundProfile',
   CENTERED_SCROLLING: 'isCenteredScrolling',
-  DIFFICULTY: 'difficulty',
+
   HAS_PUNCTUATION: 'hasPunctuation',
   HAS_NUMBERS: 'hasNumbers',
   HAS_CAPS: 'hasCaps',
@@ -263,12 +261,12 @@ export const STORAGE_KEYS = {
     HALL_EFFECT: 'isHallEffect',
     SOUND_PROFILE: 'soundProfile',
     CENTERED_SCROLLING: 'isCenteredScrolling',
-    DIFFICULTY: 'difficulty',
+
     HAS_PUNCTUATION: 'hasPunctuation',
     HAS_NUMBERS: 'hasNumbers',
     HAS_CAPS: 'hasCaps',
     GHOST_SPEED: 'ghostSpeed',
-    CUSTOM_SENTENCES: 'content',
+
   },
 
   // Electron store keys (data.json)

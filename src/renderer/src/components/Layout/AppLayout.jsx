@@ -27,7 +27,6 @@ import ConfigBar from '../Header/ConfigBar'
 import TypingEngine from '../../engine/TypingEngine'
 import ThemeModal from '../Modals/ThemeModal'
 import LoginModal from '../Modals/LoginModal'
-import CustomContentModal from '../Modals/CustomContentModal'
 import ConfirmationModal from '../Modals/ConfirmationModal'
 import { useEngine } from '../../engine/useEngine'
 import { useAccountManager } from '../../hooks/useAccountManager'
@@ -77,10 +76,7 @@ const AppLayout = ({ addToast }) => {
     caretStyle,
     setCaretStyle,
     isErrorFeedbackEnabled,
-    setIsErrorFeedbackEnabled,
-    difficulty,
-    setDifficulty,
-    dictionary // Exposed dictionary for search
+    setIsErrorFeedbackEnabled
   } = useSettings()
   
   const { 
@@ -104,22 +100,10 @@ const AppLayout = ({ addToast }) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false)
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false)
-  const [isContentModalOpen, setIsContentModalOpen] = useState(false)
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isCapsLockOn, setIsCapsLockOn] = useState(false)
-  const [editingSentence, setEditingSentence] = useState(null)
   const [paletteInitialQuery, setPaletteInitialQuery] = useState('')
-
-  const handleEditSentence = (text) => {
-      setEditingSentence(text)
-      setIsContentModalOpen(true)
-  }
-
-  const closeContentModal = () => {
-      setIsContentModalOpen(false)
-      setEditingSentence(null)
-  }
 
   // Engine hook
   const engine = useEngine(testMode, testLimit)
@@ -274,7 +258,7 @@ const AppLayout = ({ addToast }) => {
   }, [])
 
   // Detect if any modal/overlay is currently active
-  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen || isCommandPaletteOpen || isContentModalOpen
+  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen || isCommandPaletteOpen
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -297,11 +281,10 @@ const AppLayout = ({ addToast }) => {
         if (isClearDataModalOpen) setIsClearDataModalOpen(false)
         if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
         if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
-        if (isContentModalOpen) setIsContentModalOpen(false)
       }
 
       // Don't intercept if a modal is open (except shortcuts modal and command palette)
-      if (isOverlayActive && !isShortcutsModalOpen && !isCommandPaletteOpen && !isContentModalOpen) return
+      if (isOverlayActive && !isShortcutsModalOpen && !isCommandPaletteOpen) return
 
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
       const ctrlKey = isMac ? e.metaKey : e.ctrlKey
@@ -336,7 +319,7 @@ const AppLayout = ({ addToast }) => {
         if (e.shiftKey) {
            setPaletteInitialQuery('>') // Command Mode
         } else {
-           setPaletteInitialQuery('') // Content Mode
+           setPaletteInitialQuery('') // Command Mode default (Content mode removed)
         }
         setIsCommandPaletteOpen(prev => !prev)
         return
@@ -352,7 +335,7 @@ const AppLayout = ({ addToast }) => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOverlayActive, isThemeModalOpen, isLoginModalOpen, isLogoutModalOpen, isClearDataModalOpen, isShortcutsModalOpen, isCommandPaletteOpen, isContentModalOpen, engine])
+  }, [isOverlayActive, isThemeModalOpen, isLoginModalOpen, isLogoutModalOpen, isClearDataModalOpen, isShortcutsModalOpen, isCommandPaletteOpen, engine])
 
   // Display value for header
   const displayValue = (() => {
@@ -362,27 +345,6 @@ const AppLayout = ({ addToast }) => {
   })()
 
   // Define Command Palette Actions
-  // 1. Content Actions (Type this text) - Visible in default mode
-  const contentActions = (dictionary?.content || []).map((text, idx) => ({
-    id: `content-${idx}`,
-    label: text.length > 50 ? text.slice(0, 50) + '...' : text,
-    icon: <Quote size={18} />,
-    type: 'content',
-    onSelect: () => {
-        setActiveTab('typing')
-        if (difficulty !== 'custom') setDifficulty('custom')
-        engine.loadCustomText(text)
-    }
-  }))
-
-  // 2. Edit Actions (Edit this text) - Visible in Command Mode (>)
-  const editActions = (dictionary?.content || []).map((text, idx) => ({
-    id: `edit-${idx}`,
-    label: `Edit: "${text.length > 30 ? text.slice(0, 30) + '...' : text}"`,
-    icon: <Edit size={18} />,
-    type: 'command',
-    onSelect: () => handleEditSentence(text)
-  }))
 
   const commandPaletteActions = [
     { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', type: 'command', onSelect: () => engine.resetGame() },
@@ -411,11 +373,7 @@ const AppLayout = ({ addToast }) => {
     { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, type: 'command', onSelect: () => setActiveTab('dashboard') },
     { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', type: 'command', onSelect: () => setIsThemeModalOpen(true) },
     { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', onSelect: () => setActiveTab('settings') },
-    { id: 'custom-content', label: 'Custom Content', icon: <BookOpen size={18} />, type: 'command', onSelect: () => setIsContentModalOpen(true) },
-    // Add custom content actions
-    ...contentActions,
-    // Add edit actions (only visible in command mode)
-    ...editActions,
+    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', onSelect: () => setActiveTab('settings') },
     { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', type: 'command', onSelect: () => setIsShortcutsModalOpen(true) },
     { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => handleLogout() },
     isLoggedIn 
@@ -514,7 +472,6 @@ const AppLayout = ({ addToast }) => {
             onNavigateDashboard={() => setActiveTab('dashboard')}
             liveWpm={liveWpm}
             openThemeModal={() => toggleThemeModal(true)}
-            openContentModal={() => setIsContentModalOpen(true)}
           />
         )}
 
@@ -538,7 +495,6 @@ const AppLayout = ({ addToast }) => {
                     testLimit={testLimit}
                     isSmoothCaret={isSmoothCaret}
                     isOverlayActive={isOverlayActive}
-                    onEditSentence={handleEditSentence}
                   />
                 ) : activeTab === 'history' ? (
                   <HistoryView data={mergedHistory} />
@@ -546,7 +502,6 @@ const AppLayout = ({ addToast }) => {
                   <SettingsView
                     onClearHistory={() => toggleClearModal(true)}
                     openThemeModal={() => toggleThemeModal(true)}
-                    openContentModal={() => setIsContentModalOpen(true)}
                   />
                 ) : activeTab === 'dashboard' ? (
                   <DashboardView
@@ -648,11 +603,7 @@ const AppLayout = ({ addToast }) => {
         onLogin={() => toggleLoginModal(false)}
       />
 
-      <CustomContentModal
-        isOpen={isContentModalOpen}
-        onClose={closeContentModal}
-        editingSentence={editingSentence}
-      />
+
 
       <ConfirmationModal
         isOpen={isLogoutModalOpen}

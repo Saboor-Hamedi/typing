@@ -1,179 +1,190 @@
 /**
  * words.js
  * 
- * Robust word generation system with difficulty-based tiers 
- * and complexity modifiers (punctuation, numbers, caps).
+ * Standardized word lists inspired by top typing apps (Monkeytype).
+ * Contains common English words for optimal flow and rhythm.
  */
 
-const BEGINNER_WORDS = [
-  'the', 'be', 'to', 'of', 'and', 'in', 'that', 'have', 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
-  'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there',
-  'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know',
-  'take', 'person', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think',
-  'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'exclusive', 'any', 'these', 'give', 'day', 'most', 'us'
-];
-
-const INTERMEDIATE_WORDS = [
-  'people', 'should', 'public', 'system', 'through', 'school', 'against', 'government', 'become', 'between', 'another', 'student', 'program', 'problem', 'however', 'without', 
-  'business', 'company', 'during', 'present', 'without', 'under', 'general', 'interest', 'against', 'follow', 'around', 'possible', 'house', 'again', 'problem', 'state', 'point',
-  'child', 'world', 'school', 'still', 'must', 'last', 'mean', 'keep', 'leave', 'right', 'write', 'place', 'under', 'where', 'after', 'never', 'while', 'family', 'group', 'always',
-  'large', 'number', 'often', 'enough', 'second', 'follow', 'until', 'social', 'called', 'think', 'around', 'small', 'every', 'found', 'might', 'night', 'least', 'better', 'water',
-  'called', 'white', 'almost', 'young', 'though', 'things', 'public', 'others', 'within', 'around', 'looked', 'course', 'system', 'better', 'during', 'another', 'second', 'rather'
-];
-
+// Top 200-1000 common English words for a balanced "Advanced" experience
 const ADVANCED_WORDS = [
-  'experience', 'everything', 'knowledge', 'understand', 'information', 'development', 'opportunity', 'performance', 'probability', 'relationship', 'environment', 
-  'consciousness', 'experimental', 'architecture', 'intelligence', 'perspective', 'celebration', 'significant', 'professional', 'improvement', 'possibility', 'infrastructure',
-  'administrative', 'characteristic', 'communication', 'comprehensive', 'consideration', 'construction', 'contribution', 'demonstration', 'distribution', 'effectiveness',
-  'entertainment', 'international', 'introduction', 'investigation', 'manufacturer', 'neighborhood', 'organization', 'participation', 'philosophical', 'psychological',
-  'recommendation', 'relationship', 'representative', 'satisfaction', 'transformation', 'understanding', 'university', 'alternative', 'application', 'assignment', 
-  'assistance', 'assumption', 'background', 'collection', 'commission', 'comparison', 'completely', 'conclusion', 'conference', 'connection', 'consequent', 'consistent',
-  'definition', 'department', 'difference', 'difficulty', 'discussion', 'expression', 'foundation', 'generation', 'historical', 'hypothesis', 'importance', 'impossible',
-  'individual', 'industrial', 'instrument', 'investment', 'management', 'membership', 'percentage', 'population', 'possession', 'preference', 'production', 'profession',
-  'protection', 'reasonable', 'reflection', 'resolution', 'scientific', 'television', 'temperature', 'tradition', 'transition'
+  'the', 'be', 'of', 'and', 'a', 'to', 'in', 'he', 'have', 'it', 'that', 'for', 'they', 'with', 'as', 'not', 'on', 'she', 'at', 'by', 
+  'this', 'we', 'you', 'do', 'but', 'from', 'or', 'which', 'one', 'would', 'all', 'will', 'there', 'say', 'who', 'make', 'when', 'can', 
+  'more', 'if', 'no', 'man', 'out', 'other', 'so', 'what', 'time', 'up', 'go', 'about', 'than', 'into', 'could', 'state', 'only', 'new', 
+  'year', 'some', 'take', 'come', 'these', 'know', 'see', 'use', 'get', 'like', 'then', 'first', 'any', 'work', 'now', 'may', 'such', 
+  'give', 'over', 'think', 'most', 'even', 'find', 'day', 'also', 'after', 'way', 'many', 'must', 'look', 'before', 'great', 'back', 
+  'through', 'long', 'where', 'much', 'should', 'well', 'people', 'down', 'own', 'just', 'because', 'good', 'each', 'those', 'feel', 
+  'seem', 'how', 'high', 'too', 'place', 'little', 'world', 'very', 'still', 'nation', 'hand', 'old', 'life', 'tell', 'write', 'become', 
+  'here', 'show', 'house', 'both', 'between', 'need', 'mean', 'call', 'develop', 'under', 'last', 'right', 'move', 'thing', 'general', 
+  'school', 'never', 'same', 'another', 'begin', 'while', 'number', 'part', 'turn', 'real', 'leave', 'might', 'want', 'point', 'form', 
+  'off', 'child', 'few', 'small', 'since', 'against', 'ask', 'late', 'home', 'interest', 'large', 'person', 'end', 'open', 'public', 
+  'follow', 'during', 'present', 'without', 'again', 'hold', 'govern', 'around', 'possible', 'head', 'consider', 'word', 'program', 
+  'problem', 'however', 'lead', 'system', 'set', 'order', 'eye', 'plan', 'run', 'keep', 'face', 'fact', 'group', 'play', 'stand', 
+  'increase', 'early', 'course', 'change', 'help', 'line', 'city', 'put', 'close', 'case', 'force', 'meet', 'once', 'water', 'upon', 
+  'war', 'build', 'hear', 'light', 'unite', 'live', 'every', 'country', 'bring', 'center', 'let', 'side', 'try', 'provide', 'continue', 
+  'name', 'certain', 'power', 'pay', 'result', 'question', 'study', 'woman', 'member', 'until', 'far', 'night', 'always', 'service', 
+  'away', 'report', 'something', 'company', 'week', 'church', 'toward', 'start', 'social', 'room', 'figure', 'nature', 'though', 'young', 
+  'less', 'enough', 'almost', 'read', 'include', 'president', 'nothing', 'yet', 'better', 'big', 'boy', 'cost', 'business', 'value', 
+  'second', 'why', 'clear', 'expect', 'family', 'complete', 'act', 'sense', 'mind', 'experience', 'art', 'next', 'near', 'direct', 
+  'car', 'law', 'industry', 'important', 'girl', 'god', 'several', 'matter', 'usual', 'rather', 'per', 'often', 'kind', 'among', 
+  'white', 'reason', 'action', 'return', 'foot', 'care', 'simple', 'within', 'love', 'human', 'along', 'appear', 'doctor', 'believe', 
+  'speak', 'active', 'student', 'month', 'drive', 'concern', 'best', 'door', 'hope', 'example', 'inform', 'body', 'ever', 'least', 
+  'probable', 'understand', 'reach', 'effect', 'different', 'idea', 'whole', 'control', 'condition', 'field', 'pass', 'fall', 'note', 
+  'special', 'talk', 'particular', 'today', 'measure', 'walk', 'teach', 'low', 'hour', 'type', 'carry', 'rate', 'remain', 'full', 
+  'street', 'easy', 'although', 'record', 'sit', 'determine', 'level', 'local', 'sure', 'receive', 'thus', 'moment', 'spirit', 'train', 
+  'college', 'religion', 'perhaps', 'music', 'grow', 'free', 'cause', 'serve', 'age', 'book', 'board', 'recent', 'sound', 'office', 
+  'cut', 'step', 'class', 'true', 'history', 'position', 'above', 'strong', 'friend', 'necessary', 'add', 'court', 'deal', 'tax', 
+  'support', 'party', 'whether', 'land', 'occur', 'material', 'happen', 'education', 'death', 'agree', 'arm', 'mother', 'across', 
+  'quite', 'anything', 'town', 'past', 'view', 'society', 'manage', 'answer', 'break', 'organize', 'half', 'fire', 'lose', 'money', 
+  'stop', 'actual', 'already', 'effort', 'wait', 'department', 'able', 'political', 'learn', 'voice', 'vote', 'air', 'together', 
+  'shall', 'cover', 'common', 'subject', 'draw', 'short', 'wife', 'treat', 'limit', 'road', 'letter', 'color', 'behind', 'produce', 
+  'send', 'term', 'total', 'university', 'rise', 'century', 'success', 'minute', 'remember', 'purpose', 'test', 'fight', 'watch', 
+  'situation', 'south', 'ago', 'difference', 'stage', 'father', 'table', 'rest', 'bear', 'entire', 'market', 'prepare', 'explain', 
+  'offer', 'plant', 'charge', 'ground', 'west', 'picture', 'hard', 'front', 'lie', 'modern', 'dark', 'surface', 'rule', 'regard', 
+  'dance', 'peace', 'observe', 'future', 'wall', 'farm', 'claim', 'firm', 'operation', 'further', 'pressure', 'property', 'morning', 
+  'amount', 'top', 'outside', 'piece', 'sometimes', 'beauty', 'trade', 'fear', 'demand', 'wonder', 'list', 'accept', 'judge', 'paint', 
+  'mile', 'soon', 'responsible', 'allow', 'secretary', 'heart', 'union', 'slow', 'island', 'enter', 'drink', 'story', 'experiment', 
+  'stay', 'paper', 'space', 'apply', 'decide', 'share', 'desire', 'spend', 'sign', 'therefore', 'various', 'visit', 'supply', 
+  'officer', 'doubt', 'private', 'immediate', 'wish', 'contain', 'feed', 'raise', 'describe', 'ready', 'horse', 'son', 'exist', 
+  'north', 'suggest', 'station', 'effective', 'food', 'deep', 'wide', 'alone', 'character', 'english', 'happy', 'critic', 'unit', 
+  'product', 'respect', 'drop', 'nor', 'fill', 'cold', 'represent', 'sudden', 'basic', 'kill', 'fine', 'trouble', 'mark', 'single', 
+  'press', 'heavy', 'attempt', 'origin', 'standard', 'everything', 'committee', 'moral', 'black', 'red', 'bad', 'earth', 'accord', 
+  'else', 'mere', 'die', 'remark', 'basis', 'various', 'except', 'struggle', 'myself', 'certainly', 'sweet', 'degree', 'landscape', 
+  'market', 'careful', 'element', 'enjoy', 'master', 'past', 'block', 'quick', 'fun', 'crowd', 'write', 'succeed', 'bottom', 'check', 
+  'sun', 'strange', 'news', 'dream', 'skill', 'search', 'pain', 'laugh', 'finger', 'edge', 'miss', 'connect', 'listen', 'fail', 
+  'clean', 'please', 'vision', 'variety', 'teacher', 'trust', 'stone', 'surprise', 'handle', 'climb', 'breath', 'arrange', 'busy', 
+  'match', 'seed', 'tone', 'radio', 'beam', 'game', 'planet', 'track', 'noise', 'level', 'safe', 'gather', 'sharp', 'suit', 
+  'salt', 'nose', 'river', 'brain', 'shop', 'camp', 'symbol', 'sight', 'thin', 'soft', 'speak', 'weight', 'language', 'ocean'
 ];
 
-/**
-* Coherent Sentences for Intermediate and Advanced modes 
-* used to make the typing experience feel more human and structured.
-*/
+// Short, punchy sentences for flow (used sparingly or if configured)
 const SENTENCES = [
-  "The only way to do great work is to love what you do.",
-  "Believe you can and you are halfway there.",
-  "Your time is limited, so do not waste it living someone else's life.",
-  "It always seems impossible until it is done.",
-  "Success is not final, failure is not fatal, it is the courage to continue that counts.",
-  "If you can dream it, you can do it.",
-  "Hardships often prepare ordinary people for an extraordinary destiny.",
-  "It does not matter how slowly you go as long as you do not stop.",
-  "Everything you have ever wanted is on the other side of fear.",
-  "The future belongs to those who believe in the beauty of their dreams.",
-  "Strive not to be a success, but rather to be of value.",
-  "You miss one hundred percent of the shots you do not take.",
-  "The best way to predict your future is to create it.",
-  "Do what you can, with what you have, where you are.",
-  "Happiness is not something ready made, it comes from your own actions.",
-  "The only limit to our realization of tomorrow will be our doubts of today.",
-  "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
-  "It is during our darkest moments that we must focus to see the light.",
-  "Change your thoughts and you change your world.",
-  "The purpose of our lives is to be happy.",
-  "Life is what happens when you are busy making other plans.",
-  "Get busy living or get busy dying.",
-  "You only live once, but if you do it right, once is enough.",
-  "Never let the fear of striking out keep you from playing the game.",
-  "Money and success do not change people; they merely amplify what is already there.",
-  "Not how long, but how well you have lived is the main thing.",
-  "If life were predictable it would cease to be life, and be without flavor.",
-  "The whole secret of a successful life is to find out what is one's destiny to do, and then do it.",
-  "In order to write about life first you must live it.",
-  "Innovation distinguishes between a leader and a follower.",
-  "The way to get started is to quit talking and begin doing.",
-  "The greatest glory in living lies not in never falling, but in rising every time we fall.",
-  "If you set your goals ridiculously high and it is a failure, you will fail above everyone else's success.",
-  "Your work is going to fill a large part of your life, and the only way to be truly satisfied is to do what you believe is great work.",
-  "If you look at what you have in life, you will always have more. If you look at what you do not have in life, you will never have enough.",
-  "If you really look closely, most overnight successes took a long time.",
-  "I find that the harder I work, the more luck I seem to have.",
-  "The starting point of all achievement is desire.",
-  "The successful warrior is the average man, with laser-like focus.",
-  "Successful people do what unsuccessful people are not willing to do. Do not wish it were easier; wish you were better."
+  "The quick brown fox jumps over the lazy dog.",
+  "Pack my box with five dozen liquor jugs.",
+  "Sphinx of black quartz, judge my vow.",
+  "To be or not to be, that is the question.",
+  "All the world's a stage, and all the men and women merely players.",
+  "A journey of a thousand miles begins with a single step.",
+  "Knowledge is power.",
+  "Time waits for no one.",
+  "Fortune favors the bold.",
+  "Action speaks louder than words.",
+  "Where there is a will, there is a way.",
+  "Keep your face always toward the sunshine and shadows will fall behind you.",
+  "Be the change that you wish to see in the world.",
+  "In three words I can sum up everything I've learned about life: it goes on.",
+  "If you tell the truth, you don't have to remember anything.",
+  "A friend to all is a friend to none.",
+  "Life differs from the play only in this... it has no plot, all is random, no cause and effect.",
+  "Simplicity is the ultimate sophistication.",
+  "Whatever you are, be a good one.",
+  "If you're going through hell, keep going.",
+  "Every moment is a fresh beginning.",
+  "Change the world by being yourself.",
+  "Die with memories, not dreams.",
+  "Everything you can imagine is real.",
+  "Tough times never last but tough people do.",
+  "Problems are not stop signs, they are guidelines.",
+  "One day the people that didn't believe in you will tell everyone how they met you.",
+  "Impossible is just an opinion.",
+  "Your time is limited, so don't waste it living someone else's life.",
+  "Believe you can and you're halfway there."
 ];
 
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
-// Symbols that can be attached to words
-const ATTACHABLE_PUNCTUATION = ['.', ',', '!', '?', ';', ':', '#', '@'];
+// Symbols that can be attached to words for punctuation mode
+const ATTACHABLE_PUNCTUATION = ['.', ',', '!', '?', ';', ':'];
 
 /**
-* Generate a list of words based on configuration
-*/
+ * Generate a list of words based on configuration
+ */
 export const generateWords = (count = 50, settings = {}) => {
   const {
-    difficulty = 'beginner',
     hasPunctuation = false,
     hasNumbers = false,
     hasCaps = false,
-    content = []
+    isSentenceMode = false
   } = settings;
 
-  // 1. SELECT BASE WORD SOURCE
-  let baseList = [...BEGINNER_WORDS];
-  if (difficulty === 'intermediate') {
-    baseList = [...BEGINNER_WORDS, ...INTERMEDIATE_WORDS];
-  } else if (difficulty === 'advanced') {
-    baseList = [...BEGINNER_WORDS, ...INTERMEDIATE_WORDS, ...ADVANCED_WORDS];
-  }
-
-  // 1b. SPECIAL CASE: CUSTOM DIFFICULTY
-  // If user is in custom mode, we want to type their EXACT sentences in order.
-  if (difficulty === 'custom' && content && content.length > 0) {
-    const result = [];
-    // Pick ONE random sentence from the custom content to avoid loading everything at once
-    const randomIndex = Math.floor(Math.random() * content.length);
-    const sentence = content[randomIndex];
-    const sentenceWords = sentence.trim().split(/\s+/);
-    
-    // Return full sentence content without truncation
-    return sentenceWords;
-  }
-
-  // Final filter to remove single characters from the alpha list for standalone picks
-  const source = baseList.filter(w => w.length > 1);
-
+  // Use the standard Monkeytype-style list (mostly lowercase common words)
+  const source = [...ADVANCED_WORDS];
+  
   const result = [];
   let currentWordCount = 0;
 
-  // 2. BUILD THE LIST
+  // Reduced sentence frequency for more standard flow
+  // Only use sentences 15% of the time, and NEVER if numbers are enabled (keeps it clean)
+  const useSentenceChance = 0.15; 
+
   while (currentWordCount < count) {
+    // SENTENCE MODE LOGIC: Force coherent sentences or structured random words
+    if (isSentenceMode && !hasNumbers) {
+      // Pick a real sentence
+      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+      // Always keep punctuation/caps for Sentence Mode (it's "Real" text)
+      const wordsInSentence = sentence.split(/\s+/);
+      
+      for (const w of wordsInSentence) {
+        if (!w || currentWordCount >= count) break;
+        result.push(w);
+        currentWordCount++;
+      }
+      // If we filled the count, stop
+      if (currentWordCount >= count) break;
+      continue;
+    }
+
+    // ... standard logic ...
     const isFirstInTest = result.length === 0;
 
-    // Use coherent sentences for intermediate/advanced to make it feel human
-    const useSentence = (difficulty === 'intermediate' || difficulty === 'advanced') && Math.random() > 0.4;
-
-    if (useSentence && !hasNumbers) {
-      // Pick ONLY from default SENTENCES pool for standard modes.
-      // Custom content is reserved for Custom mode to avoid mixing.
-      let sentencePool = [...SENTENCES];
+    // OPTIONAL: Inject a coherent sentence occasionally for variety (Standard Mode)
+    if (!isSentenceMode && !hasNumbers && Math.random() < useSentenceChance) {
+      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+      // Remove trailing punctuation from sentence if punctuation mode is OFF, 
+      // otherwise keep it naturally.
+      let cleanSentence = sentence;
+      if (!hasPunctuation) {
+        cleanSentence = sentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/\s{2,}/g, " ");
+      }
       
-      const sentence = sentencePool[Math.floor(Math.random() * sentencePool.length)];
-      const sentenceWords = sentence.trim().split(/\s+/);
-      
-      // Add words from sentence
-      for (const word of sentenceWords) {
-        if (!word) continue;
-        if (currentWordCount >= count) break;
-        
-        let modifiedWord = word;
-        
-        // Always apply modifiers to system sentences in random modes
-        if (hasCaps && (currentWordCount === 0 || Math.random() > 0.9)) {
-          modifiedWord = modifiedWord.charAt(0).toUpperCase() + modifiedWord.slice(1);
-        }
-        if (hasPunctuation && Math.random() > 0.9) {
-          const punc = ATTACHABLE_PUNCTUATION[Math.floor(Math.random() * ATTACHABLE_PUNCTUATION.length)];
-          modifiedWord = modifiedWord + punc;
-        }
+      if (!hasCaps) {
+        cleanSentence = cleanSentence.toLowerCase();
+      }
 
-        result.push(modifiedWord);
+      const wordsInSentence = cleanSentence.split(/\s+/);
+      
+      for (const w of wordsInSentence) {
+        if (!w || currentWordCount >= count) break;
+        result.push(w);
         currentWordCount++;
       }
       continue;
     }
 
-    // FALLBACK TO RANDOM WORDS
-    if (hasNumbers && !isFirstInTest && Math.random() > 0.88) {
-      result.push(NUMBERS[Math.floor(Math.random() * NUMBERS.length)]);
+    // STANDARD RANDOM WORD GENERATION
+    
+    // 1. Numbers Mode
+    if (hasNumbers && !isFirstInTest && Math.random() > 0.85) {
+      // Generate a random number string (1-3 digits) for realistic number typing
+      const len = Math.floor(Math.random() * 3) + 1;
+      let numStr = '';
+      for(let i=0; i<len; i++) {
+        numStr += NUMBERS[Math.floor(Math.random() * NUMBERS.length)];
+      }
+      result.push(numStr);
       currentWordCount++;
       continue;
     }
 
+    // 2. Standard Word
     let word = source[Math.floor(Math.random() * source.length)];
 
+    // 3. Apply Modifiers (Only if not in Sentence Mode, or if mixing)
     if (hasCaps) {
-        if (isFirstInTest || Math.random() > 0.8) {
-            word = word.charAt(0).toUpperCase() + word.slice(1);
-        }
+      // Capitalize first letter randomly
+      if (Math.random() > 0.8 || isFirstInTest) {
+        word = word.charAt(0).toUpperCase() + word.slice(1);
+      }
     }
 
     if (hasPunctuation && !isFirstInTest && Math.random() > 0.85) {
@@ -185,26 +196,13 @@ export const generateWords = (count = 50, settings = {}) => {
     currentWordCount++;
   }
 
-  // 7. FINAL POLISH
-  // Advanced sentence logic: optionally add a period to the very last word if punctuation is on
-  if (hasPunctuation && result.length > 0) {
-    const lastIdx = result.length - 1;
-    if (typeof result[lastIdx] === 'string' && !result[lastIdx].endsWith('.') && !NUMBERS.includes(result[lastIdx])) {
-        result[lastIdx] = result[lastIdx].replace(/[.,!?]$/, '') + '.';
-    }
-  }
-
-  // Final check to ensure no immediate repeats (only for random words)
+  // Ensure no immediate repeats
   for (let i = 1; i < result.length; i++) {
-    if (result[i] === result[i-1] && !NUMBERS.includes(result[i])) {
+    if (result[i] === result[i-1]) {
       let newWord;
       do {
         newWord = source[Math.floor(Math.random() * source.length)];
       } while (newWord === result[i-1]);
-      
-      if (hasCaps && Math.random() > 0.8) {
-          newWord = newWord.charAt(0).toUpperCase() + newWord.slice(1);
-      }
       result[i] = newWord;
     }
   }

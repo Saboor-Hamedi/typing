@@ -68,7 +68,8 @@ export function useEngine(testMode, testLimit) {
   const [isTyping, setIsTyping] = useState(false);
   const [activeLineTop, setActiveLineTop] = useState(0);
   const [isStoreLoaded, setIsStoreLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+
   const typingTimeoutRef = useRef(null);
   const { 
     isGhostEnabled, 
@@ -83,13 +84,28 @@ export function useEngine(testMode, testLimit) {
     setSoundProfile,
     isCenteredScrolling,
     setIsCenteredScrolling,
-    difficulty,
     hasPunctuation,
     hasNumbers,
     hasCaps,
-    dictionary,
+    isSentenceMode,
     isSettingsLoaded
   } = useSettings();
+
+  /* 
+   * CRITICAL: Initialize isLoading state based on settings load status.
+   * prevents "shuffling" by blocking UI until settings are fully applied.
+   */
+  const [isLoading, setIsLoading] = useState(!isSettingsLoaded);
+
+  useEffect(() => {
+    if (!isSettingsLoaded) {
+      setIsLoading(true);
+    } else {
+      const timer = setTimeout(() => setIsLoading(false), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isSettingsLoaded]);
+
   const ghostPos = useGhostRacing(
     isGhostEnabled,
     !!startTime && !isFinished,
@@ -170,9 +186,6 @@ export function useEngine(testMode, testLimit) {
       setResults({ wpm, rawWpm, accuracy, errors, duration: durationSeconds, isNewPb });
       setIsFinished(true);
 
-      const finalKeystrokes = keystrokesRef.current;
-      // ... (Save logic continues using finalKeystrokes if needed)
-
       // Save to local storage
       if (window.api && window.api.data) {
         try {
@@ -188,7 +201,6 @@ export function useEngine(testMode, testLimit) {
           setTestHistory(updatedHistory);
         } catch (storageError) {
           console.error('Failed to save test results locally:', storageError);
-          // Continue - results are still displayed
         }
       }
 
@@ -199,14 +211,7 @@ export function useEngine(testMode, testLimit) {
         if (isOnline) {
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-          if (sessionError) {
-            if (import.meta.env.DEV) {
-              console.warn('Session check failed:', sessionError);
-            }
-            return; // Exit early if session check fails
-          }
-
-          if (session?.user) {
+          if (!sessionError && session?.user) {
             const payload = {
               user_id: session.user.id,
               wpm,
@@ -218,35 +223,27 @@ export function useEngine(testMode, testLimit) {
             const { error: insertError } = await supabase.from('scores').insert(payload);
 
             if (insertError) {
-              // Fallback with different mode format
               const fallbackPayload = {
                 user_id: session.user.id,
                 wpm,
                 accuracy,
                 mode: `${testMode} ${testLimit}`,
               };
-              const { error: fallbackError } = await supabase.from('scores').insert(fallbackPayload);
-
-              if (fallbackError && import.meta.env.DEV) {
-                console.warn('Failed to sync score to cloud:', fallbackError);
-              }
+              await supabase.from('scores').insert(fallbackPayload);
             }
           }
         }
-        // If offline, data is already saved locally - will sync when online
       } catch (syncError) {
-        // Silently fail - data is already saved locally
-        // User experience is not affected
         if (import.meta.env.DEV) {
           console.warn('Cloud sync failed (non-critical):', syncError);
         }
       }
     } catch (error) {
       console.error('Error finishing test:', error);
-      // Still mark as finished and show results even if calculation fails
       setIsFinished(true);
     }
-  }, [startTime, words, stopTimer, testMode, testLimit]);
+  }, [startTime, words, stopTimer, testMode, testLimit, pb]);
+
   const clearAllData = useCallback(async () => {
     if (window.api && window.api.data) {
       await window.api.data.set('pb', 0);
@@ -256,110 +253,29 @@ export function useEngine(testMode, testLimit) {
     }
   }, []);
 
-  const loadCustomText = useCallback((text) => {
-    stopTimer();
-    
-    // Clear all timers and timeouts
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
 
-    // Explicitly clear words first to prevent any merging visuals
-    setWords([]);
-
-    // Calculate new words
-    let generated = text.trim().split(/\s+/);
-    
-    // Limit to 50 words if in Time mode
-    if (testMode === 'time') {
-      generated = generated.slice(0, 50);
-    }
-    
-    // Set new words
-    setWords([...generated]);
-
-    // Reset all state synchronously
-    setUserInput('');
-    setStartTime(null);
-    startTimeRef.current = -1; // LOCK: This protection shield prevents auto-reset from overwriting your selection.
-    // For custom text, we treat it like 'words' mode with no limit display initially or just track elapsed
-    setTimeLeft(null); 
-    setElapsedTime(0);
-    setIsFinished(false);
-    setIsReplaying(false);
-    keystrokesRef.current = [];
-    telemetryBufferRef.current.clear();
-    setTelemetry([]);
-    setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
-    setIsTyping(false);
-
-    // Reset timers
-    if (countdownTimerRef.current) {
-        countdownTimerRef.current.stop();
-        countdownTimerRef.current = null;
-    }
-    if (elapsedTimerRef.current) {
-        elapsedTimerRef.current.reset();
-    } else {
-        // Ensure elapsed timer is ready for the run
-        elapsedTimerRef.current = createElapsedTimer((elapsed) => {
-            setElapsedTime(elapsed);
-        });
-    }
-
-    // Reset caret
-    if (caretRef.current) {
-        caretRef.current.style.transform = 'translate3d(0, 0, 0)';
-    }
-    lastLineTop.current = -1;
-
-    // Scroll to top
-    if (wordContainerRef.current) {
-      wordContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
-    }
-
-    // Focus input
-    requestAnimationFrame(() => {
-      if (inputRef.current) {
-        inputRef.current.value = '';
-        inputRef.current.focus();
-      }
-    });
-
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 300);
-  }, [stopTimer]);
   const resetGame = useCallback(() => {
-    // Robust reset that works online and offline
     stopTimer();
 
-    // Clear all timers and timeouts
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = null;
     }
 
-    // Generate new words with robustness
     const wordCount = testMode === 'words' ? testLimit : 50;
     
-    // Memoize the dictionary content to prevent unnecessary re-runs
-    const sentences = dictionary?.content || [];
-
     try {
       setWords(generateWords(wordCount, {
-        difficulty,
         hasPunctuation,
         hasNumbers,
         hasCaps,
-        content: sentences
+        isSentenceMode
       }));
     } catch (err) {
       console.error('Word generation failed:', err);
       setWords(['system', 'error', 'please', 'check', 'settings']);
     }
 
-    // Reset all state synchronously (no async operations)
     setUserInput('');
     setStartTime(null);
     startTimeRef.current = null;
@@ -373,7 +289,6 @@ export function useEngine(testMode, testLimit) {
     setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
     setIsTyping(false);
 
-    // Reset timers
     if (countdownTimerRef.current) {
       countdownTimerRef.current.reset(testLimit);
     }
@@ -381,36 +296,66 @@ export function useEngine(testMode, testLimit) {
       elapsedTimerRef.current.reset();
     }
 
-    // Reset caret position
     setCaretPos({ left: 0, top: 0 });
     lastLineTop.current = -1;
 
-    // Scroll to top
     if (wordContainerRef.current) {
       wordContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
     }
 
-    // Focus input (works offline)
     requestAnimationFrame(() => {
       if (inputRef.current) {
-        inputRef.current.value = ''; // Ensure input is cleared
+        inputRef.current.value = ''; 
         inputRef.current.focus();
       }
     });
 
-    // Briefly show loader to make transition feel smooth
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 400);
-  }, [testMode, testLimit, stopTimer, difficulty, hasPunctuation, hasNumbers, hasCaps, JSON.stringify(dictionary?.content)]);
+  }, [testMode, testLimit, stopTimer, hasPunctuation, hasNumbers, hasCaps, isSentenceMode]);
+
+  const latestUserInputRef = useRef('');
+
   useEffect(() => {
-    // Only auto-reset if settings are fully settled FROM DISK
-    // and we're not currently in a test or selection lock.
-    if (isSettingsLoaded && startTimeRef.current === null && !isFinished && !isReplaying) {
-      resetGame();
-    }
-  }, [resetGame, isFinished, isReplaying, isSettingsLoaded]);
+    latestUserInputRef.current = userInput;
+  }, [userInput]);
+
+  useEffect(() => {
+    // HARDENED AUTO-RESET
+    // Only resets when core configuration changes AND the user is definitely not typing.
+    
+    // 1. Guard: Settings must be loaded
+    if (!isSettingsLoaded) return;
+
+    // 2. Guard: Test must NOT be running (startTime must be null)
+    if (startTimeRef.current !== null) return;
+
+    // 3. Guard: User input must be empty (prevent reset on backspace-to-empty or initial keystroke race)
+    if (latestUserInputRef.current !== '') return;
+
+    // 4. Guard: Replay/Finished states
+    if (isFinished || isReplaying) return;
+
+    console.log('Safe Auto-reset triggered');
+    resetGame();
+  }, [
+    isSettingsLoaded, 
+    testMode, 
+    testLimit, 
+    hasPunctuation, 
+    hasNumbers, 
+    hasCaps,
+    isSentenceMode
+    // Explicitly EXCLUDE resetGame to prevent identity-change triggers
+    // EXCLUDE userInput to prevent typing triggers
+  ]);
+
   const handleInput = useCallback((e) => {
     const value = e.target.value;
+    
+    // CRITICAL: Update ref IMMEDIATELY to prevent race conditions with Auto-Reset guards
+    latestUserInputRef.current = value;
+
     if (isFinished || isReplaying) return;
     if (isSoundEnabled) {
       const lastChar = value[value.length - 1];
@@ -557,6 +502,9 @@ export function useEngine(testMode, testLimit) {
 
       // 2. Handle Tab for Restart
       if (e.key === 'Tab') {
+        // Don't restart if modifiers are held (e.g. Alt+Tab, Ctrl+Tab)
+        if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+
         // Don't restart if user is typing in a different input (like theme search)
         if (isInput && !isOurInput) return;
         
@@ -743,13 +691,12 @@ export function useEngine(testMode, testLimit) {
     wordProgress,
     isLoading,
     activeLineTop,
-    loadCustomText,
     caretPos
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, 
     timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
-    ghostSpeed, wordProgress, isLoading, activeLineTop, loadCustomText, caretPos
+    ghostSpeed, wordProgress, isLoading, activeLineTop, caretPos
   ]);
 }

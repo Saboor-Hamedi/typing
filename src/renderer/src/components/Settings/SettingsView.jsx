@@ -3,13 +3,13 @@ import './SettingsView.css'
 import { motion } from 'framer-motion'
 import { Trophy, Volume2, CloudRain, Trash2, ShieldCheck, Github, Zap, Map, Palette, Type, AlertCircle, Play, Hash, CaseSensitive, Quote, Flame, BookOpen } from 'lucide-react'
 import { useSettings } from '../../contexts/SettingsContext'
-import CustomContentModal from '../Modals/CustomContentModal'
+
 
 /**
  * Settings View Component
  * Allows users to customize app behavior and appearance
  */
-const SettingsView = ({ onClearHistory, openThemeModal, openContentModal }) => {
+const SettingsView = ({ onClearHistory, openThemeModal }) => {
   const {
     isGhostEnabled,
     setIsGhostEnabled,
@@ -35,8 +35,6 @@ const SettingsView = ({ onClearHistory, openThemeModal, openContentModal }) => {
     setSoundProfile,
     isCenteredScrolling,
     setIsCenteredScrolling,
-    difficulty,
-    setDifficulty,
     hasPunctuation,
     setHasPunctuation,
     hasNumbers,
@@ -287,37 +285,7 @@ const SettingsView = ({ onClearHistory, openThemeModal, openContentModal }) => {
             <span>Complexity & Training</span>
           </div>
 
-          <div className="setting-item">
-            <div className="setting-info">
-              <div className="setting-label">
-                <ShieldCheck size={16} />
-                <span>Difficulty Level</span>
-              </div>
-              <p className="setting-description">Choose word list complexity (Short vs. Technical).</p>
-            </div>
-            <select 
-              className="settings-select"
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value)}
-            >
-              <option value="beginner">Beginner (1-4 letters)</option>
-              <option value="intermediate">Intermediate (Mixed)</option>
-              <option value="advanced">Advanced (Long Words)</option>
-            </select>
-          </div>
 
-          <div className="setting-item">
-            <div className="setting-info">
-              <div className="setting-label">
-                <BookOpen size={16} />
-                <span>Custom Content</span>
-              </div>
-              <p className="setting-description">Add your own sentences and quotes (Inter/Adv only).</p>
-            </div>
-            <button className="settings-action-btn" onClick={openContentModal}>
-              Manage Content
-            </button>
-          </div>
 
           <div className="setting-item">
             <div className="setting-info">

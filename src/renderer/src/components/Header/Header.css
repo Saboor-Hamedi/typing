@@ -444,6 +444,9 @@
 .config-btn {
   background: transparent;
   border: none;
+  border-bottom: none !important; /* Force remove any inherited borders */
+  outline: none !important;
+  text-decoration: none !important;
   color: var(--sub-color);
   font-family: inherit;
   font-size: 0.8rem;
@@ -453,11 +456,13 @@
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  justify-content: center; /* Center content since text is removed */
+  justify-content: center;
   gap: 6px;
   text-transform: lowercase;
-  min-height: 0; /* Override global 44px */
-  min-width: 32px;  /* Ensure clickable width */
+  min-height: 0;
+  min-width: 32px;
+  line-height: 1; 
+  position: relative; 
 }
 
 .config-btn:hover {
@@ -469,6 +474,13 @@
   color: var(--main-color);
   background: rgba(226, 183, 20, 0.1);
   font-weight: 700;
+  border: none !important;
+  outline: none !important;
+}
+
+.config-btn:focus, .config-btn:focus-visible {
+  outline: none !important;
+  border: none !important;
 }
 
 .config-divider {
