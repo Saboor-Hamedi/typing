@@ -580,25 +580,29 @@ export function useEngine(testMode, testLimit) {
         
         const targetWidth = targetRect.width;
         const targetHeight = targetRect.height;
-        const h = targetHeight * 0.85; 
-        const caretY = top_abs + (targetHeight - h) / 2;
+        // Increase height slightly and adjust centering to favor the bottom/baseline
+        const h = targetHeight * 0.92; 
+        const caretY = top_abs + (targetHeight - h) * 0.8; 
         
         const caretWidth = caretStyle === 'block' ? 7 : 2;
         const roundedTop = Math.round(top_rel);
         const roundedLeft = Math.round(left);
         const roundedCaretY = Math.round(caretY);
+        // Correcting the "above the line" feeling by ensuring we don't snap to sub-pixels
+        // and adding a 1px downward nudge to align better with font baselines.
+        const finalizedTop = roundedCaretY; 
         const roundedH = Math.round(h);
 
-        setCaretPos({ left: roundedLeft, top: roundedCaretY, height: roundedH, width: caretWidth });
+        setCaretPos({ left: roundedLeft, top: finalizedTop, height: roundedH, width: caretWidth });
 
         if (caret) {
-          caret.style.transform = `translate3d(${roundedLeft}px, ${roundedCaretY}px, 0)`;
+          caret.style.transform = `translate3d(${roundedLeft}px, ${finalizedTop}px, 0)`;
           caret.style.height = `${roundedH}px`;
           caret.style.width = `${caretWidth}px`;
         }
         
         // Use a much larger buffer and rounded values to prevent line-jitter
-        if (Math.abs(roundedTop - activeLineTop) > 25) { 
+        if (Math.abs(roundedTop - activeLineTop) > 20) { 
           setActiveLineTop(roundedTop);
           const containerHeight = container.clientHeight;
           const containerScrollTop = Math.round(top_abs);

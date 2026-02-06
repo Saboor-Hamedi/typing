@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play } from 'lucide-react'
+import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, Command } from 'lucide-react'
 import './CommandPalette.css'
 
 const CommandPalette = ({ 
@@ -17,7 +17,6 @@ const CommandPalette = ({
   const isCommandMode = query.trim().startsWith('>')
   const effectiveQuery = isCommandMode ? query.slice(1).trim() : query.trim()
 
-  // Deduplicate actions based on label/id to prevent "4 times" issue
   const uniqueActions = useMemo(() => {
     const seen = new Set();
     return actions.filter(a => {
@@ -29,15 +28,10 @@ const CommandPalette = ({
   }, [actions]);
 
   const filteredActions = uniqueActions.filter(action => {
-    // Mode-specific filtering
     if (isCommandMode) {
       if (action.type !== 'command') return false
     } 
-    // If NOT in command mode (>), we search EVERYTHING (Commands + Content)
-    // The previous logic restricted it to 'content' only, hiding generic commands.
-
-    if (!effectiveQuery) return true; // Show all if no query typed
-
+    if (!effectiveQuery) return true;
     return (
       action.label.toLowerCase().includes(effectiveQuery.toLowerCase()) ||
       (action.id && action.id.toLowerCase().includes(effectiveQuery.toLowerCase()))
@@ -51,12 +45,16 @@ const CommandPalette = ({
       setTimeout(() => {
         if (inputRef.current) {
            inputRef.current.focus()
-           // If initial query exists, move cursor to end
            inputRef.current.setSelectionRange(initialQuery.length, initialQuery.length)
         }
       }, 10)
     }
   }, [isOpen, initialQuery])
+
+  // Reset selection index when filtering changes
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [query])
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
@@ -82,60 +80,77 @@ const CommandPalette = ({
         <div className="command-palette-overlay" onClick={onClose}>
           <motion.div 
             className="command-palette-container"
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            initial={{ opacity: 0, scale: 0.98, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            exit={{ opacity: 0, scale: 0.98, y: -20 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             onClick={e => e.stopPropagation()}
           >
             <div className="command-palette-search">
-              <Search size={18} className="search-icon" />
+              <div className="search-icon-wrap">
+                 {isCommandMode ? <Command size={18} className="search-icon" /> : <Search size={18} className="search-icon" />}
+              </div>
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Type a command or search..."
+                placeholder={isCommandMode ? "Type a command..." : "Search commands, modes, settings..."}
                 value={query}
-                onChange={e => {
-                  setQuery(e.target.value)
-                  setSelectedIndex(0)
-                }}
+                onChange={e => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
+                spellCheck={false}
               />
               <div className="esc-hint">ESC</div>
             </div>
 
             <div className="command-palette-list">
               {filteredActions.length > 0 ? (
-                filteredActions.map((action, index) => (
-                  <div
-                    key={action.id}
-                    className={`command-item ${index === selectedIndex ? 'selected' : ''}`}
-                    onMouseEnter={() => setSelectedIndex(index)}
-                    onClick={() => {
-                       action.onSelect()
-                       onClose()
-                    }}
-                  >
-                    <div className="item-icon">
-                      {action.icon}
+                filteredActions.map((action, index) => {
+                  const isSelected = index === selectedIndex;
+                  const showCategory = index === 0 || filteredActions[index - 1].category !== action.category;
+                  
+                  return (
+                    <div key={action.id || action.label}>
+                      {showCategory && action.category && (
+                        <div className="command-palette-category">{action.category}</div>
+                      )}
+                      <motion.div
+                        layout
+                        className={`command-item ${isSelected ? 'selected' : ''}`}
+                        onMouseEnter={() => setSelectedIndex(index)}
+                        onClick={() => {
+                           action.onSelect()
+                           onClose()
+                        }}
+                        initial={false}
+                      >
+                        <div className="item-icon">
+                          {action.icon}
+                        </div>
+                        <div className="item-info">
+                          <div className="item-label">{action.label}</div>
+                          {action.shortcut && <div className="item-shortcut">{action.shortcut}</div>}
+                        </div>
+                      </motion.div>
                     </div>
-                    <div className="item-info">
-                      <div className="item-label">{action.label}</div>
-                      {action.shortcut && <div className="item-shortcut">{action.shortcut}</div>}
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <div className="no-results">No commands found</div>
+                <div className="no-results">
+                  <Search size={32} style={{ opacity: 0.2, marginBottom: '10px' }} />
+                  <span>No results found for "{effectiveQuery}"</span>
+                </div>
               )}
             </div>
             
             <div className="command-palette-footer">
               <div className="footer-hint">
-                <kbd>↑↓</kbd> to navigate
+                <kbd>↑↓</kbd> <span>Navigate</span>
               </div>
               <div className="footer-hint">
-                <kbd>↵</kbd> to select
+                <kbd>Enter</kbd> <span>Select</span>
+              </div>
+              <div className="footer-hint">
+                <kbd>ESC</kbd> <span>Close</span>
               </div>
             </div>
           </motion.div>

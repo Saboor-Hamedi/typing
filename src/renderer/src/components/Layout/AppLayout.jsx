@@ -355,47 +355,43 @@ const AppLayout = ({ addToast }) => {
   // Define Command Palette Actions
 
   const commandPaletteActions = [
-    { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', type: 'command', onSelect: () => engine.resetGame() },
-    { id: 'chameleon', label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, type: 'command', onSelect: () => setIsChameleonEnabled(!isChameleonEnabled) },
+    { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', type: 'command', category: 'Game', onSelect: () => engine.resetGame() },
+    { id: 'chameleon', label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, type: 'command', category: 'Effects', onSelect: () => setIsChameleonEnabled(!isChameleonEnabled) },
     { 
       id: 'caret-style-thick-block', 
       label: `Caret Style: ${caretStyle === 'block' ? 'Thick Block' : 'Line Caret'}`, 
       icon: <Type size={18} />, 
       type: 'command',
+      category: 'Display',
       onSelect: () => {
         const styles = ['bar', 'block'];
         const next = styles[(styles.indexOf(caretStyle) + 1) % styles.length];
         setCaretStyle(next);
       } 
     },
-    { id: 'fire-caret', label: `Fire Caret Effect: ${isFireCaretEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, type: 'command', onSelect: () => setIsFireCaretEnabled(!isFireCaretEnabled) },
-    { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, type: 'command', onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
-    { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, type: 'command', onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
-    { id: 'sound', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, type: 'command', onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
-    { 
-      id: 'sound-profile', 
-      label: `Sound Profile: ${soundProfile.charAt(0).toUpperCase() + soundProfile.slice(1)}`, 
-      icon: <Cpu size={18} />, 
-      type: 'command', 
-      onSelect: () => {
-        const profiles = ['thocky', 'creamy', 'clicky', 'asmr', 'raindrop', 'wood'];
-        const next = profiles[(profiles.indexOf(soundProfile) + 1) % profiles.length];
-        engine.setSoundProfile(next);
-      } 
-    },
-    { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, type: 'command', onSelect: () => setIsHallEffect(!isHallEffect) },
-    { id: 'error-feedback', label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`, icon: <AlertCircle size={18} />, type: 'command', onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled) },
-    { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, type: 'command', onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
-    { id: 'zen', label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`, icon: <Play size={18} />, type: 'command', onSelect: () => setIsZenMode(!isZenMode) },
-    { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, type: 'command', onSelect: () => setActiveTab('typing') },
-    { id: 'leaderboard', label: 'Global Leaderboard', icon: <Globe size={18} />, type: 'command', onSelect: () => setActiveTab('leaderboard') },
-    { id: 'history', label: 'Test History', icon: <History size={18} />, type: 'command', onSelect: () => setActiveTab('history') },
-    { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, type: 'command', onSelect: () => setActiveTab('dashboard') },
-    { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', type: 'command', onSelect: () => setIsThemeModalOpen(true) },
-    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', onSelect: () => setActiveTab('settings') },
-    { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', type: 'command', onSelect: () => setIsShortcutsModalOpen(true) },
-    { id: 'reload-window', label: 'Reload Window', icon: <RefreshCw size={18} />, shortcut: 'Ctrl+Shift+R', type: 'command', onSelect: () => window.location.reload() },
-    { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => handleLogout() },
+    { id: 'fire-caret', label: `Fire Caret Effect: ${isFireCaretEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, type: 'command', category: 'Effects', onSelect: () => setIsFireCaretEnabled(!isFireCaretEnabled) },
+    { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, type: 'command', category: 'Display', onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
+    { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, type: 'command', category: 'Feedback', onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
+    { id: 'sound-toggle', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, type: 'command', category: 'Audio', onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
+    { id: 'sound-thocky', label: 'Sound: Thocky', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('thocky') },
+    { id: 'sound-creamy', label: 'Sound: Creamy', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('creamy') },
+    { id: 'sound-clicky', label: 'Sound: Clicky', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('clicky') },
+    { id: 'sound-asmr', label: 'Sound: ASMR', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('asmr') },
+    { id: 'sound-raindrop', label: 'Sound: Raindrop', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('raindrop') },
+    { id: 'sound-wood', label: 'Sound: Wood', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('wood') },
+    { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, type: 'command', category: 'Audio', onSelect: () => setIsHallEffect(!isHallEffect) },
+    { id: 'error-feedback', label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`, icon: <AlertCircle size={18} />, type: 'command', category: 'Feedback', onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled) },
+    { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, type: 'command', category: 'Game', onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
+    { id: 'zen', label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`, icon: <Play size={18} />, type: 'command', category: 'Modes', onSelect: () => setIsZenMode(!isZenMode) },
+    { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('typing') },
+    { id: 'leaderboard', label: 'Global Leaderboard', icon: <Globe size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('leaderboard') },
+    { id: 'history', label: 'Test History', icon: <History size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('history') },
+    { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('dashboard') },
+    { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', type: 'command', category: 'Navigation', onSelect: () => setIsThemeModalOpen(true) },
+    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', category: 'Navigation', onSelect: () => setActiveTab('settings') },
+    { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', type: 'command', category: 'System', onSelect: () => setIsShortcutsModalOpen(true) },
+    { id: 'reload-window', label: 'Reload Window', icon: <RefreshCw size={18} />, shortcut: 'Ctrl+Shift+R', type: 'command', category: 'System', onSelect: () => window.location.reload() },
+    { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, type: 'command', category: 'System', onSelect: () => handleLogout() },
     isLoggedIn 
       ? { id: 'logout', label: 'Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => toggleLogoutModal(true) }
       : { id: 'login', label: 'Sign In / Register', icon: <User size={18} />, type: 'command', onSelect: () => toggleLoginModal(true) }
