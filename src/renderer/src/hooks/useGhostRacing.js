@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { GAME } from '../constants'
 
 /**
@@ -44,6 +44,39 @@ export const useGhostRacing = (
   }, [])
 
   /**
+   * Pre-calculate initial position to prevent jumping
+   */
+  useLayoutEffect(() => {
+    if (!isEnabled || isActive || words.length === 0 || !containerRef.current) return;
+
+    const syncGhost = () => {
+      const firstLetter = document.getElementById('char-0');
+      if (firstLetter && containerRef.current) {
+        const container = containerRef.current;
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = firstLetter.getBoundingClientRect();
+        
+        const left = targetRect.left - containerRect.left + container.scrollLeft;
+        const top_abs = targetRect.top - containerRect.top + container.scrollTop;
+        const h = targetRect.height * 0.7;
+        const top = top_abs + (targetRect.height - h) / 2;
+        
+        setGhostPos({
+          left,
+          top,
+          width: targetRect.width,
+          height: h
+        });
+      }
+    };
+
+    // Run once and on window resize to keep it aligned
+    syncGhost();
+    window.addEventListener('resize', syncGhost);
+    return () => window.removeEventListener('resize', syncGhost);
+  }, [isEnabled, isActive, words, containerRef]);
+
+  /**
    * Update ghost position
    */
   const updateGhostPosition = useCallback(() => {
@@ -53,48 +86,69 @@ export const useGhostRacing = (
 
     const elapsed = performance.now() - startTime
     
-    // Calculate ghost character index
-    // Formula: (PB WPM × 5 chars/word × speed multiplier) / 60000 ms/min
+    // Calculate ghost character progress (fractional)
     const charsPerMs = (pb * GAME.CHARS_PER_WORD * ghostSpeed) / 60000
-    const ghostCharIndex = Math.floor(elapsed * charsPerMs)
-    
-    // Only update if character changed
-    if (ghostCharIndex === lastCharIndexRef.current) {
-      rafIdRef.current = requestAnimationFrame(updateGhostPosition)
-      return
-    }
-    
-    lastCharIndexRef.current = ghostCharIndex
+    const progress = elapsed * charsPerMs
+    const index = Math.floor(progress)
+    const factor = progress - index // 0.0 to 1.0 within the character
     
     // Get total character count
     const totalChars = words.join(' ').length
     
-    if (ghostCharIndex >= totalChars) {
-      // Ghost finished
-      cancelAnimationFrame(rafIdRef.current)
+    if (index >= totalChars - 1) {
+      // Ghost at the very end
+      const lastLetter = getElement(totalChars - 1)
+      if (lastLetter) {
+        const container = containerRef.current
+        const containerRect = container.getBoundingClientRect()
+        const targetRect = lastLetter.getBoundingClientRect()
+        setGhostPos({
+          left: targetRect.right - containerRect.left + container.scrollLeft,
+          top: targetRect.top - containerRect.top + container.scrollTop + (targetRect.height - targetRect.height * 0.7) / 2,
+          width: 2,
+          height: targetRect.height * 0.7
+        })
+      }
+      rafIdRef.current = requestAnimationFrame(updateGhostPosition)
       return
     }
 
-    // Get element (cached or fresh)
-    const ghostLetter = getElement(ghostCharIndex)
+    // Interpolation Logic
+    const charA = getElement(index)
+    const charB = getElement(index + 1)
     
-    if (ghostLetter) {
+    if (charA && charB) {
       const container = containerRef.current
       const containerRect = container.getBoundingClientRect()
-      const targetRect = ghostLetter.getBoundingClientRect()
+      const rectA = charA.getBoundingClientRect()
+      const rectB = charB.getBoundingClientRect()
       
-      // Calculate absolute position within the scrollable content
-      const left = targetRect.left - containerRect.left + container.scrollLeft;
-      const top_abs = targetRect.top - containerRect.top + container.scrollTop;
-      const h = targetRect.height * 0.7;
-      const top = top_abs + (targetRect.height - h) / 2;
+      const topA = rectA.top - containerRect.top + container.scrollTop
+      const topB = rectB.top - containerRect.top + container.scrollTop
+      
+      let left, top, height;
+      
+      // If on same line, interpolate left smoothly
+      if (Math.abs(topA - topB) < 5) {
+        left = (rectA.left - containerRect.left + container.scrollLeft) + 
+               ((rectB.left - rectA.left) * factor);
+        height = rectA.height * 0.7;
+        top = topA + (rectA.height - height) / 2;
+      } else {
+        // Line break: Move along with charA until factor > 0.8, then snap to B
+        // This prevents awkward diagonal sliding across the screen
+        if (factor < 0.9) {
+          left = rectA.left - containerRect.left + container.scrollLeft;
+          height = rectA.height * 0.7;
+          top = topA + (rectA.height - height) / 2;
+        } else {
+          left = rectB.left - containerRect.left + container.scrollLeft;
+          height = rectB.height * 0.7;
+          top = topB + (rectB.height - height) / 2;
+        }
+      }
 
-      setGhostPos({
-        left,
-        top,
-        width: targetRect.width,
-        height: h
-      })
+      setGhostPos({ left, top, width: 2, height })
     }
 
     // Schedule next frame
@@ -118,7 +172,7 @@ export const useGhostRacing = (
         cancelAnimationFrame(rafIdRef.current)
         rafIdRef.current = null
       }
-      setGhostPos({ left: 0, top: 0 })
+      
       cachedElementsRef.current.clear()
       lastCharIndexRef.current = -1
     }
@@ -128,7 +182,7 @@ export const useGhostRacing = (
         cancelAnimationFrame(rafIdRef.current)
       }
     }
-  }, [isEnabled, isActive, startTime, pb, updateGhostPosition])
+  }, [isEnabled, isActive, startTime, pb, words, updateGhostPosition, containerRef])
 
   return ghostPos
 }

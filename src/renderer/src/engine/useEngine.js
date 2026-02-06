@@ -89,6 +89,7 @@ export function useEngine(testMode, testLimit) {
     hasNumbers,
     hasCaps,
     isSentenceMode,
+    caretStyle,
     isSettingsLoaded
   } = useSettings();
 
@@ -97,6 +98,9 @@ export function useEngine(testMode, testLimit) {
    * prevents "shuffling" by blocking UI until settings are fully applied.
    */
   const [isLoading, setIsLoading] = useState(!isSettingsLoaded);
+
+  // Time Mode Soft Finish State
+  const [isTimeUp, setIsTimeUp] = useState(false);
 
   useEffect(() => {
     if (!isSettingsLoaded) {
@@ -136,6 +140,7 @@ export function useEngine(testMode, testLimit) {
     };
     loadPb();
   }, []);
+
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -150,6 +155,7 @@ export function useEngine(testMode, testLimit) {
       elapsedTimerRef.current = null;
     }
   }, []);
+
   /**
    * Finishes the typing test and calculates results
    * @param {string} finalInput - Final user input
@@ -254,9 +260,8 @@ export function useEngine(testMode, testLimit) {
     }
   }, []);
 
-
-  const resetGame = useCallback((options = {}) => {
-    console.log('resetGame called', options); 
+  const resetGame = useCallback(() => {
+    console.log('resetGame called'); 
     stopTimer();
 
     if (typingTimeoutRef.current) {
@@ -264,20 +269,12 @@ export function useEngine(testMode, testLimit) {
       typingTimeoutRef.current = null;
     }
 
+    // Increase buffer for Time Mode to ensure we don't run out of text
     const wordCount = testMode === 'words' ? testLimit : 50;
     
     try {
-      // Logic for preserving base words on modifier toggle
-      // If options.keepBase is true, reuse existing baseWords
-      const keepBase = options.keepBase === true && baseWords.length > 0;
-      let currentBase = baseWords;
-
-      if (!keepBase) {
-        currentBase = generateBaseWords(wordCount, isSentenceMode);
-        setBaseWords(currentBase);
-      }
-
-      setWords(applyModifiers(currentBase, {
+      // Always generate new words (Full Reset as requested)
+      setWords(generateWords(wordCount, {
         hasPunctuation,
         hasNumbers,
         hasCaps,
@@ -295,6 +292,7 @@ export function useEngine(testMode, testLimit) {
     setElapsedTime(0);
     setIsFinished(false);
     setIsReplaying(false);
+    setIsTimeUp(false); // Reset soft finish flag
     keystrokesRef.current = [];
     telemetryBufferRef.current.clear();
     setTelemetry([]);
@@ -307,7 +305,8 @@ export function useEngine(testMode, testLimit) {
     if (elapsedTimerRef.current) {
       elapsedTimerRef.current.reset();
     }
-
+    
+    // ... (rest of reset logic) ...
     setCaretPos({ left: 0, top: 0 });
     lastLineTop.current = -1;
 
@@ -324,7 +323,7 @@ export function useEngine(testMode, testLimit) {
 
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 400);
-  }, [testMode, testLimit, stopTimer, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, baseWords]);
+  }, [testMode, testLimit, stopTimer, hasPunctuation, hasNumbers, hasCaps, isSentenceMode]);
 
   const latestUserInputRef = useRef('');
 
@@ -332,40 +331,17 @@ export function useEngine(testMode, testLimit) {
     latestUserInputRef.current = userInput;
   }, [userInput]);
 
-  const prevConfigRef = useRef({ testMode, testLimit, isSentenceMode });
-
   useEffect(() => {
     // HARDENED AUTO-RESET
-    // Only resets when core configuration changes AND the user is definitely not typing.
     
-    // 1. Guard: Settings must be loaded
     if (!isSettingsLoaded) return;
-
-    // 2. Guard: Test must NOT be running (startTime must be null)
     if (startTimeRef.current !== null) return;
-
-    // 3. Guard: User input must be empty
-    if (latestUserInputRef.current !== '') {
-      return;
-    }
-
-    // 4. Guard: Replay/Finished states
+    if (latestUserInputRef.current !== '') return;
     if (isFinished || isReplaying) return;
 
-    const prev = prevConfigRef.current;
-    // Structural changes that require new base words:
-    // - Mode change (Time vs Words)
-    // - Limit change (Word count needs to match)
-    // - Sentence Mode change (Source material changes from Random to Quotes)
-    const isStructuralChange = 
-      prev.testMode !== testMode || 
-      prev.testLimit !== testLimit ||
-      prev.isSentenceMode !== isSentenceMode;
-
-    prevConfigRef.current = { testMode, testLimit, isSentenceMode };
-
-    console.log('Safe Auto-reset triggered. Deps:', { testMode, testLimit, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isStructuralChange });
-    resetGame({ keepBase: !isStructuralChange });
+    // Full reset on any dependency change
+    console.log('Safe Auto-reset triggered');
+    resetGame();
   }, [
     isSettingsLoaded, 
     testMode, 
@@ -378,11 +354,27 @@ export function useEngine(testMode, testLimit) {
 
   const handleInput = useCallback((e) => {
     const value = e.target.value;
-    
-    // CRITICAL: Update ref IMMEDIATELY to prevent race conditions with Auto-Reset guards
     latestUserInputRef.current = value;
 
     if (isFinished || isReplaying) return;
+    
+    /* Time Mode Soft Finish Logic */
+    if (isTimeUp) {
+       // If time is up, we wait for the user to finish the current word (space or EOL)
+       const lastChar = value[value.length - 1];
+       const isWordComplete = lastChar === ' ';
+       
+       // Also finish if they typed everything
+       const totalRequired = words.join(' ').length;
+       const isAllTyped = value.length >= totalRequired;
+
+       if (isWordComplete || isAllTyped) {
+          finishTest(value, performance.now());
+          return;
+       }
+       // If not complete, LET THEM TYPE (update state below)
+    }
+
     if (isSoundEnabled) {
       const lastChar = value[value.length - 1];
       soundEngine.playKeySound(lastChar === ' ' ? 'space' : 'key');
@@ -390,71 +382,78 @@ export function useEngine(testMode, testLimit) {
     setIsTyping(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 500);
+    
     const now = performance.now();
     if (!startTime) {
       setStartTime(now);
       startTimeRef.current = now;
 
-      // Create robust countdown timer for time mode
       if (testMode === 'time') {
-        // Set initial time immediately
         setTimeLeft(testLimit);
+        setIsTimeUp(false);
 
         countdownTimerRef.current = createCountdownTimer(
           testLimit,
           (remaining, elapsed) => {
-            // Update time display only when value changes (prevents shaking)
             setTimeLeft(remaining);
-
-            // Calculate telemetry (only if elapsed > 0 to avoid division by zero)
+            // ... telemetry ...
             if (elapsed > 0) {
-              const durationInMin = elapsed / 60;
-              const currentInput = inputRef.current?.value || '';
-              const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0;
-
-              // Calculate Net WPM live
-              const targetText = words.join(' ');
-              let correctChars = 0;
-              for (let i = 0; i < currentInput.length; i++) {
-                if (currentInput[i] === targetText[i]) correctChars++;
-              }
-              const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
-              // Use circular buffer for efficient telemetry updates
-              telemetryBufferRef.current.push({ sec: elapsed, wpm: currentWpm, raw: currentRaw });
-              setTelemetry(telemetryBufferRef.current.toArray());
+                 const durationInMin = elapsed / 60;
+                 const currentInput = inputRef.current?.value || '';
+                 const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0;
+                 const targetText = words.join(' ');
+                 let correctChars = 0;
+                 for (let i = 0; i < currentInput.length; i++) {
+                   if (currentInput[i] === targetText[i]) correctChars++;
+                 }
+                 const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
+                 telemetryBufferRef.current.push({ sec: elapsed, wpm: currentWpm, raw: currentRaw });
+                 setTelemetry(telemetryBufferRef.current.toArray());
             }
           },
           () => {
-            // Timer finished
-            finishTest(inputRef.current?.value || '', performance.now());
+            // Timer Finished Callback
+            // DO NOT finishTest immediately. Set flags.
+            setIsTimeUp(true);
+            
+            // OPTIONAL: If user is IDLE (not typing), finish immediately?
+            // For now, simple logic: Set Time Up, wait for input check.
+            
+            // Actually, if the user stops typing exactly when time is up, we might never finish?
+            // We should check if the last char was a space?
+            // Or just check if we should finish NOW.
+            
+            const currentVal = inputRef.current?.value || '';
+            const lastChar = currentVal[currentVal.length - 1];
+            if (lastChar === ' ' || currentVal.length === 0) {
+               finishTest(currentVal, performance.now());
+            }
           }
         );
         countdownTimerRef.current.start();
       }
 
-      // Create elapsed timer for words mode and telemetry
+      // ... (elapsed timer) ...
       elapsedTimerRef.current = createElapsedTimer((elapsed) => {
-        // Update elapsed time for display
-        setElapsedTime(elapsed);
-
-        const durationInMin = elapsed / 60;
-        const currentInput = inputRef.current?.value || '';
-        const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0;
-
-        // Calculate Net WPM live
-        const targetText = words.join(' ');
-        let correctChars = 0;
-        for (let i = 0; i < currentInput.length; i++) {
-          if (currentInput[i] === targetText[i]) correctChars++;
-        }
-        const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
-        // Use circular buffer for efficient telemetry updates
-        telemetryBufferRef.current.push({ sec: elapsed, wpm: currentWpm, raw: currentRaw });
-        setTelemetry(telemetryBufferRef.current.toArray());
+          setElapsedTime(elapsed);
+          // ... telemetry (same) ...
+          const durationInMin = elapsed / 60;
+          const currentInput = inputRef.current?.value || '';
+          const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0;
+          const targetText = words.join(' ');
+          let correctChars = 0;
+          for (let i = 0; i < currentInput.length; i++) {
+             if (currentInput[i] === targetText[i]) correctChars++;
+          }
+          const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
+          telemetryBufferRef.current.push({ sec: elapsed, wpm: currentWpm, raw: currentRaw });
+          setTelemetry(telemetryBufferRef.current.toArray());
       });
       elapsedTimerRef.current.start();
     }
+    
     keystrokesRef.current.push({ value, timestamp: now });
+    
     if (testMode === 'words') {
       const totalRequired = words.join(' ').length;
       if (value.length >= totalRequired) {
@@ -462,7 +461,7 @@ export function useEngine(testMode, testLimit) {
       }
     }
     setUserInput(value);
-  }, [isFinished, isReplaying, startTime, testMode, words, finishTest, testLimit, isSoundEnabled]);
+  }, [isFinished, isReplaying, startTime, testMode, words, finishTest, testLimit, isSoundEnabled, isTimeUp]);
 
   const skipReplay = useCallback(() => {
     if (!isReplaying) return;
@@ -584,17 +583,20 @@ export function useEngine(testMode, testLimit) {
         const h = targetHeight * 0.85; 
         const caretY = top_abs + (targetHeight - h) / 2;
         
+        // Dynamic width: 7px for thick/block, 2px for normal bar
+        const caretWidth = caretStyle === 'block' ? 7 : 2;
+        
         // Round top_rel to prevent sub-pixel jitter from flickering the dim status
         const roundedTop = Math.round(top_rel);
 
         // Sync state to drive motion caret
-        setCaretPos({ left, top: caretY, height: h });
+        setCaretPos({ left, top: caretY, height: h, width: caretWidth });
 
         if (caret) {
           // DIRECT DOM MANIPULATION: Bypass React for caret position
           caret.style.transform = `translate3d(${left}px, ${caretY}px, 0)`;
           caret.style.height = `${h}px`;
-          caret.style.width = `7px`; // User requested 7px thickness
+          caret.style.width = `${caretWidth}px`;
         }
         
         // Update activeLineTop for dimming

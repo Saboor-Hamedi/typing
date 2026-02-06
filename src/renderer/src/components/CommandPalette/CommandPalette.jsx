@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play } from 'lucide-react'
 import './CommandPalette.css'
@@ -17,19 +17,30 @@ const CommandPalette = ({
   const isCommandMode = query.trim().startsWith('>')
   const effectiveQuery = isCommandMode ? query.slice(1).trim() : query.trim()
 
-  const filteredActions = actions.filter(action => {
-    // If '>' mode, only show commands. Otherwise only show content.
+  // Deduplicate actions based on label/id to prevent "4 times" issue
+  const uniqueActions = useMemo(() => {
+    const seen = new Set();
+    return actions.filter(a => {
+      const key = a.id || a.label;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [actions]);
+
+  const filteredActions = uniqueActions.filter(action => {
+    // Mode-specific filtering
     if (isCommandMode) {
       if (action.type !== 'command') return false
-    } else {
-      if (action.type !== 'content') return false
-    }
+    } 
+    // If NOT in command mode (>), we search EVERYTHING (Commands + Content)
+    // The previous logic restricted it to 'content' only, hiding generic commands.
 
     if (!effectiveQuery) return true; // Show all if no query typed
 
     return (
       action.label.toLowerCase().includes(effectiveQuery.toLowerCase()) ||
-      action.id.toLowerCase().includes(effectiveQuery.toLowerCase())
+      (action.id && action.id.toLowerCase().includes(effectiveQuery.toLowerCase()))
     )
   })
 

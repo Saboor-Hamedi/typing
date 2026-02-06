@@ -27,6 +27,8 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
     setGhostSpeed,
     caretStyle,
     setCaretStyle,
+    isFireCaretEnabled,
+    setIsFireCaretEnabled,
     isErrorFeedbackEnabled,
     setIsErrorFeedbackEnabled,
     isZenMode,
@@ -42,6 +44,7 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
     hasCaps,
     setHasCaps
   } = useSettings()
+
   return (
     <div className="settings-container">
       <div className="settings-header">
@@ -70,9 +73,9 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
             <div className="setting-info">
               <div className="setting-label">
                 <Type size={16} />
-                <span>Thin Caret</span>
+                <span>Line Caret (2px)</span>
               </div>
-              <p className="setting-description">Use a standard 2px vertical bar.</p>
+              <p className="setting-description">Standard vertical bar for precision.</p>
             </div>
             <label className="toggle-switch">
               <input 
@@ -88,9 +91,9 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
             <div className="setting-info">
               <div className="setting-label">
                 <Type size={16} />
-                <span>Thick Caret</span>
+                <span>Thick Block (7px)</span>
               </div>
-              <p className="setting-description">Use a 7px block that inverts colors.</p>
+              <p className="setting-description">High-visibility block that inverts background text.</p>
             </div>
             <label className="toggle-switch">
               <input 
@@ -106,15 +109,15 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
             <div className="setting-info">
               <div className="setting-label">
                 <Flame size={16} color="#ff4500" />
-                <span>Flame Caret</span>
+                <span>Fire Effect</span>
               </div>
-              <p className="setting-description">High-performance animated fire effect (GPU).</p>
+              <p className="setting-description">Add an animated flame aura to the caret (GPU accelerated).</p>
             </div>
             <label className="toggle-switch">
               <input 
                 type="checkbox" 
-                checked={caretStyle === 'fire'} 
-                onChange={() => setCaretStyle('fire')} 
+                checked={isFireCaretEnabled} 
+                onChange={() => setIsFireCaretEnabled(!isFireCaretEnabled)} 
               />
               <span className="slider"></span>
             </label>

@@ -7,7 +7,7 @@ import React, { memo, useEffect, useMemo, useRef, useState, useLayoutEffect } fr
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../contexts/SettingsContext'
 import { UI } from '../constants'
-import { FastForward, Edit2 } from 'lucide-react'
+import { FastForward, Edit2, Ghost as GhostIcon } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
 import Loader from '../components/Common/Loader'
 import './TypingEngine.css'
@@ -142,6 +142,7 @@ const TypingEngine = ({
   const { 
     isSmoothCaret: ctxSmoothCaret, 
     caretStyle, 
+    isFireCaretEnabled,
     isErrorFeedbackEnabled,
     isKineticEnabled
   } = useSettings()
@@ -229,20 +230,35 @@ const TypingEngine = ({
           <>
             {isGhostEnabled && startTime && !isFinished && (
               <motion.div
-                className={`caret ghost blinking ${isTyping ? 'typing' : ''}`}
+                className="caret ghost"
+                initial={{ x: ghostPos.left, y: ghostPos.top }}
                 animate={{ x: ghostPos.left, y: ghostPos.top }}
-                transition={{ type: 'spring', stiffness: 700, damping: 30 }}
-                style={{ position: 'absolute', opacity: 0.2, background: 'var(--sub-color)', left: 0, top: 0, height: ghostPos.height, width: ghostPos.width, zIndex: 1 }}
-              />
+                transition={{ 
+                  x: { type: 'spring', stiffness: 300, damping: 35 },
+                  y: { type: 'tween', ease: "easeInOut", duration: 0.12 }
+                }}
+                style={{ 
+                  position: 'absolute', 
+                  left: -10, // Center the ghost icon on the caret position
+                  top: -5,
+                  zIndex: 1,
+                  pointerEvents: 'none'
+                }}
+              >
+                <div className="ghost-icon">
+                  <GhostIcon size={20} />
+                </div>
+              </motion.div>
             )}
             
             {smoothCaretEnabled ? (
               <motion.div
-                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
+                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle} ${isFireCaretEnabled ? 'style-fire' : ''}`}
                 animate={{ 
                   x: engine.caretPos?.left || 0, 
                   y: engine.caretPos?.top || 0,
-                  height: engine.caretPos?.height || '1.2em'
+                  height: engine.caretPos?.height || '1.2em',
+                  width: engine.caretPos?.width || (caretStyle === 'block' ? 7 : 2)
                 }}
                 transition={{
                   type: 'spring',
@@ -256,22 +272,21 @@ const TypingEngine = ({
                   top: 0,
                   zIndex: 10,
                   mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                  borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px'),
-                  width: 7 // Fixed 7px width for heavy feel
+                  borderRadius: caretStyle === 'block' ? '2px' : '1px'
                 }}
               />
             ) : (
               <div
                 ref={caretRef}
-                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle}`}
+                className={`caret blinking ${isTyping ? 'typing' : ''} style-${caretStyle} ${isFireCaretEnabled ? 'style-fire' : ''}`}
                 style={{ 
                   position: 'absolute',
                   left: 0, 
                   top: 0,
                   zIndex: 10,
                   mixBlendMode: caretStyle === 'block' ? 'exclusion' : 'normal',
-                  borderRadius: caretStyle === 'block' ? '2px' : (caretStyle === 'fire' ? '4px' : '1px'),
-                  width: caretStyle === 'block' ? 7 : (caretStyle === 'fire' ? 4 : 2),
+                  borderRadius: caretStyle === 'block' ? '2px' : '1px',
+                  width: caretStyle === 'block' ? 7 : 2,
                   height: '1.2em'
                 }}
               />

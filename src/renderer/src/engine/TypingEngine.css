@@ -138,6 +138,36 @@
   50% { opacity: 0; }
 }
 
+/* Real Ghost Avatar Styles */
+.caret.ghost {
+  background: transparent !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 5px rgba(var(--main-color-rgb), 0.4));
+}
+
+.ghost-icon {
+  color: var(--main-color);
+  opacity: 0.18;
+  animation: ghost-float 2.5s ease-in-out infinite;
+  will-change: transform, filter;
+  filter: blur(0.4px);
+  transition: opacity 0.3s ease;
+}
+
+.caret.ghost:hover .ghost-icon {
+  opacity: 0.4;
+}
+
+@keyframes ghost-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(2deg); }
+}
+
 /* Fire Caret Styles - GPU Optimized */
 .caret.style-fire {
   width: 4px !important;
@@ -361,23 +391,31 @@
 }
 
 .live-progress-counter {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-size: 40px;
-  font-weight: 700;
+  position: fixed;
+  top: 20px; 
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 100px; 
+  font-weight: 900;
   color: var(--main-color);
   font-family: inherit;
-  opacity: 1;
+  opacity: 0.15;
   user-select: none;
   pointer-events: none;
   display: flex;
-  align-items: baseline;
-  gap: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 0;
+  text-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.2);
+  line-height: 1;
+  white-space: nowrap;
+  width: max-content;
 }
 
 .live-progress-counter .remaining {
   color: var(--sub-color);
-  font-size: 0.7em;
+  font-size: 0.5em; 
   font-weight: 400;
+  opacity: 0.5;
 }

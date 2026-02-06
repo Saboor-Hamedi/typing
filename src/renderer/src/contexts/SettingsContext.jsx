@@ -52,6 +52,11 @@ export const SettingsProvider = ({ children }) => {
     return localStorage.getItem('caretStyle') || 'bar'
   })
 
+  const [isFireCaretEnabled, setIsFireCaretEnabled] = useState(() => {
+    const saved = localStorage.getItem('isFireCaretEnabled')
+    return saved !== null ? JSON.parse(saved) : false
+  })
+
   const [isErrorFeedbackEnabled, setIsErrorFeedbackEnabled] = useState(() => {
     const saved = localStorage.getItem('isErrorFeedbackEnabled')
     return saved !== null ? JSON.parse(saved) : true
@@ -108,7 +113,7 @@ export const SettingsProvider = ({ children }) => {
 
   // UI state
   const [isZenMode, setIsZenMode] = useState(false)
-  
+
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false)
 
   // Load settings from electron-store on mount
@@ -122,6 +127,7 @@ export const SettingsProvider = ({ children }) => {
           savedKinetic,
           savedSmooth,
           savedCaretStyle,
+          savedFire,
           savedErrorFeedback,
           savedSound,
           savedHall,
@@ -138,6 +144,7 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get(STORAGE_KEYS.SETTINGS.KINETIC),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.SMOOTH_CARET),
           window.api.settings.get('caretStyle'),
+          window.api.settings.get('isFireCaretEnabled'),
           window.api.settings.get('isErrorFeedbackEnabled'),
           window.api.settings.get('isSoundEnabled'),
           window.api.settings.get('isHallEffect'),
@@ -155,6 +162,7 @@ export const SettingsProvider = ({ children }) => {
         if (savedKinetic !== undefined) setIsKineticEnabled(savedKinetic)
         if (savedSmooth !== undefined) setIsSmoothCaret(savedSmooth)
         if (savedCaretStyle) setCaretStyle(savedCaretStyle)
+        if (savedFire !== undefined) setIsFireCaretEnabled(savedFire)
         if (savedErrorFeedback !== undefined) setIsErrorFeedbackEnabled(savedErrorFeedback)
         if (savedSound !== undefined) setIsSoundEnabled(savedSound)
         if (savedHall !== undefined) setIsHallEffect(savedHall)
@@ -183,6 +191,7 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('isGhostEnabled', isGhostEnabled)
     localStorage.setItem('ghostSpeed', ghostSpeed)
     localStorage.setItem('caretStyle', caretStyle)
+    localStorage.setItem('isFireCaretEnabled', isFireCaretEnabled)
     localStorage.setItem('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
     localStorage.setItem('isSoundEnabled', isSoundEnabled)
     localStorage.setItem('isHallEffect', isHallEffect)
@@ -203,6 +212,7 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set('isGhostEnabled', isGhostEnabled)
       window.api.settings.set('ghostSpeed', ghostSpeed)
       window.api.settings.set('caretStyle', caretStyle)
+      window.api.settings.set('isFireCaretEnabled', isFireCaretEnabled)
       window.api.settings.set('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
       window.api.settings.set('isSoundEnabled', isSoundEnabled)
       window.api.settings.set('isHallEffect', isHallEffect)
@@ -213,7 +223,7 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
       window.api.settings.set('isSentenceMode', isSentenceMode)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isSettingsLoaded])
+  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isFireCaretEnabled, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isSettingsLoaded])
 
 
 
@@ -282,6 +292,8 @@ export const SettingsProvider = ({ children }) => {
     setHasCaps,
     isSentenceMode,
     setIsSentenceMode,
+    isFireCaretEnabled,
+    setIsFireCaretEnabled,
 
     // UI state
     isZenMode,
@@ -292,7 +304,7 @@ export const SettingsProvider = ({ children }) => {
   }), [
     testMode, testLimit, updateTestMode, updateTestLimit,
     isChameleonEnabled, isKineticEnabled, isSmoothCaret,
-    isGhostEnabled, ghostSpeed, caretStyle, isErrorFeedbackEnabled,
+    isGhostEnabled, ghostSpeed, caretStyle, isFireCaretEnabled, isErrorFeedbackEnabled,
     isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling,
     hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isZenMode, isSettingsLoaded
   ])
