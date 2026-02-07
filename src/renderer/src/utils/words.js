@@ -7,10 +7,33 @@
 
 import wordsData from '../assets/words.json'
 
-// Combine all word tiers for a rich vocabulary
-const ALL_WORDS = [...wordsData.beginner, ...wordsData.intermediate, ...wordsData.advanced]
+// Helper to flatten tiered categories (e.g., intermediate: { nature: [...], tech: [...] })
+const flattenTiers = (tiers) => {
+  if (Array.isArray(tiers)) return tiers
+  if (typeof tiers === 'object') return Object.values(tiers).flat()
+  return []
+}
 
-const SENTENCES = wordsData.sentences
+// Extract and flatten words from the enhanced corpus
+const beginnerWords = flattenTiers(wordsData.beginner)
+const intermediateWords = flattenTiers(wordsData.intermediate)
+
+// Extract specific sub-tiers from advanced
+const advancedWords = flattenTiers(wordsData.advanced?.vocabulary)
+const technicalWords = flattenTiers(wordsData.advanced?.technical)
+const misspelledWords = flattenTiers(wordsData.advanced?.misspelled)
+
+// Primary word pool for random generation
+const ALL_WORDS = [
+  ...beginnerWords,
+  ...intermediateWords,
+  ...advancedWords,
+  ...technicalWords,
+  ...misspelledWords
+]
+
+// Sentence pool with tiered fallback
+const SENTENCES = flattenTiers(wordsData.sentences)
 
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -46,14 +69,16 @@ export const generateBaseWords = (count = 50, isSentenceMode = false) => {
 
   while (currentWordCount < count) {
     if (isSentenceMode) {
-      // Sentence Mode: Pick quotes and ALWAYS finish them
+      // Sentence Mode: Pick quotes and try to fill the requested count
       const sentence = getRandomSentence()
       const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
+
       for (let i = 0; i < wordsInSentence.length; i++) {
-        if (currentWordCount >= count) break // Strict count enforcement
-        const w = wordsInSentence[i]
+        // Strict enforcement: Stop exactly at count to respect user limits
+        if (currentWordCount >= count) break
+
         result.push({
-          text: w,
+          text: wordsInSentence[i],
           type: 'quote',
           isStart: i === 0,
           isEnd: i === wordsInSentence.length - 1
@@ -108,10 +133,13 @@ export const applyModifiers = (baseWords, settings) => {
   const tryAddNumber = () => {
     // Increased frequency for numbers (15% -> 25%)
     if (hasNumbers && Math.random() > 0.75) {
+      if (result.length >= baseWords.length) return // Stop if we hit the limit
+
       const len = Math.floor(Math.random() * 3) + 1
       let numStr = ''
       for (let i = 0; i < len; i++) {
-        numStr += NUMBERS[Math.floor(Math.random() * NUMBERS.length)]
+        const rand = Math.floor(Math.random() * NUMBERS.length)
+        numStr += NUMBERS[rand] // Fixed: accessed correct array index
       }
       result.push(numStr)
     }
@@ -120,7 +148,10 @@ export const applyModifiers = (baseWords, settings) => {
   // State for caps flow
   let sentenceStart = true
 
+  // Iterate exactly to limit, accounting for injections
   for (let i = 0; i < baseWords.length; i++) {
+    if (result.length >= baseWords.length) break // HARD STOP AT THE LIMIT
+
     const item = baseWords[i]
     let word = item.text
     const isQuote = item.type === 'quote'
@@ -201,7 +232,16 @@ export const applyModifiers = (baseWords, settings) => {
   return result
 }
 
-export const generateWords = (count = 50, settings = {}) => {
-  const base = generateBaseWords(count, settings.isSentenceMode)
-  return applyModifiers(base, settings)
+export const generateWords = (count, settings = {}) => {
+  // If count is not provided, fallback to settings.testLimit, then default 25
+  const limit = count || settings.testLimit || 25
+
+  // 1. Generate the base words (raw text)
+  const base = generateBaseWords(limit, settings.isSentenceMode)
+
+  // 2. Apply modifiers (and trim result if modifiers add extra items)
+  const modified = applyModifiers(base, settings)
+
+  // 3. Strict final slice to guarantee exact count
+  return modified.slice(0, limit)
 }

@@ -373,13 +373,17 @@ export const UserProvider = ({ children, addToast }) => {
     } finally {
       // 3. Aggressively clear local tokens
       Object.keys(localStorage).forEach((key) => {
-        if (key.includes('auth-token') || key.startsWith('sb-') || key.includes('supabase.auth.token')) {
+        if (
+          key.includes('auth-token') ||
+          key.startsWith('sb-') ||
+          key.includes('supabase.auth.token')
+        ) {
           localStorage.removeItem(key)
         }
       })
 
       localStorage.setItem(STORAGE_KEYS.MANUAL_LOGOUT, 'true')
-      
+
       // Preserve unlocked avatars for guest users - only reset selected avatar if needed
       if (!unlockedAvatars.includes(selectedAvatarId)) {
         setSelectedAvatarId(PROGRESSION.DEFAULT_AVATAR_ID)

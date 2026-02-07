@@ -10,13 +10,13 @@
   position: fixed;
   left: calc(var(--sidebar-width) + 2px); /* Tighter to the left */
   bottom: 64px; /* Move up significantly to clear status bar/taskbar */
-  width: 180px; 
+  width: 180px;
   background: rgba(var(--bg-color-rgb, 18, 18, 18), 0.75);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  box-shadow: 
+  box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.02) inset;
   z-index: 10007;

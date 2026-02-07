@@ -91,6 +91,7 @@ export const GAME = {
   // Default test modes
   DEFAULT_MODE: 'words',
   DEFAULT_LIMIT: 25,
+  DEFAULT_TIME_LIMIT: 30,
 
   // Test mode options
   TIME_LIMITS: [15, 30, 60],
@@ -105,7 +106,7 @@ export const GAME = {
 
   // Word generation multiplier for time mode
   TIME_MODE_WORD_MULTIPLIER: 4,
-  MIN_WORDS_FOR_TIME_MODE: 100,
+  MIN_WORDS_FOR_TIME_MODE: 30,
 
   // WPM calculation
   CHARS_PER_WORD: 5,

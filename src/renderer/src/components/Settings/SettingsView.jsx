@@ -500,7 +500,9 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
                       <Quote size={16} />
                       <span>Punctuation</span>
                     </div>
-                    <p className="setting-description">Inject periods, commas, and question marks.</p>
+                    <p className="setting-description">
+                      Inject periods, commas, and question marks.
+                    </p>
                   </div>
                   <label className="toggle-switch">
                     <input

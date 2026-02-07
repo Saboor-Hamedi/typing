@@ -176,16 +176,13 @@ const AppLayout = ({ addToast }) => {
 
   // Combined Progress Calculation
   const testProgress = useMemo(() => {
-    if (!isTestRunning) return 0
-    if (testMode === 'time') {
-      return 1 - timeLeft / testLimit
-    } else if (engine.wordProgress) {
-      const typed = engine.wordProgress.typed
-      const total = engine.words.length
-      return total > 0 ? typed / total : 0
-    }
-    return 0
-  }, [isTestRunning, testMode, timeLeft, testLimit, engine.wordProgress, engine.words.length])
+    if (!isTestRunning || !engine.wordProgress) return 0
+
+    // Both modes now track word progression for a consistent "type-to-move" feel
+    const typed = engine.wordProgress.typed
+    const total = engine.words.length
+    return total > 0 ? typed / total : 0
+  }, [isTestRunning, engine.wordProgress, engine.words.length])
 
   // Synchronize unlocked avatars with current level (Add-only Sync)
   useEffect(() => {

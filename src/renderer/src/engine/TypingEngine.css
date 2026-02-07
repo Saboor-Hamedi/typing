@@ -1,18 +1,50 @@
 .typing-canvas {
-  /* Ensure no padding/margin that could affect caret positioning */
   padding: 0;
   margin: 0;
   position: relative;
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 0;
+  overflow: hidden;
 }
 
-/* Hard Lock: Disable transitions during active typing to stop shuffling, but allow letter animations */
-.typing-canvas:has(.typing) .word,
+.live-progress-counter {
+  margin-top: 2vh; /* Pushed even higher towards the header */
+  position: relative;
+  z-index: 0;
+  font-size: 6rem;
+  font-weight: 900;
+  color: var(--main-color);
+  opacity: 0.12;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.1);
+  line-height: 1;
+}
+
+.typing-container {
+  margin: auto 0; /* Vertical centering in the remaining space */
+  padding-bottom: 10vh; /* Balance out the top header for true visual center */
+  max-width: 1000px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.results-view {
+  margin: auto 0;
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  background: transparent;
+  z-index: 10;
+}
 .typing-canvas:has(.typing) .letter {
   transition: none !important;
 }
@@ -41,8 +73,8 @@
 /* Unified font size to prevent jumping, with subtle adjustments if needed */
 .typing-container.words-mode,
 .typing-container.time-mode {
-  font-size: 2rem; /* Increased size to match Monkeytype default */
-  max-height: 40rem;
+  font-size: 2rem;
+  max-height: 55rem;
 }
 
 /* Allow expansion for results */
@@ -328,9 +360,12 @@
 
 /* Results Section in Engine */
 .results-view {
-  padding: 1rem;
+  grid-row: 3;
   width: 100%;
-  max-width: 600px;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
   margin: 0 auto;
   border-radius: var(--round);
 }
@@ -447,34 +482,4 @@
   .word-wrapper {
     font-size: 1.1rem;
   }
-}
-
-.live-progress-counter {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 100px;
-  font-weight: 900;
-  color: var(--main-color);
-  font-family: inherit;
-  opacity: 0.15;
-  user-select: none;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  z-index: 0;
-  text-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.2);
-  line-height: 1;
-  white-space: nowrap;
-  width: max-content;
-}
-
-.live-progress-counter .remaining {
-  color: var(--sub-color);
-  font-size: 0.5em;
-  font-weight: 400;
-  opacity: 0.5;
 }

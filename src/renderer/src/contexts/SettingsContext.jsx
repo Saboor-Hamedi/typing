@@ -253,7 +253,7 @@ export const SettingsProvider = ({ children }) => {
     setTestMode(mode)
     // Set default limit for the mode
     if (mode === 'time') {
-      setTestLimit(15) // Default to 15 seconds per user request
+      setTestLimit(30) // Default to 30 seconds per user request
     } else {
       setTestLimit(25) // Default to 25 words per user request
     }

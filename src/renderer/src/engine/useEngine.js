@@ -334,9 +334,10 @@ export function useEngine(testMode, testLimit, activeTab) {
 
     // POLISH: Generate adequate words for the mode.
     // Time mode needs many more words than the default 25/40.
-    const wordCount = s.testMode === 'words' ? s.testLimit : 100
+    const wordCount = s.testMode === 'words' ? s.testLimit : 30
 
     const newWords = generateWords(wordCount, {
+      testLimit: wordCount, // Pass limit explicitely for fallback
       hasPunctuation: s.hasPunctuation,
       hasNumbers: s.hasNumbers,
       hasCaps: s.hasCaps,
@@ -350,7 +351,7 @@ export function useEngine(testMode, testLimit, activeTab) {
     setUserInput('')
     setStartTime(null)
     startTimeRef.current = null
-    setTimeLeft(0)
+    setTimeLeft(s.testLimit)
     setElapsedTime(0)
     setIsFinished(false)
     setIsReplaying(false)
@@ -450,24 +451,16 @@ export function useEngine(testMode, testLimit, activeTab) {
           setTelemetry(telemetryBufferRef.current.toArray())
         }
 
-        if (testMode === 'time') {
-          countdownTimerRef.current = createCountdownTimer(
-            testLimit,
-            (rem, el) => {
-              setTimeLeft(rem)
-              setElapsedTime(el)
-              updateTelemetry(el)
-            },
-            () => setIsTimeUp(true)
-          )
-          countdownTimerRef.current.start()
-        } else {
-          elapsedTimerRef.current = createElapsedTimer((el) => {
-            setElapsedTime(el)
-            updateTelemetry(el)
-          })
-          elapsedTimerRef.current.start()
-        }
+        // Both modes now use an elapsed timer (stopwatch) to ensure the game only ends when typed.
+        elapsedTimerRef.current = createElapsedTimer((el) => {
+          setElapsedTime(el)
+          updateTelemetry(el)
+          if (testMode === 'time') {
+            // Provide a visual "countdown" for the UI if needed, but no auto-finish
+            setTimeLeft(Math.max(0, testLimit - el))
+          }
+        })
+        elapsedTimerRef.current.start()
       }
 
       keystrokesRef.current.push({ value, timestamp: now })

@@ -214,24 +214,21 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         disabled={isReplaying || isLoading}
         autoFocus
       />
+
+      {(testMode === 'words' || testMode === 'time') &&
+        engine.wordProgress &&
+        !isFinished &&
+        !isReplaying && (
+          <div className="live-progress-counter">
+            <span>{engine.wordProgress.typed}</span>
+            <span className="remaining">/{engine.wordProgress.total}</span>
+          </div>
+        )}
+
       <div
         className={`typing-container ${testMode === 'time' ? 'time-mode' : 'words-mode'}`}
         ref={wordContainerRef}
       >
-        {((testMode === 'words' && engine.wordProgress) || testMode === 'time') &&
-          !isFinished &&
-          !isReplaying && (
-            <div className="live-progress-counter">
-              {testMode === 'time' ? (
-                <span>{engine.timeLeft}s</span>
-              ) : (
-                <>
-                  <span>{engine.wordProgress.typed}</span>
-                  <span className="remaining">/{engine.wordProgress.total}</span>
-                </>
-              )}
-            </div>
-          )}
         {!isFinished ? (
           <>
             {isGhostEnabled && startTime && !isFinished && (
@@ -270,7 +267,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
                 transition: smoothCaretEnabled
                   ? 'transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), height 0.1s ease, width 0.1s ease'
                   : 'none',
-                opacity: (!engine.caretPos || isLoading) ? 0 : 1
+                opacity: !engine.caretPos || isLoading ? 0 : 1
               }}
             />
 

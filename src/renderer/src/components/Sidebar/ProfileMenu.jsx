@@ -48,11 +48,7 @@ const ProfileMenu = ({
                 }}
               >
                 <div className="item-icon">
-                  <UniversalAvatar
-                    avatarId={selectedAvatarId || 0}
-                    theme={avatarTheme}
-                    size={16}
-                  />
+                  <UniversalAvatar avatarId={selectedAvatarId || 0} theme={avatarTheme} size={16} />
                 </div>
                 <span>View Profile</span>
               </button>

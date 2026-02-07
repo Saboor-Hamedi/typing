@@ -1,7 +1,14 @@
 import { Trash2, AlertTriangle } from 'lucide-react'
 import './DangerZone.css'
 
-const DangerZone = ({ title, description, buttonText, onAction, icon: Icon = Trash2, className = '' }) => {
+const DangerZone = ({
+  title,
+  description,
+  buttonText,
+  onAction,
+  icon: Icon = Trash2,
+  className = ''
+}) => {
   return (
     <section className={`danger-zone-card glass-panel ${className}`}>
       <div className="danger-zone-header">
