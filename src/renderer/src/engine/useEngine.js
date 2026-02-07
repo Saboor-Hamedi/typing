@@ -53,7 +53,7 @@ export function useEngine(testMode, testLimit, activeTab) {
   const [results, setResults] = useState({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 })
   const keystrokesRef = useRef([]) // Optimized: Use ref instead of state to avoid re-renders
   const [testHistory, setTestHistory] = useState([])
-  const [caretPos, setCaretPos] = useState({ left: 0, top: 0 })
+  const [caretPos, setCaretPos] = useState(null)
   const [pb, setPb] = useState(0)
   const [telemetry, setTelemetry] = useState([])
   const telemetryBufferRef = useRef(new CircularBuffer(50)) // Optimized circular buffer
@@ -606,7 +606,8 @@ export function useEngine(testMode, testLimit, activeTab) {
       const target = document.getElementById(`char-${charIndex}`)
       const caret = caretRef.current
 
-      if (target && container) {
+      // Ensure target is valid and has actual dimensions before calculating
+      if (target && container && target.getBoundingClientRect().width > 0) {
         const containerRect = container.getBoundingClientRect()
         const wordWrapper = container.querySelector('.word-wrapper')
         const targetRect = target.getBoundingClientRect()
@@ -639,6 +640,7 @@ export function useEngine(testMode, testLimit, activeTab) {
           caret.style.transform = `translate3d(${roundedLeft}px, ${finalizedTop}px, 0)`
           caret.style.height = `${roundedH}px`
           caret.style.width = `${caretWidth}px`
+          // Caret is now in position, ensure it's visible (opacity handled in component)
         }
 
         // Use a much larger buffer and rounded values to prevent line-jitter
@@ -657,9 +659,8 @@ export function useEngine(testMode, testLimit, activeTab) {
             })
           }
         }
-      } else if (retryCount < 30) {
-        // Retry logic: If target isn't found, it might be due to a reset or rapid line wrap.
-        // We avoid snap-resetting to (0,0) by doing nothing and retrying.
+      } else if (retryCount < 60) {
+        // Increase retry span (1s total) to catch slow mounts or loading states
         retryCount++
         retryTimer = setTimeout(updateCaret, 16)
       }

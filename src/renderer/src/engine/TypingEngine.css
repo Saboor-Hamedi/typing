@@ -11,12 +11,15 @@
   min-height: 0;
 }
 
-/* Hard Lock: Disable ALL transitions during active typing to stop shuffling */
+/* Hard Lock: Disable transitions during active typing to stop shuffling, but allow letter animations */
 .typing-canvas:has(.typing) .word,
-.typing-canvas:has(.typing) .letter,
+.typing-canvas:has(.typing) .letter {
+  transition: none !important;
+}
+
 .typing-canvas:has(.typing) .caret {
   transition: none !important;
-  animation-play-state: paused !important;
+  animation-play-state: paused !important; /* Only pause caret blinking */
 }
 
 /* Standardize container dimensions and add transitions */
@@ -122,6 +125,29 @@
     0 0 10px rgba(255, 0, 0, 0.5) !important;
   transition: none !important;
   -webkit-text-fill-color: #ff0000 !important; /* Force color on some rendering engines */
+}
+
+/* Kinetic Popping Effect - Enhanced with upward motion */
+@keyframes kinetic-pop {
+  0% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+  20% {
+    transform: translateY(-5px) scale(1.3);
+    filter: brightness(2.2) saturate(1.8);
+    text-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.8);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+.letter.correct.kinetic {
+  display: inline-block;
+  animation: kinetic-pop 0.22s cubic-bezier(0.2, 0, 0, 1.2); /* Added elastic finish */
+  will-change: transform, filter;
 }
 
 .caret {

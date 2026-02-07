@@ -16,9 +16,12 @@ import './TypingEngine.css'
  * Letter Component
  */
 const Letter = memo(
-  ({ char, status, active, id }) => {
+  ({ char, status, active, id, isKineticEnabled }) => {
     return (
-      <span id={id} className={`letter ${status || ''} ${active ? 'active' : ''}`}>
+      <span
+        id={id}
+        className={`letter ${status || ''} ${active ? 'active' : ''} ${isKineticEnabled && status === 'correct' ? 'kinetic' : ''}`}
+      >
         {char}
       </span>
     )
@@ -267,7 +270,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
                 transition: smoothCaretEnabled
                   ? 'transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), height 0.1s ease, width 0.1s ease'
                   : 'none',
-                opacity: isLoading ? 0 : 1
+                opacity: (!engine.caretPos || isLoading) ? 0 : 1
               }}
             />
 

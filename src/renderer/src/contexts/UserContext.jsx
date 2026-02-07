@@ -196,7 +196,7 @@ export const UserProvider = ({ children, addToast }) => {
     if (!window.api?.onDeepLink) return
 
     const unsubscribeDeepLink = window.api.onDeepLink(async (url) => {
-      if (!url) return
+      if (!url || isLoggingOut.current) return
 
       const cleanUrl = url.replace(/['"]/g, '').trim()
 
@@ -359,35 +359,38 @@ export const UserProvider = ({ children, addToast }) => {
     if (isLoggingOut.current) return
     isLoggingOut.current = true
 
+    // 1. Instant UI update for a "smooth" feel
     setIsLoggedIn(false)
     setUsername(localUsername)
-    // PRESERVE unlocked avatars for guest users - only reset selected avatar if needed
-    if (!unlockedAvatars.includes(selectedAvatarId)) {
-      setSelectedAvatarId(PROGRESSION.DEFAULT_AVATAR_ID)
-    }
-
-    localStorage.setItem(STORAGE_KEYS.MANUAL_LOGOUT, 'true')
-
-    // Aggressively clear ALL Supabase and auth related tokens
-    Object.keys(localStorage).forEach((key) => {
-      if (key.includes('auth-token') || key.startsWith('sb-')) {
-        localStorage.removeItem(key)
-      }
-    })
 
     try {
+      // 2. Clear cloud session while tokens are still available
       await signOut()
       addToast?.(SUCCESS_MESSAGES.LOGOUT_SUCCESS, 'info')
     } catch (err) {
       console.error('Logout error:', err)
-      // Even if cloud logout fails, local state is already cleared
       addToast?.('Signed out locally', 'info')
     } finally {
+      // 3. Aggressively clear local tokens
+      Object.keys(localStorage).forEach((key) => {
+        if (key.includes('auth-token') || key.startsWith('sb-') || key.includes('supabase.auth.token')) {
+          localStorage.removeItem(key)
+        }
+      })
+
+      localStorage.setItem(STORAGE_KEYS.MANUAL_LOGOUT, 'true')
+      
+      // Preserve unlocked avatars for guest users - only reset selected avatar if needed
+      if (!unlockedAvatars.includes(selectedAvatarId)) {
+        setSelectedAvatarId(PROGRESSION.DEFAULT_AVATAR_ID)
+      }
+
+      // 4. Shorten lock duration to 400ms to allow fast testing/re-login
       setTimeout(() => {
         isLoggingOut.current = false
-      }, 2500)
+      }, 400)
     }
-  }, [localUsername, addToast])
+  }, [localUsername, unlockedAvatars, selectedAvatarId, addToast])
 
   const value = {
     isLoggedIn,
