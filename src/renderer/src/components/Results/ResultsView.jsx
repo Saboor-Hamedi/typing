@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { RotateCcw, Play, TrendingUp, Target, Clock, AlertCircle, BarChart3 } from 'lucide-react'
+import {
+  RotateCcw,
+  RefreshCw,
+  Play,
+  TrendingUp,
+  Target,
+  Clock,
+  AlertCircle,
+  BarChart3
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import TelemetryGraph from '../Analytics/TelemetryGraph'
 import './ResultsView.css'
@@ -27,7 +36,15 @@ const AnimatedCounter = ({ value, duration = 1.5, suffix = '' }) => {
   )
 }
 
-const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onReplay }) => {
+const ResultsView = ({
+  results,
+  telemetry,
+  testMode,
+  testLimit,
+  onRestart,
+  onRepeat,
+  onReplay
+}) => {
   // Format duration
   const formattedDuration = useMemo(() => {
     if (!results.duration) return '0s'
@@ -155,11 +172,33 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        <button className="action-btn-modern secondary" onClick={onReplay}>
+        <button
+          className="action-btn-modern secondary"
+          onClick={(e) => {
+            e.stopPropagation()
+            onRepeat()
+          }}
+        >
+          <RefreshCw size={16} />
+          <span>Repeat Test</span>
+        </button>
+        <button
+          className="action-btn-modern secondary"
+          onClick={(e) => {
+            e.stopPropagation()
+            onReplay()
+          }}
+        >
           <Play size={16} />
           <span>Watch Replay</span>
         </button>
-        <button className="action-btn-modern primary" onClick={onRestart}>
+        <button
+          className="action-btn-modern primary"
+          onClick={(e) => {
+            e.stopPropagation()
+            onRestart()
+          }}
+        >
           <RotateCcw size={16} />
           <span>Next Test</span>
         </button>

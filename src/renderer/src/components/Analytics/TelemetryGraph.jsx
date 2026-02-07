@@ -5,33 +5,50 @@ import './TelemetryGraph.css'
 const TelemetryGraph = ({ data = [], width = 500, height = 120 }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null)
 
-  if (data.length < 2)
+  const plotData = useMemo(() => {
+    if (data.length === 0) return []
+    if (data.length === 1) {
+      // Create a small horizontal segment for single-point visibility
+      return [
+        { ...data[0], sec: 0 },
+        { ...data[0], sec: data[0].sec || 0.1 }
+      ]
+    }
+    return data
+  }, [data])
+
+  if (plotData.length < 2) {
     return (
-      <div className="telemetry-placeholder anim-pulse" style={{ width, height }}>
-        <span>Calculating metrics...</span>
+      <div className="telemetry-placeholder anim-pulse" style={{ width: '100%', height }}>
+        <span>Analyzing performance...</span>
       </div>
     )
+  }
 
-  const maxWpm = Math.max(...data.map((d) => d.raw || d.wpm), 60)
+  const maxWpm = Math.max(...plotData.map((d) => d.raw || d.wpm), 60)
   const minWpm = 0
   const range = maxWpm - minWpm || 1
 
-  const points = data.map((d, i) => {
-    const x = (i / (data.length - 1)) * width
+  const points = plotData.map((d, i) => {
+    const x = (i / (plotData.length - 1)) * width
     const yWpm = height - ((d.wpm - minWpm) / range) * height
     const yRaw = d.raw ? height - ((d.raw - minWpm) / range) * height : yWpm
     return { x, yWpm, yRaw, ...d }
   })
 
-  const wpmPath = points.reduce(
-    (acc, p, i) => (i === 0 ? `M ${p.x},${p.yWpm}` : `${acc} L ${p.x},${p.yWpm}`),
-    ''
-  )
-
-  const rawPath = points.reduce(
-    (acc, p, i) => (i === 0 ? `M ${p.x},${p.yRaw}` : `${acc} L ${p.x},${p.yRaw}`),
-    ''
-  )
+  // Ensure path starts exactly at coordinates
+  const wpmPath =
+    `M ${points[0].x},${points[0].yWpm} ` +
+    points
+      .slice(1)
+      .map((p) => `L ${p.x},${p.yWpm}`)
+      .join(' ')
+  const rawPath =
+    `M ${points[0].x},${points[0].yRaw} ` +
+    points
+      .slice(1)
+      .map((p) => `L ${p.x},${p.yRaw}`)
+      .join(' ')
 
   const areaData = `${wpmPath} L ${width},${height} L 0,${height} Z`
 

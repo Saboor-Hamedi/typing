@@ -339,6 +339,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
             testMode={testMode}
             testLimit={testLimit}
             onRestart={resetGame}
+            onRepeat={() => resetGame({ words })}
             onReplay={runReplay}
           />
         )}

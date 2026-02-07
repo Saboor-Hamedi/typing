@@ -38,6 +38,7 @@ Key principles driving the codebase:
 ### 4.1 Separation of Concerns
 
 The application is split into three distinct layers:
+
 1. **Main Process (`src/main`)**: Handles the OS lifecycle, file system access, and window management. It acts as the "Server" side of the desktop app.
 2. **Renderer Process (`src/renderer`)**: The UI layer. It contains all React code and visual logic.
 3. **Bridge (`src/preload`)**: A secure channel that exposes specific capabilities (like "save settings" or "minimize window") to the Renderer without giving full Node.js access.
@@ -47,12 +48,13 @@ The application is split into three distinct layers:
 To avoid bloating UI components with logic, the core typing mechanics are abstracted into `src/renderer/src/engine`.
 
 - **`useEngine.js`**: A custom React Hook that acts as the controller. It owns the state (words, input, timer) and logic (calculation, validation).
-  - *Why it's DRY*: Any component can become a typing interface by consuming this hook. It doesn't care *how* it's rendered, only *what* the state is.
+  - _Why it's DRY_: Any component can become a typing interface by consuming this hook. It doesn't care _how_ it's rendered, only _what_ the state is.
 - **`TypingEngine.jsx`**: A pure presentational component that consumes `useEngine`. It focuses solely on efficiently rendering the DOM nodes for the game.
 
 ### 4.3 Context-Based State
 
 Global application state is managed via React Context providers in `src/renderer/src/contexts`:
+
 - **`SettingsContext`**: Loads, validates, and saves user themes, difficulty modes, and preferences. It handles the synchronization between `localStorage` (fast read) and `electron-store` (permanent disk).
 - **`ThemeContext`**: Manages CSS variables for theming (Chameleon mode, etc.).
 - **`UserContext`**: Handles Supabase authentication and user profiles.
@@ -80,6 +82,7 @@ App (Root)
 ### **Word Generation (`src/renderer/src/utils/words.js`)**
 
 Handles the content generation. It supports:
+
 - **Complexity Modifiers**: Can inject punctuation, numbers, or capitalization into any word set.
 - **Dictionaries**: Segregated by difficulty (Beginner/Intermediate/Advanced).
 - **Mode Logic**: Handles `generateWords` vs `generateBaseWords`, distinguishing between "Sentence Mode" (coherent quotes) and "Word Mode" (random tokens).
@@ -87,12 +90,14 @@ Handles the content generation. It supports:
 ### **Sound Engine (`src/renderer/src/utils/SoundEngine.js`)**
 
 A singleton class that manages audio playback.
+
 - **Profiles**: Specific key-switch sounds (Mechanical, Cherry Blue, Typewriter).
 - **Performance**: Uses distinct `Audio` instances to allow rapid-fire overlapping sounds without cutting off previous keystrokes (Low latency).
 
 ### **Persistence Layer**
 
 Data is saved in two places:
+
 1. **Local**: `electron-store` saves `pb` (Personal Best) and `history`. This ensures the app works perfectly offline.
 2. **Cloud**: `Supabase` is updated asynchronously after every test. If the user is offline, the cloud sync fails silently (non-blocking) while local data remains accurate.
 
@@ -106,6 +111,6 @@ The codebase demonstrates strong adherence to DRY:
 
 ## 8. Development Guidelines
 
-- **Do not modify `useEngine.js` directly for UI changes.** If you need to change how the caret looks, edit `TypingEngine.jsx` or CSS. Only edit `useEngine.js` if the *rules of the game* change.
+- **Do not modify `useEngine.js` directly for UI changes.** If you need to change how the caret looks, edit `TypingEngine.jsx` or CSS. Only edit `useEngine.js` if the _rules of the game_ change.
 - **Always use `window.api` for file/settings operations.** Never try to import `fs` or `electron` directly in React components.
 - **Keep Components Small.** If a component exceeds 200 lines, check if sub-components (like `Letter` inside `TypingEngine`) can be extracted.

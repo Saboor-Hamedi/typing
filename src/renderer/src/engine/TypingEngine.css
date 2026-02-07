@@ -11,31 +11,46 @@
 }
 
 .live-progress-counter {
-  margin-top: 2vh; /* Pushed even higher towards the header */
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 0;
-  font-size: 6rem;
+  font-size: clamp(4rem, 15vw, 10rem);
   font-weight: 900;
   color: var(--main-color);
   opacity: 0.12;
   user-select: none;
   pointer-events: none;
-  text-shadow: 0 0 20px rgba(var(--main-color-rgb), 0.1);
+  text-shadow: 0 0 30px rgba(var(--main-color-rgb), 0.15);
   line-height: 1;
+  white-space: nowrap;
+  text-align: center;
+  /* Tabular numbers prevent the horizontal 'snap' as digits change width */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .typing-container {
-  margin: auto 0; /* Vertical centering in the remaining space */
-  padding-bottom: 10vh; /* Balance out the top header for true visual center */
-  max-width: 1000px;
+  margin: auto 0;
   width: 100%;
+  max-width: 1000px;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* Default bias for typing to feel 'natural' */
+  padding-bottom: 10vh;
+  transition: padding-bottom 0.3s ease;
 }
-.results-view {
+
+/* Push results significantly higher up to be "Top-Center-Focused" and far from the taskbar */
+.typing-container:has(.results-container) {
+  padding-bottom: 30vh;
+}
+
+.results-view-wrapper {
   margin: auto 0;
   width: 100%;
   max-width: 1000px;

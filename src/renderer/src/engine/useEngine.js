@@ -43,34 +43,27 @@ import { createCountdownTimer, createElapsedTimer } from '../utils/timer'
 import { CircularBuffer } from '../utils/helpers'
 
 export function useEngine(testMode, testLimit, activeTab) {
+  // 1. ALL STATES
   const [words, setWords] = useState([])
   const [baseWords, setBaseWords] = useState([])
   const [userInput, setUserInput] = useState('')
   const [startTime, setStartTime] = useState(null)
   const [isFinished, setIsFinished] = useState(false)
   const [isReplaying, setIsReplaying] = useState(false)
-  const replayTimeoutRef = useRef(null)
   const [results, setResults] = useState({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 })
-  const keystrokesRef = useRef([]) // Optimized: Use ref instead of state to avoid re-renders
   const [testHistory, setTestHistory] = useState([])
   const [caretPos, setCaretPos] = useState(null)
   const [pb, setPb] = useState(0)
   const [telemetry, setTelemetry] = useState([])
-  const telemetryBufferRef = useRef(new CircularBuffer(50)) // Optimized circular buffer
-  const wordContainerRef = useRef(null)
-  const inputRef = useRef(null)
-  const caretRef = useRef(null) // Ref for direct DOM manipulation of caret position
-  const startTimeRef = useRef(null)
-  const timerRef = useRef(null)
-  const countdownTimerRef = useRef(null)
-  const elapsedTimerRef = useRef(null)
   const [timeLeft, setTimeLeft] = useState(testLimit)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [isTyping, setIsTyping] = useState(false)
   const [activeLineTop, setActiveLineTop] = useState(0)
   const [isStoreLoaded, setIsStoreLoaded] = useState(false)
+  const [resetSignal, setResetSignal] = useState(0)
+  const [wordSetId, setWordSetId] = useState(Date.now())
+  const [isTimeUp, setIsTimeUp] = useState(false)
 
-  const typingTimeoutRef = useRef(null)
   const {
     isGhostEnabled,
     setIsGhostEnabled,
@@ -95,14 +88,24 @@ export function useEngine(testMode, testLimit, activeTab) {
     isSettingsLoaded
   } = useSettings()
 
-  // State for reset synchronization
-  const [resetSignal, setResetSignal] = useState(0)
-  const [resetOverrides, setResetOverrides] = useState(null)
-  const [wordSetId, setWordSetId] = useState(Date.now())
-  const [isTimeUp, setIsTimeUp] = useState(false)
   const [isLoading, setIsLoading] = useState(!isSettingsLoaded)
 
-  // Settings Ref for non-reactive access in timing-sensitive handlers
+  // 2. ALL REFS
+  const replayTimeoutRef = useRef(null)
+  const keystrokesRef = useRef([])
+  const telemetryBufferRef = useRef(new CircularBuffer(50))
+  const wordContainerRef = useRef(null)
+  const inputRef = useRef(null)
+  const caretRef = useRef(null)
+  const startTimeRef = useRef(null)
+  const timerRef = useRef(null)
+  const countdownTimerRef = useRef(null)
+  const elapsedTimerRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
+  const resetOverridesRef = useRef(null)
+  const lastLineTop = useRef(-1)
+  const latestUserInputRef = useRef('')
+
   const settingsRef = useRef({
     testMode,
     testLimit,
@@ -112,23 +115,7 @@ export function useEngine(testMode, testLimit, activeTab) {
     isSentenceMode
   })
 
-  useEffect(() => {
-    settingsRef.current = {
-      testMode,
-      testLimit,
-      hasPunctuation,
-      hasNumbers,
-      hasCaps,
-      isSentenceMode
-    }
-  }, [testMode, testLimit, hasPunctuation, hasNumbers, hasCaps, isSentenceMode])
-
-  useEffect(() => {
-    if (!isSettingsLoaded) {
-      setIsLoading(true)
-    }
-  }, [isSettingsLoaded])
-
+  // 3. INTERNAL UTILITY HOOKS
   const ghostPos = useGhostRacing(
     isGhostEnabled,
     !!startTime && !isFinished,
@@ -174,6 +161,37 @@ export function useEngine(testMode, testLimit, activeTab) {
     }
   }, [])
 
+  const updateTelemetry = useCallback(
+    (sec, finalInput = null) => {
+      const durationInMin = sec / 60
+      if (durationInMin <= 0) return
+
+      const currentInput = finalInput !== null ? finalInput : latestUserInputRef.current
+      const targetText = words.join(' ')
+
+      let correctChars = 0
+      for (let i = 0; i < Math.min(currentInput.length, targetText.length); i++) {
+        if (currentInput[i] === targetText[i]) correctChars++
+      }
+
+      const currentWpm = Math.round(correctChars / 5 / durationInMin) || 0
+      const currentRaw = Math.round(currentInput.length / 5 / durationInMin) || 0
+
+      // Only push if different from last to avoid duplication
+      const arr = telemetryBufferRef.current.toArray()
+      const last = arr[arr.length - 1]
+      if (last && last.sec === Math.round(sec * 10) / 10) return
+
+      telemetryBufferRef.current.push({
+        sec: Math.round(sec * 10) / 10,
+        wpm: currentWpm,
+        raw: currentRaw
+      })
+      setTelemetry(telemetryBufferRef.current.toArray())
+    },
+    [words]
+  )
+
   /**
    * Finishes the typing test and calculates results
    * @param {string} finalInput - Final user input
@@ -190,12 +208,15 @@ export function useEngine(testMode, testLimit, activeTab) {
           return
         }
 
-        const durationInMinutes = (endTime - finalStartTime) / 60000
+        const durationSeconds = (endTime - finalStartTime) / 1000
+        updateTelemetry(durationSeconds, finalInput)
+
+        const durationInMinutes = durationSeconds / 60
         const targetText = words.join(' ')
         let correctChars = 0
         let errors = 0
 
-        for (let i = 0; i < finalInput.length; i++) {
+        for (let i = 0; i < Math.min(finalInput.length, targetText.length); i++) {
           if (finalInput[i] === targetText[i]) {
             correctChars++
           } else {
@@ -203,14 +224,19 @@ export function useEngine(testMode, testLimit, activeTab) {
           }
         }
 
+        // Add errors for missing chars if any
+        if (finalInput.length < targetText.length && testMode === 'words') {
+          errors += targetText.length - finalInput.length
+        }
+
         const wpm = Math.max(0, Math.round(correctChars / 5 / durationInMinutes))
         const rawWpm = Math.max(0, Math.round(finalInput.length / 5 / durationInMinutes))
         const accuracy =
           finalInput.length > 0 ? Math.round((correctChars / finalInput.length) * 100) : 100
-        const durationSeconds = Math.round((endTime - finalStartTime) / 1000)
+        const finalDurationSeconds = Math.round(durationSeconds)
 
         const isNewPb = wpm > pb
-        setResults({ wpm, rawWpm, accuracy, errors, duration: durationSeconds, isNewPb })
+        setResults({ wpm, rawWpm, accuracy, errors, duration: finalDurationSeconds, isNewPb })
         setIsFinished(true)
 
         // Save to local storage
@@ -283,7 +309,7 @@ export function useEngine(testMode, testLimit, activeTab) {
         startTimeRef.current = null
       }
     },
-    [startTime, words, stopTimer, testMode, testLimit, pb]
+    [startTime, words, stopTimer, updateTelemetry, testMode, testLimit, pb]
   )
 
   const clearAllData = useCallback(async () => {
@@ -296,12 +322,11 @@ export function useEngine(testMode, testLimit, activeTab) {
   }, [])
 
   const resetGame = useCallback((overrides = null) => {
-    // Treat any provided argument (even empty obj) as an explicit manual trigger.
-    // Specifically handle mouse events to prevent them from hitting the overrides logic.
+    // Better manual trigger detection
     const isEvent = overrides && (overrides.nativeEvent || overrides instanceof Event)
-    const manualData = isEvent ? {} : overrides || {}
+    const manualData = isEvent || !overrides ? {} : overrides
 
-    setResetOverrides(manualData)
+    resetOverridesRef.current = manualData
     setResetSignal((prev) => prev + 1)
   }, [])
 
@@ -309,9 +334,8 @@ export function useEngine(testMode, testLimit, activeTab) {
   useEffect(() => {
     if (!isSettingsLoaded) return
 
-    // RESET GUARD: Only block automatic settings-based resets if mid-typing.
-    // Manual resets (resetOverrides !== null) are ALWAYS allowed.
-    const isManual = resetOverrides !== null
+    const overrides = resetOverridesRef.current
+    const isManual = overrides !== null
     const isInactive = !startTimeRef.current || isFinished
     const hasNotStarted = userInput === ''
 
@@ -329,20 +353,22 @@ export function useEngine(testMode, testLimit, activeTab) {
       hasNumbers,
       hasCaps,
       isSentenceMode,
-      ...(resetOverrides || {})
+      ...(overrides || {})
     }
 
     // POLISH: Generate adequate words for the mode.
     // Time mode needs many more words than the default 25/40.
     const wordCount = s.testMode === 'words' ? s.testLimit : 30
 
-    const newWords = generateWords(wordCount, {
-      testLimit: wordCount, // Pass limit explicitely for fallback
-      hasPunctuation: s.hasPunctuation,
-      hasNumbers: s.hasNumbers,
-      hasCaps: s.hasCaps,
-      isSentenceMode: s.isSentenceMode
-    })
+    const newWords =
+      s.words ||
+      generateWords(wordCount, {
+        testLimit: wordCount, // Pass limit explicitely for fallback
+        hasPunctuation: s.hasPunctuation,
+        hasNumbers: s.hasNumbers,
+        hasCaps: s.hasCaps,
+        isSentenceMode: s.isSentenceMode
+      })
 
     // COMPLETE REPLACEMENT
     setWords([...newWords])
@@ -379,11 +405,9 @@ export function useEngine(testMode, testLimit, activeTab) {
     setIsLoading(true)
     const loaderTimer = setTimeout(() => setIsLoading(false), 200)
 
-    setResetOverrides(null)
+    resetOverridesRef.current = null
     return () => clearTimeout(loaderTimer)
-  }, [resetSignal, isSettingsLoaded, resetOverrides])
-
-  const latestUserInputRef = useRef('')
+  }, [resetSignal, isSettingsLoaded])
 
   useEffect(() => {
     latestUserInputRef.current = userInput
@@ -437,20 +461,6 @@ export function useEngine(testMode, testLimit, activeTab) {
         startTimeRef.current = now
 
         // START ELAPSED TIMER (Always needed for telemetry/WPM calculation)
-        const updateTelemetry = (sec) => {
-          const durationInMin = sec / 60
-          const currentInput = inputRef.current?.value || ''
-          const currentRaw = Math.round(currentInput.length / 5 / durationInMin) || 0
-          const targetText = words.join(' ')
-          let correctChars = 0
-          for (let i = 0; i < currentInput.length; i++) {
-            if (currentInput[i] === targetText[i]) correctChars++
-          }
-          const currentWpm = Math.round(correctChars / 5 / durationInMin) || 0
-          telemetryBufferRef.current.push({ sec, wpm: currentWpm, raw: currentRaw })
-          setTelemetry(telemetryBufferRef.current.toArray())
-        }
-
         // Both modes now use an elapsed timer (stopwatch) to ensure the game only ends when typed.
         elapsedTimerRef.current = createElapsedTimer((el) => {
           setElapsedTime(el)
@@ -460,6 +470,9 @@ export function useEngine(testMode, testLimit, activeTab) {
             setTimeLeft(Math.max(0, testLimit - el))
           }
         })
+
+        // Capture initial telemetry immediately
+        updateTelemetry(0.001)
         elapsedTimerRef.current.start()
       }
 
@@ -585,7 +598,6 @@ export function useEngine(testMode, testLimit, activeTab) {
     window.addEventListener('keydown', handleKeyDown, true)
     return () => window.removeEventListener('keydown', handleKeyDown, true)
   }, [resetGame, isReplaying, isFinished, skipReplay, inputRef, activeTab])
-  const lastLineTop = useRef(-1)
   useLayoutEffect(() => {
     if (isFinished) return
     if (!wordContainerRef.current) return

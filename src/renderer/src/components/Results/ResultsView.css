@@ -1,10 +1,11 @@
 .results-container {
-  max-width: 900px;
-  margin: 1.5rem auto;
-  padding: 2rem;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .results-content {
@@ -31,11 +32,11 @@
   background: var(--sub-alt-color);
   padding: 1.25rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--sub-alt-color);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
 }
@@ -63,9 +64,10 @@
 }
 
 .secondary-glass {
-  background: rgba(var(--bg-color-rgb), 0.3);
+  background: var(--sub-alt-color);
+  opacity: 0.95;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--sub-alt-color);
   border-radius: 12px;
   padding: 1.5rem;
   flex-grow: 1;
@@ -88,12 +90,12 @@
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--sub-alt-color);
 }
 
 .stat-pill-modern {
-  background: rgba(var(--sub-alt-color-rgb), 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: var(--sub-alt-color);
+  border: 1px solid var(--sub-alt-color);
   padding: 0.75rem 1rem;
   border-radius: 10px;
   display: flex;

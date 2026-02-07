@@ -770,7 +770,11 @@ const AppLayout = ({ addToast }) => {
                     isOverlayActive={isOverlayActive}
                   />
                 ) : activeTab === 'history' ? (
-                  <HistoryView data={mergedHistory} />
+                  <HistoryView
+                    data={mergedHistory}
+                    username={username}
+                    avatarId={selectedAvatarId}
+                  />
                 ) : activeTab === 'settings' ? (
                   <SettingsView
                     onClearHistory={() => toggleClearModal(true)}
