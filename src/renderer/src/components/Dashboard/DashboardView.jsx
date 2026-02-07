@@ -25,8 +25,10 @@ import {
   Settings,
   LogOut,
   Edit2,
-  User
+  User,
+  ShieldAlert
 } from 'lucide-react'
+import DangerZone from '../Common/DangerZone'
 import ProgressGraph from '../Analytics/ProgressGraph'
 import dashboardBg from '../../assets/dashboard_bg.png'
 import { calculateLevel } from '../../utils/Leveling'
@@ -369,18 +371,15 @@ const DashboardView = ({
           </section>
 
           {isLoggedIn && (
-            <section className="dashboard-card glass-panel danger-card">
-              <div className="danger-header">
-                <Trash2 size={16} />
-                <span>Danger Zone</span>
-              </div>
-              <p className="danger-text">
-                Delete your cloud account and all synced data. This cannot be undone.
-              </p>
-              <button className="danger-btn" onClick={onDeleteAccount}>
-                Delete Account
-              </button>
-            </section>
+            <div style={{ marginTop: '1.5rem' }}>
+              <DangerZone
+                title="Account Termination"
+                description="Delete your cloud account and all synced data. This action is permanent and cannot be reversed."
+                buttonText="Delete My Account"
+                onAction={onDeleteAccount}
+                icon={ShieldAlert}
+              />
+            </div>
           )}
         </div>
       </div>

@@ -1,0 +1,111 @@
+/* Profile Menu Styles - Refined & Perfectly Aligned */
+.profile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10006;
+  background: transparent;
+}
+
+.profile-menu-container {
+  position: fixed;
+  left: calc(var(--sidebar-width) + 2px); /* Tighter to the left */
+  bottom: 64px; /* Move up significantly to clear status bar/taskbar */
+  width: 180px; 
+  background: rgba(var(--bg-color-rgb, 18, 18, 18), 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  z-index: 10007;
+  overflow: hidden;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.profile-menu-header {
+  padding: 0.75rem 0.85rem;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.profile-name {
+  color: var(--text-color);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: -0.2px;
+  text-align: left;
+}
+
+.profile-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.04);
+  margin: 0;
+  width: 100%;
+}
+
+.profile-menu-list {
+  padding: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: stretch; /* Items fill width */
+}
+
+/* Reset buttons to be horizontal slabs */
+.profile-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Forced absolute left alignment */
+  gap: 0.65rem;
+  padding: 0.6rem 0.65rem;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: var(--sub-color);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer !important;
+  transition: all 0.15s ease;
+  text-align: left;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.profile-menu-item:hover {
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text-color);
+}
+
+/* Icons are strictly aligned in a 20px column */
+.profile-menu-item .item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--sub-color);
+}
+
+.profile-menu-item:hover .item-icon {
+  color: var(--main-color);
+}
+
+.profile-menu-item.logout:hover .item-icon {
+  color: #ef4444;
+}
+
+.profile-menu-item span {
+  white-space: nowrap;
+}
+
+/* Animation Origin */
+.profile-menu-container {
+  transform-origin: bottom left;
+}

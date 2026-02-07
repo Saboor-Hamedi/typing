@@ -5,19 +5,80 @@
 }
 
 .settings-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .settings-header h1 {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: var(--text-color);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.5px;
 }
 
 .settings-header p {
   color: var(--sub-color);
-  font-size: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.75rem;
+  background: rgba(var(--bg-color-rgb), 0.3);
+  padding: 0.3rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-tab-btn {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--sub-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.settings-tab-btn:hover {
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-tab-btn.active {
+  color: var(--main-color);
+}
+
+.tab-active-pill {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--main-color-rgb), 0.08);
+  border: 1px solid rgba(var(--main-color-rgb), 0.15);
+  border-radius: 7px;
+  z-index: -1;
+}
+
+.settings-content-wrapper {
+  position: relative;
+  min-height: 400px;
 }
 
 .settings-sections {

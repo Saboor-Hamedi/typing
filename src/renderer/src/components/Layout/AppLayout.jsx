@@ -64,8 +64,10 @@ import {
   AlertCircle,
   BookOpen,
   Quote,
-  Edit
+  Edit,
+  LogIn
 } from 'lucide-react'
+import ProfileMenu from '../Sidebar/ProfileMenu'
 import './AppLayout.css'
 
 // Lazy load views for code splitting
@@ -136,6 +138,7 @@ const AppLayout = ({ addToast }) => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isCapsLockOn, setIsCapsLockOn] = useState(false)
   const [paletteInitialQuery, setPaletteInitialQuery] = useState('')
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
 
   // Engine hook
   const engine = useEngine(testMode, testLimit, activeTab)
@@ -262,6 +265,7 @@ const AppLayout = ({ addToast }) => {
   const toggleLogoutModal = useCallback((isOpen) => setIsLogoutModalOpen(isOpen), [])
   const toggleClearModal = useCallback((isOpen) => setIsClearDataModalOpen(isOpen), [])
   const toggleDeleteAccountModal = useCallback((isOpen) => setIsDeleteAccountModalOpen(isOpen), [])
+  const toggleProfileMenu = useCallback((isOpen) => setIsProfileMenuOpen(isOpen), [])
 
   // Theme change handler
   const handleThemeChange = useCallback(
@@ -322,6 +326,7 @@ const AppLayout = ({ addToast }) => {
           if (isClearDataModalOpen) setIsClearDataModalOpen(false)
           if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
           if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
+          if (isProfileMenuOpen) setIsProfileMenuOpen(false)
           return
         }
 
@@ -698,11 +703,29 @@ const AppLayout = ({ addToast }) => {
         selectedAvatarId={selectedAvatarId}
         currentLevel={currentLevel}
         isLoggedIn={isLoggedIn}
-        onProfileClick={() => {
-          if (isLoggedIn) {
-            setActiveTab('dashboard')
-          } else {
-            toggleLoginModal(true)
+        onProfileClick={() => setIsProfileMenuOpen((prev) => !prev)}
+      />
+
+      <ProfileMenu
+        isOpen={isProfileMenuOpen}
+        onClose={() => setIsProfileMenuOpen(false)}
+        isLoggedIn={isLoggedIn}
+        username={username}
+        currentLevel={currentLevel}
+        selectedAvatarId={selectedAvatarId}
+        onAction={(action) => {
+          if (action === 'dashboard') {
+            if (isLoggedIn) {
+              setActiveTab('dashboard')
+            } else {
+              setIsLoginModalOpen(true)
+            }
+          } else if (action === 'settings') {
+            setActiveTab('settings')
+          } else if (action === 'logout') {
+            setIsLogoutModalOpen(true)
+          } else if (action === 'login') {
+            setIsLoginModalOpen(true)
           }
         }}
       />

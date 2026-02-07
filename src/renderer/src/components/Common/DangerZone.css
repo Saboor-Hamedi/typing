@@ -1,0 +1,92 @@
+/* Danger Zone Reusable Component */
+.danger-zone-card {
+  padding: 1.25rem;
+  background: rgba(var(--bg-color-rgb, 18, 18, 18), 0.7) !important;
+  border: 1px solid rgba(239, 68, 68, 0.15) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.danger-zone-card:hover {
+  border-color: rgba(239, 68, 68, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.05);
+}
+
+.danger-zone-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.danger-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.danger-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.danger-label {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.2px;
+}
+
+.danger-description {
+  color: var(--sub-color);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  max-width: 450px;
+}
+
+.danger-action-btn {
+  width: 100%;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.danger-action-btn:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.danger-action-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+  .danger-zone-card {
+    padding: 1rem;
+  }
+  
+  .danger-description {
+    font-size: 0.75rem;
+  }
+}

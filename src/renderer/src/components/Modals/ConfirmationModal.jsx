@@ -23,12 +23,12 @@ const ConfirmationModal = ({
             style={{ maxWidth: '400px', textAlign: 'center' }}
           >
             <div className="modal-header center">
-              <AlertTriangle size={32} color="#ea3232" style={{ marginBottom: '1rem' }} />
-              <h2>{title}</h2>
+              <AlertTriangle size={20} color="#ea3232" style={{ marginBottom: '0.75rem' }} />
+              <h2 style={{ fontSize: '1.2rem' }}>{title}</h2>
             </div>
 
             <div className="modal-body">
-              <p>{message}</p>
+              <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>{message}</p>
             </div>
 
             <div className="modal-footer center-gap">
