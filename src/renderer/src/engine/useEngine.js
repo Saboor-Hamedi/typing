@@ -93,7 +93,7 @@ export function useEngine(testMode, testLimit, activeTab) {
   // 2. ALL REFS
   const replayTimeoutRef = useRef(null)
   const keystrokesRef = useRef([])
-  const telemetryBufferRef = useRef(new CircularBuffer(50))
+  const telemetryBufferRef = useRef(new CircularBuffer(1000))
   const wordContainerRef = useRef(null)
   const inputRef = useRef(null)
   const caretRef = useRef(null)
@@ -105,6 +105,7 @@ export function useEngine(testMode, testLimit, activeTab) {
   const resetOverridesRef = useRef(null)
   const lastLineTop = useRef(-1)
   const latestUserInputRef = useRef('')
+  const wordsRef = useRef([])
 
   const settingsRef = useRef({
     testMode,
@@ -129,6 +130,10 @@ export function useEngine(testMode, testLimit, activeTab) {
     soundEngine.setProfile(soundProfile)
     soundEngine.setHallEffect(isHallEffect)
   }, [soundProfile, isHallEffect])
+
+  useEffect(() => {
+    wordsRef.current = words
+  }, [words])
   useEffect(() => {
     const loadPb = async () => {
       try {
@@ -163,11 +168,11 @@ export function useEngine(testMode, testLimit, activeTab) {
 
   const updateTelemetry = useCallback(
     (sec, finalInput = null) => {
+      if (sec < 0.1) return // Ignore extremely small durations to avoid spikes
       const durationInMin = sec / 60
-      if (durationInMin <= 0) return
 
       const currentInput = finalInput !== null ? finalInput : latestUserInputRef.current
-      const targetText = words.join(' ')
+      const targetText = wordsRef.current.join(' ')
 
       let correctChars = 0
       for (let i = 0; i < Math.min(currentInput.length, targetText.length); i++) {
@@ -189,7 +194,7 @@ export function useEngine(testMode, testLimit, activeTab) {
       })
       setTelemetry(telemetryBufferRef.current.toArray())
     },
-    [words]
+    []
   )
 
   /**
@@ -476,14 +481,110 @@ export function useEngine(testMode, testLimit, activeTab) {
         elapsedTimerRef.current.start()
       }
 
-      keystrokesRef.current.push({ value, timestamp: now })
+      let finalValue = value
+      const nativeEvent = e.nativeEvent
+      const isBackspace = (nativeEvent && nativeEvent.inputType === 'deleteContentBackward') || value.length < userInput.length
+      const lastChar = value[value.length - 1]
+
+      // Robust Word Index Mapping
+      const cleanWords = words.map(w => w.replace(/[\r\n]/g, ''))
+      const targetText = cleanWords.join(' ')
+      const wordsArray = targetText.split(' ')
+
+      const getWordInfo = (pos) => {
+        let charCount = 0
+        for (let i = 0; i < wordsArray.length; i++) {
+          const start = charCount
+          const word = wordsArray[i]
+          const end = start + word.length
+          const nextWordStart = i < wordsArray.length - 1 ? end + 1 : Infinity
+          // If position is anywhere from the first letter to the end of the word space
+          if (pos >= start && pos < nextWordStart) {
+            return { index: i, start, end, word }
+          }
+          charCount = nextWordStart
+        }
+        return null
+      }
+
+      // 1. BACKSPACE JUMP BACK LOGIC (Req 3 & 5)
+      if (isBackspace) {
+        const oldPos = userInput.length // Position BEFORE current backspace
+        const info = getWordInfo(oldPos)
+
+        // Only trigger jump if we are exactly at the start of a word boundary
+        // and we are trying to go back into the previous word.
+        if (info && oldPos === info.start && info.index > 0) {
+          const prevIdx = info.index - 1
+          const prevWord = wordsArray[prevIdx]
+          let prevStart = 0
+          for (let k = 0; k < prevIdx; k++) prevStart += wordsArray[k].length + 1
+
+          // Compare typed vs target to find the FIRST mistake
+          const typedFull = userInput.slice(prevStart, info.start - 1)
+          const typedClean = typedFull.trimEnd()
+          
+          let firstErrorPos = -1
+          const maxCompare = Math.max(typedClean.length, prevWord.length)
+          for (let j = 0; j < maxCompare; j++) {
+            if (typedClean[j] !== prevWord[j]) {
+              firstErrorPos = j
+              break
+            }
+          }
+
+          const hasMistake = firstErrorPos !== -1
+          const isPadded = typedFull.length > prevWord.length
+
+          // Req 3: If correct do not jump. Only jump if there's a typo or it was skipped (padding).
+          if (hasMistake || isPadded) {
+            // Jump to the exact first error found
+            const targetJumpIndex = (firstErrorPos === -1) ? prevWord.length : firstErrorPos
+            finalValue = userInput.slice(0, prevStart + targetJumpIndex)
+            
+            // Sync the physical input field to bypass React's async delay for immediate caret position
+            if (inputRef.current) {
+              inputRef.current.value = finalValue
+            }
+          }
+        }
+      }
+
+      // 2. SPACE SKIPS WRONG WORD LOGIC (Req 1, 2, 4)
+      if (!isBackspace && lastChar === ' ') {
+        const info = getWordInfo(userInput.length)
+        if (info) {
+          const wordTyped = value.slice(info.start, userInput.length)
+          const targetWord = info.word
+
+          // Req 1: Check we type or no. If word is empty, ignore the space jump.
+          if (wordTyped.length === 0) {
+            return; // Exit handleInput without updating state
+          }
+
+          // Req 2 & 4: Only skip if the word is incorrect or incomplete.
+          if (wordTyped !== targetWord) {
+            const nextWordStart = info.end + 1
+            if (nextWordStart <= targetText.length) {
+              // Create the skipped word string (original typo + padding spaces)
+              const skippedContent = wordTyped.slice(0, targetWord.length).padEnd(targetWord.length, ' ')
+              finalValue = userInput.slice(0, info.start) + skippedContent + ' '
+              if (inputRef.current) {
+                inputRef.current.value = finalValue
+              }
+            }
+          }
+        }
+      }
+
+      keystrokesRef.current.push({ value: finalValue, timestamp: now })
 
       // BOTH modes finish when words are complete
       const totalRequired = words.join(' ').length
-      if (value.length >= totalRequired) {
-        finishTest(value, now)
+      if (finalValue.length >= totalRequired) {
+        finishTest(finalValue, now)
       }
-      setUserInput(value)
+      setUserInput(finalValue)
     },
     [
       isFinished,
@@ -491,6 +592,7 @@ export function useEngine(testMode, testLimit, activeTab) {
       startTime,
       testMode,
       words,
+      userInput, // Crucial for non-stale logic
       finishTest,
       testLimit,
       isSoundEnabled,

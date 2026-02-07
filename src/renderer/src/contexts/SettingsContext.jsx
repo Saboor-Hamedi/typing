@@ -62,6 +62,11 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true
   })
 
+  const [isErrorUnderlineEnabled, setIsErrorUnderlineEnabled] = useState(() => {
+    const saved = localStorage.getItem('isErrorUnderlineEnabled')
+    return saved !== null ? JSON.parse(saved) : true
+  })
+
   const [isGhostEnabled, setIsGhostEnabled] = useState(() => {
     const saved = localStorage.getItem('isGhostEnabled')
     return saved !== null ? JSON.parse(saved) : false
@@ -129,6 +134,7 @@ export const SettingsProvider = ({ children }) => {
           savedCaretStyle,
           savedFire,
           savedErrorFeedback,
+          savedErrorUnderline,
           savedSound,
           savedHall,
           savedProfile,
@@ -146,6 +152,7 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get('caretStyle'),
           window.api.settings.get('isFireCaretEnabled'),
           window.api.settings.get('isErrorFeedbackEnabled'),
+          window.api.settings.get('isErrorUnderlineEnabled'),
           window.api.settings.get('isSoundEnabled'),
           window.api.settings.get('isHallEffect'),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.SOUND_PROFILE),
@@ -164,6 +171,7 @@ export const SettingsProvider = ({ children }) => {
         if (savedCaretStyle) setCaretStyle(savedCaretStyle)
         if (savedFire !== undefined) setIsFireCaretEnabled(savedFire)
         if (savedErrorFeedback !== undefined) setIsErrorFeedbackEnabled(savedErrorFeedback)
+        if (savedErrorUnderline !== undefined) setIsErrorUnderlineEnabled(savedErrorUnderline)
         if (savedSound !== undefined) setIsSoundEnabled(savedSound)
         if (savedHall !== undefined) setIsHallEffect(savedHall)
         if (savedProfile) setSoundProfile(savedProfile)
@@ -193,6 +201,7 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('caretStyle', caretStyle)
     localStorage.setItem('isFireCaretEnabled', isFireCaretEnabled)
     localStorage.setItem('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
+    localStorage.setItem('isErrorUnderlineEnabled', isErrorUnderlineEnabled)
     localStorage.setItem('isSoundEnabled', isSoundEnabled)
     localStorage.setItem('isHallEffect', isHallEffect)
     localStorage.setItem(STORAGE_KEYS.SOUND_PROFILE, soundProfile)
@@ -214,6 +223,7 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set('caretStyle', caretStyle)
       window.api.settings.set('isFireCaretEnabled', isFireCaretEnabled)
       window.api.settings.set('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
+      window.api.settings.set('isErrorUnderlineEnabled', isErrorUnderlineEnabled)
       window.api.settings.set('isSoundEnabled', isSoundEnabled)
       window.api.settings.set('isHallEffect', isHallEffect)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.SOUND_PROFILE, soundProfile)
@@ -234,6 +244,7 @@ export const SettingsProvider = ({ children }) => {
     caretStyle,
     isFireCaretEnabled,
     isErrorFeedbackEnabled,
+    isErrorUnderlineEnabled,
     isSoundEnabled,
     isHallEffect,
     soundProfile,
@@ -296,6 +307,8 @@ export const SettingsProvider = ({ children }) => {
       setCaretStyle,
       isErrorFeedbackEnabled,
       setIsErrorFeedbackEnabled,
+      isErrorUnderlineEnabled,
+      setIsErrorUnderlineEnabled,
       isSoundEnabled,
       setIsSoundEnabled,
       isHallEffect,
@@ -335,6 +348,7 @@ export const SettingsProvider = ({ children }) => {
       caretStyle,
       isFireCaretEnabled,
       isErrorFeedbackEnabled,
+      isErrorUnderlineEnabled,
       isSoundEnabled,
       isHallEffect,
       soundProfile,

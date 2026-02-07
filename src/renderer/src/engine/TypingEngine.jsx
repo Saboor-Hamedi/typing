@@ -45,6 +45,7 @@ const Word = memo(
     isCurrent,
     startIndex,
     isErrorFeedbackEnabled,
+    isErrorUnderlineEnabled,
     isKineticEnabled,
     activeLineTop
   }) => {
@@ -70,31 +71,37 @@ const Word = memo(
       }
     }, [activeLineTop, isDimmed])
 
-    return (
-      <div
-        ref={wordRef}
-        className={`word ${isCurrent ? 'current' : ''} ${isDimmed ? 'dimmed' : ''}`}
-      >
-        {letters.map((letter, i) => {
-          const charIndex = startIndex + i
-          // Logic to determine status moved inline to avoid mapped array overhead
-          let status = ''
-          if (i < chunk.length) {
-            status = chunk[i] === letter ? 'correct' : 'incorrect'
-          }
-          const isActive = isCurrent && chunk.length === i
+    // Check if the word has any errors for underlining
+    const hasErrors = useMemo(() => {
+      for (let i = 0; i < chunk.length; i++) {
+        if (i < word.length && chunk[i] !== word[i]) return true
+      }
+      return false
+    }, [chunk, word])
 
-          return (
-            <Letter
-              key={charIndex}
-              id={`char-${charIndex}`}
-              char={letter}
-              status={status}
-              active={isActive}
-              isKineticEnabled={isKineticEnabled}
-            />
-          )
-        })}
+    return (
+      <div ref={wordRef} className={`word ${isCurrent ? 'current' : ''} ${isDimmed ? 'dimmed' : ''}`}>
+        <div className={`word-inner ${isErrorUnderlineEnabled && hasErrors ? 'error-underline' : ''}`}>
+          {letters.map((letter, i) => {
+            const charIndex = startIndex + i
+            let status = ''
+            if (i < chunk.length) {
+              status = chunk[i] === letter ? 'correct' : 'incorrect'
+            }
+            const isActive = isCurrent && chunk.length === i
+
+            return (
+              <Letter
+                key={charIndex}
+                id={`char-${charIndex}`}
+                char={letter}
+                status={status}
+                active={isActive}
+                isKineticEnabled={isKineticEnabled}
+              />
+            )
+          })}
+        </div>
         <Letter
           id={`char-${startIndex + word.length}`}
           char={' '}
@@ -120,7 +127,8 @@ const Word = memo(
     // 4. Settings changed
     if (
       prev.isKineticEnabled !== next.isKineticEnabled ||
-      prev.isErrorFeedbackEnabled !== next.isErrorFeedbackEnabled
+      prev.isErrorFeedbackEnabled !== next.isErrorFeedbackEnabled ||
+      prev.isErrorUnderlineEnabled !== next.isErrorUnderlineEnabled
     )
       return false
 
@@ -142,6 +150,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     caretStyle,
     isFireCaretEnabled,
     isErrorFeedbackEnabled,
+    isErrorUnderlineEnabled,
     isKineticEnabled
   } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
@@ -322,6 +331,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
                         isCurrent={isCurrent}
                         startIndex={startIndex}
                         isErrorFeedbackEnabled={isErrorFeedbackEnabled}
+                        isErrorUnderlineEnabled={isErrorUnderlineEnabled}
                         isKineticEnabled={isKineticEnabled}
                         activeLineTop={engine.activeLineTop}
                       />

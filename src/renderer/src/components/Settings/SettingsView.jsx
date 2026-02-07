@@ -51,6 +51,8 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
     setIsFireCaretEnabled,
     isErrorFeedbackEnabled,
     setIsErrorFeedbackEnabled,
+    isErrorUnderlineEnabled,
+    setIsErrorUnderlineEnabled,
     isZenMode,
     setIsZenMode,
     soundProfile,
@@ -480,6 +482,26 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
                       type="checkbox"
                       checked={isErrorFeedbackEnabled}
                       onChange={() => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled)}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+
+                <div className="setting-item">
+                  <div className="setting-info">
+                    <div className="setting-label">
+                      <Type size={16} />
+                      <span>Error Underline</span>
+                    </div>
+                    <p className="setting-description">
+                      Highlight misspelled words with a subtle underline.
+                    </p>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={isErrorUnderlineEnabled}
+                      onChange={() => setIsErrorUnderlineEnabled(!isErrorUnderlineEnabled)}
                     />
                     <span className="slider"></span>
                   </label>

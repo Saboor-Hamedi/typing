@@ -128,11 +128,22 @@
   transition:
     opacity 0.15s ease,
     filter 0.15s ease;
+  flex-direction: row;
+  align-items: center;
+}
+
+.word-inner {
+  display: inline-flex;
+  position: relative;
+}
+
+.word-inner.error-underline {
+  border-bottom: 2px solid #ff0000;
+  border-radius: 0;
 }
 
 .word.dimmed {
   opacity: 0.25;
-  /* Removed filter: blur to prevent layout reshaping/jitter */
 }
 
 .letter {

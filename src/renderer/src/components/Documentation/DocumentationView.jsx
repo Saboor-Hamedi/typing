@@ -44,6 +44,14 @@ const DocumentationView = () => {
         {
           name: 'Sound Engine',
           desc: 'Custom-synthesized mechanical key sounds (Thocky, Creamy, ASMR).'
+        },
+        {
+          name: 'Error Underline',
+          desc: 'Wrongly typed words are highlighted with a red underline (Toggleable).'
+        },
+        {
+          name: 'Space Skip',
+          desc: 'Make a typo? Hit space to immediately jump to the next word.'
         }
       ]
     },
