@@ -120,11 +120,13 @@ export function useEngine(testMode, testLimit, activeTab) {
   const ghostPos = useGhostRacing(
     isGhostEnabled,
     !!startTime && !isFinished,
+    isFinished,
     startTime,
     pb,
     ghostSpeed,
     words,
-    wordContainerRef
+    wordContainerRef,
+    latestUserInputRef
   )
   useEffect(() => {
     soundEngine.setProfile(soundProfile)

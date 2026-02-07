@@ -315,7 +315,10 @@ const SettingsView = ({ onClearHistory, openThemeModal }) => {
                       { id: 'clicky', name: 'Clicky', desc: 'Sharp & responsive' },
                       { id: 'raindrop', name: 'Raindrop', desc: 'Soft & damp' },
                       { id: 'wood', name: 'Wood', desc: 'Warm & organic' },
-                      { id: 'asmr', name: 'ASMR', desc: 'Soft & relaxing' }
+                      { id: 'asmr', name: 'ASMR', desc: 'Soft & relaxing' },
+                      { id: 'velvet', name: 'Velvet', desc: 'Silky & silent' },
+                      { id: 'zen', name: 'Zen', desc: 'Ethereal & calming' },
+                      { id: 'paper', name: 'Paper', desc: 'Ink & parchment' }
                     ].map((profile) => (
                       <motion.div
                         key={profile.id}

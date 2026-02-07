@@ -15,87 +15,91 @@ import { lerpColor, clamp, rafThrottle } from '../utils/helpers'
  */
 export const useChameleonFlow = (liveWpm, pb, isActive, isEnabled) => {
   const { theme } = useTheme()
-  const [heat, setHeat] = useState(0)
   const rafIdRef = useRef(null)
-  const lastUpdateRef = useRef(0)
   const lastColorRef = useRef('')
+  const lastHeatRef = useRef(-1)
 
   /**
-   * Update color with RAF throttling
+   * Update color and heat with direct DOM manipulation to avoid re-renders
    */
-  const updateColor = useCallback(
-    rafThrottle(() => {
-      if (!isEnabled || !isActive) {
-        setHeat(0)
-        return
-      }
+  const updateChameleon = useCallback(() => {
+    if (!isEnabled || !isActive) {
+      return
+    }
 
-      const baseColor = THEMES.COLORS[theme] || THEMES.COLORS[THEMES.DEFAULT]
+    const baseColor = THEMES.COLORS[theme] || THEMES.COLORS[THEMES.DEFAULT]
+    const targetWpm = pb > 0 ? pb : GAME.CHAMELEON_FALLBACK_TARGET
 
-      // Calculate target WPM (use PB or fallback)
-      const targetWpm = pb > 0 ? pb : GAME.CHAMELEON_FALLBACK_TARGET
+    // Calculate heat factor (0-1)
+    const minThreshold = Math.min(10, targetWpm * 0.2)
+    const maxThreshold = targetWpm * 1.0
 
-      // Calculate heat factor (0-1) - More sensitive thresholds
-      const minThreshold = Math.min(10, targetWpm * 0.2) // Start subtle shift at 20% or 10 WPM (whichever is lower)
-      const maxThreshold = targetWpm * 1.0 // Fully hot at PB
+    let currentHeat = (liveWpm - minThreshold) / (maxThreshold - minThreshold)
 
-      let currentHeat = (liveWpm - minThreshold) / (maxThreshold - minThreshold)
-      currentHeat = clamp(currentHeat, 0, 1.4) // Allow slightly "overheating" for extra glow
+    // Ghost Lead Penalty: If ghost is ahead, reduce heat to turn UI "Cold"
+    // and desaturate the colors.
+    const lead = parseInt(document.documentElement.style.getPropertyValue('--ghost-lead')) || 0
+    if (lead > 5) {
+      const penalty = Math.min(1.2, lead / 20)
+      currentHeat -= penalty
+    }
 
-      setHeat(currentHeat)
+    currentHeat = clamp(currentHeat, -1.5, 1.4)
 
-      // Use a power curve for more dramatic visual shift
-      const curveHeat = Math.pow(currentHeat, 1.2) // Less aggressive curve for more early visibility
-      // Safe lookup for hot colors
-      const themeHotColors = THEMES.HOT_COLORS || {}
-      const hotColor = themeHotColors[theme] || themeHotColors[THEMES.DEFAULT] || [255, 0, 0]
+    // 1. Update Heat CSS Variable
+    if (Math.abs(lastHeatRef.current - currentHeat) > 0.01) {
+      document.documentElement.style.setProperty('--chameleon-heat', currentHeat.toFixed(3))
+      lastHeatRef.current = currentHeat
+    }
 
-      const interpolatedColor = lerpColor(baseColor, hotColor, curveHeat)
+    // 2. Update Color CSS Variable
+    // For negative heat (lagging), we interpolate towards a cold Cyan [0, 200, 255]
+    const coldColor = [0, 200, 255]
+    const themeHotColors = THEMES.HOT_COLORS || {}
+    const hotColor = themeHotColors[theme] || themeHotColors[THEMES.DEFAULT] || [255, 0, 0]
 
-      // Update CSS variable on both html and body for maximum override dominance
-      const colorStr = interpolatedColor.join(', ')
+    let interpolatedColor
+    if (currentHeat >= 0) {
+      const curveHeat = Math.pow(currentHeat, 1.2)
+      interpolatedColor = lerpColor(baseColor, hotColor, curveHeat)
+    } else {
+      // Lagging: interpolate towards cold cyan
+      const lagIntensity = Math.abs(currentHeat)
+      interpolatedColor = lerpColor(baseColor, coldColor, Math.min(1, lagIntensity))
+    }
+    const colorStr = interpolatedColor.join(', ')
 
-      // Optimization: Skip DOM update if color hasn't changed
-      if (lastColorRef.current !== colorStr) {
-        document.documentElement.style.setProperty('--main-color-rgb', colorStr)
-        document.body.style.setProperty('--main-color-rgb', colorStr)
-        lastColorRef.current = colorStr
-      }
-
-      lastUpdateRef.current = performance.now()
-    }),
-    [theme, pb, isEnabled, isActive, liveWpm]
-  )
+    if (lastColorRef.current !== colorStr) {
+      document.documentElement.style.setProperty('--main-color-rgb', colorStr)
+      lastColorRef.current = colorStr
+    }
+  }, [theme, pb, isEnabled, isActive, liveWpm])
 
   /**
-   * Reset to base theme color
+   * Reset all chameleon variables
    */
-  const resetColor = useCallback(() => {
-    setHeat(0)
+  const resetChameleon = useCallback(() => {
     const baseColor = THEMES.COLORS[theme] || THEMES.COLORS[THEMES.DEFAULT]
     const colorStr = baseColor.join(', ')
     document.documentElement.style.setProperty('--main-color-rgb', colorStr)
-    document.body.style.setProperty('--main-color-rgb', colorStr)
+    document.documentElement.style.setProperty('--chameleon-heat', '0')
+    lastHeatRef.current = 0
+    lastColorRef.current = colorStr
   }, [theme])
 
-  // Update color when WPM changes
+  // Update when WPM or state changes
   useEffect(() => {
     if (isEnabled && isActive) {
-      updateColor()
+      updateChameleon()
     } else {
-      resetColor()
+      resetChameleon()
     }
-  }, [liveWpm, isEnabled, isActive, updateColor, resetColor])
+  }, [liveWpm, isEnabled, isActive, updateChameleon, resetChameleon])
 
-  // Reset on unmount
+  // Cleanup
   useEffect(() => {
-    return () => {
-      if (rafIdRef.current) {
-        cancelAnimationFrame(rafIdRef.current)
-      }
-      resetColor()
-    }
-  }, [resetColor])
+    return () => resetChameleon()
+  }, [resetChameleon])
 
-  return { heat }
+  return null // No longer returning state to trigger re-renders
 }

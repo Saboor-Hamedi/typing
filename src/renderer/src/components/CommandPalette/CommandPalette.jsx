@@ -18,6 +18,7 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef(null)
+  const listRef = useRef(null)
 
   const isCommandMode = query.trim().startsWith('>')
   const effectiveQuery = isCommandMode ? query.slice(1).trim() : query.trim()
@@ -42,6 +43,27 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
       (action.id && action.id.toLowerCase().includes(effectiveQuery.toLowerCase()))
     )
   })
+
+  // Scroll active item into view - Boundary-safe scroller
+  useEffect(() => {
+    if (listRef.current) {
+      const selectedElement = listRef.current.querySelector('.command-item.selected')
+      if (selectedElement) {
+        const container = listRef.current
+        const containerRect = container.getBoundingClientRect()
+        const selectedRect = selectedElement.getBoundingClientRect()
+
+        // Check if item is above the viewport
+        if (selectedRect.top < containerRect.top) {
+          container.scrollTop -= containerRect.top - selectedRect.top + 10
+        }
+        // Check if item is below the viewport
+        else if (selectedRect.bottom > containerRect.bottom) {
+          container.scrollTop += selectedRect.bottom - containerRect.bottom + 10
+        }
+      }
+    }
+  }, [selectedIndex, filteredActions])
 
   useEffect(() => {
     if (isOpen) {
@@ -113,7 +135,7 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
               <div className="esc-hint">ESC</div>
             </div>
 
-            <div className="command-palette-list">
+            <div className="command-palette-list" ref={listRef}>
               {filteredActions.length > 0 ? (
                 filteredActions.map((action, index) => {
                   const isSelected = index === selectedIndex
@@ -126,7 +148,6 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
                         <div className="command-palette-category">{action.category}</div>
                       )}
                       <motion.div
-                        layout
                         className={`command-item ${isSelected ? 'selected' : ''}`}
                         onMouseEnter={() => setSelectedIndex(index)}
                         onClick={() => {

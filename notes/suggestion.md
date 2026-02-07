@@ -113,5 +113,3 @@ If the cursor starts landing in the wrong place or skipping behaves weirdly:
 - **Goal**: Provide immediate visual weight to "micro-bursts" of speed.
 
 ---
-
-_Created by Antigravity for TypingZone._

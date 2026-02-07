@@ -9,6 +9,10 @@
   pointer-events: none;
   opacity: 0.8;
   transition: background 0.3s ease;
+  /* Hardware Accelerated Shift */
+  filter: brightness(calc(1 + var(--chameleon-heat, 0)))
+    drop-shadow(0 0 calc(var(--chameleon-heat, 0) * 10px) var(--main-color));
+  will-change: width, filter;
 }
 
 /* Chameleon Ambient Effects */
@@ -34,6 +38,8 @@
   filter: blur(15px) brightness(1.2);
   border-radius: 50% 50% 0 0;
   will-change: height, opacity, transform;
+  /* Smooth opacity driven by heat */
+  opacity: calc((var(--chameleon-heat, 0) - 0.3) * 0.6);
 }
 
 .chameleon-fire-base {
@@ -68,12 +74,43 @@
   }
 }
 
-/* Hide title bar buttons in immersive mode if needed */
-.app-container.is-typing .title-bar-controls {
-  opacity: 0.1;
-  transition: opacity 0.3s ease;
+/* Trailing/Lag Visuals: Reactive to --ghost-lead */
+.app-container {
+  /* Dynamic "Lag" heat: 0 when ahead, peaks at 1 when 20+ chars behind */
+  --ghost-lag-intensity: clamp(0, (var(--ghost-lead, 0) - 5) / 20, 1);
 }
 
-.app-container.is-typing .title-bar-controls:hover {
-  opacity: 1;
+/* Chill the UI when lagging behind the ghost */
+.app-container.is-typing::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0, 200, 255, 0.08) 100%);
+  opacity: var(--ghost-lag-intensity);
+  pointer-events: none;
+  z-index: 10002;
+  transition: opacity 0.5s ease;
+  mix-blend-mode: soft-light;
+}
+
+/* Make the ghost icon glow menacingly when it takes a significant lead */
+.caret.ghost .ghost-icon {
+  filter: drop-shadow(0 0 calc(var(--ghost-lag-intensity) * 15px) #00d2ff)
+    brightness(calc(1 + var(--ghost-lag-intensity)));
+  opacity: calc(0.18 + var(--ghost-lag-intensity) * 0.4);
+}
+
+/* Pulse effect simplified: only glow, no saturation shifts */
+@keyframes lag-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.app-container.is-typing {
+  animation: none; /* Removed global pulse to save draw calls */
 }

@@ -171,8 +171,8 @@ const AppLayout = ({ addToast }) => {
   const account = useAccountManager(engine, addToast)
   const { mergedHistory, currentLevel, progression } = account
 
-  // Chameleon Flow (optimized)
-  const { heat } = useChameleonFlow(liveWpm, pb, isTestRunning, isChameleonEnabled)
+  // Chameleon Flow (optimized: no longer return heat to prevent re-renders)
+  useChameleonFlow(liveWpm, pb, isTestRunning, isChameleonEnabled)
 
   // Combined Progress Calculation
   const testProgress = useMemo(() => {
@@ -521,6 +521,30 @@ const AppLayout = ({ addToast }) => {
       onSelect: () => engine.setSoundProfile('wood')
     },
     {
+      id: 'sound-velvet',
+      label: 'Sound: Velvet',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('velvet')
+    },
+    {
+      id: 'sound-zen-profile',
+      label: 'Sound: Zen',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('zen')
+    },
+    {
+      id: 'sound-paper',
+      label: 'Sound: Paper',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('paper')
+    },
+    {
       id: 'hall-effect',
       label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`,
       icon: <Cpu size={18} />,
@@ -664,7 +688,7 @@ const AppLayout = ({ addToast }) => {
   return (
     <div
       className={`app-container ${isTestRunning ? 'is-typing' : ''}`}
-      onClick={handleGlobalInteraction}
+      onPointerDown={handleGlobalInteraction}
       onKeyDown={handleGlobalInteraction}
       style={{ paddingTop: isWeb ? '0' : '32px' }}
       id="main-content"
@@ -681,12 +705,7 @@ const AppLayout = ({ addToast }) => {
             width: { type: 'spring', stiffness: 300, damping: 30 },
             layout: { duration: 0.2 }
           }}
-          style={{
-            // Extra glow purely based on speed
-            filter: isChameleonEnabled
-              ? `brightness(${1 + heat}) drop-shadow(0 0 ${heat * 10}px var(--main-color))`
-              : 'none'
-          }}
+          style={{}}
         />
       )}
       {!isWeb && <TitleBar />}
@@ -730,7 +749,7 @@ const AppLayout = ({ addToast }) => {
       <div className="main-viewport">
         {/* Chameleon Ambient Aura & Fire Effect (Centered behind content) */}
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-          <ChameleonAura heat={heat} isEnabled={isTestRunning && isChameleonEnabled} />
+          <ChameleonAura isEnabled={isTestRunning && isChameleonEnabled} />
         </div>
         {!isOverlayActive && (
           <Header

@@ -88,8 +88,10 @@
 }
 
 .command-palette-list {
+  position: relative;
   max-height: 420px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 10px;
   display: flex;
   flex-direction: column;

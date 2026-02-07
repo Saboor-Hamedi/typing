@@ -4,29 +4,22 @@ import { GAME } from '../constants'
 /**
  * Optimized Ghost Racing Hook
  * Manages ghost caret position with RAF and cached DOM references
- *
- * @param {boolean} isEnabled - Whether ghost racing is enabled
- * @param {boolean} isActive - Whether test is active
- * @param {number} startTime - Test start timestamp
- * @param {number} pb - Personal best WPM
- * @param {number} ghostSpeed - Speed multiplier
- * @param {Array} words - Word array
- * @param {Object} containerRef - Ref to word container
- * @returns {Object} Ghost position {left, top}
  */
 export const useGhostRacing = (
   isEnabled,
   isActive,
+  isFinished,
   startTime,
   pb,
   ghostSpeed,
   words,
-  containerRef
+  containerRef,
+  userInputRef
 ) => {
   const [ghostPos, setGhostPos] = useState({ left: 0, top: 0 })
   const rafIdRef = useRef(null)
   const cachedElementsRef = useRef(new Map())
-  const lastCharIndexRef = useRef(-1)
+  const lastLeadRef = useRef(0)
 
   /**
    * Get or cache DOM element
@@ -70,33 +63,59 @@ export const useGhostRacing = (
       }
     }
 
-    // Run once and on window resize to keep it aligned
     syncGhost()
     window.addEventListener('resize', syncGhost)
     return () => window.removeEventListener('resize', syncGhost)
   }, [isEnabled, isActive, words, containerRef])
 
+  const progressRef = useRef(0)
+  const lastUpdateRef = useRef(0)
+
   /**
    * Update ghost position
    */
   const updateGhostPosition = useCallback(() => {
-    if (!isEnabled || !isActive || !startTime || pb <= 0 || !containerRef.current) {
+    if (!isEnabled || !isActive || !startTime || !containerRef.current || isFinished) {
       return
     }
 
-    const elapsed = performance.now() - startTime
+    const now = performance.now()
+    if (lastUpdateRef.current === 0) lastUpdateRef.current = now
+    const deltaTime = now - lastUpdateRef.current
+    lastUpdateRef.current = now
 
-    // Calculate ghost character progress (fractional)
-    const charsPerMs = (pb * GAME.CHARS_PER_WORD * ghostSpeed) / 60000
-    const progress = elapsed * charsPerMs
+    // 1. Dynamic Speed Calculation (Rubber-Banding)
+    let targetWpm = pb > 0 ? pb : 50
+
+    // Calculate current lead
+    const userIndex = userInputRef.current?.length || 0
+    const currentLead = Math.floor(progressRef.current) - userIndex
+
+    // Rubber-Band: Smoother interpolation for speed adjustment
+    let speedAdjustment = 1.0
+    if (currentLead > 5) {
+      speedAdjustment = 1.0 - Math.min(0.3, (currentLead - 5) / 60)
+    } else if (currentLead < -5) {
+      speedAdjustment = 1.0 + Math.min(0.25, Math.abs(currentLead + 5) / 80)
+    }
+
+    const effectiveWpm = targetWpm * ghostSpeed * speedAdjustment
+    const charsPerMs = (effectiveWpm * GAME.CHARS_PER_WORD) / 60000
+
+    progressRef.current += deltaTime * charsPerMs
+    const progress = progressRef.current
     const index = Math.floor(progress)
-    const factor = progress - index // 0.0 to 1.0 within the character
+    const factor = progress - index
 
-    // Get total character count
     const totalChars = words.join(' ').length
 
+    // Update Lead CSS Variable for visual effects
+    if (currentLead !== lastLeadRef.current) {
+      document.documentElement.style.setProperty('--ghost-lead', currentLead.toString())
+      lastLeadRef.current = currentLead
+    }
+
     if (index >= totalChars - 1) {
-      // Ghost at the very end
       const lastLetter = getElement(totalChars - 1)
       if (lastLetter) {
         const container = containerRef.current
@@ -109,15 +128,15 @@ export const useGhostRacing = (
             containerRect.top +
             container.scrollTop +
             (targetRect.height - targetRect.height * 0.7) / 2,
-          width: 2,
-          height: targetRect.height * 0.7
+          width: 0,
+          height: targetRect.height * 0.7,
+          opacity: 1,
+          index: totalChars - 1
         })
       }
-      rafIdRef.current = requestAnimationFrame(updateGhostPosition)
       return
     }
 
-    // Interpolation Logic
     const charA = getElement(index)
     const charB = getElement(index + 1)
 
@@ -135,7 +154,6 @@ export const useGhostRacing = (
         height,
         opacity = 1
 
-      // If on same line, interpolate left smoothly
       if (Math.abs(topA - topB) < 5) {
         left =
           rectA.left -
@@ -146,17 +164,13 @@ export const useGhostRacing = (
         top = topA + (rectA.height - height) / 2
         opacity = 1
       } else {
-        // Line break: Phasing Effect (Fade out -> Teleport -> Fade in)
-        // This prevents the "ugly" sweep/jump across lines
         height = rectA.height * 0.7
         if (factor < 0.5) {
-          // Fade out at end of Line A
           const fadeFactor = 1 - factor * 2
           left = rectA.left - containerRect.left + container.scrollLeft
           top = topA + (rectA.height - height) / 2
           opacity = fadeFactor
         } else {
-          // Fade in at start of Line B
           const fadeFactor = (factor - 0.5) * 2
           left = rectB.left - containerRect.left + container.scrollLeft
           top = topB + (rectB.height - height) / 2
@@ -164,41 +178,47 @@ export const useGhostRacing = (
         }
       }
 
-      setGhostPos({ left, top, width: 2, height, opacity })
+      setGhostPos({ left, top, width: 2, height, opacity, index })
     }
 
-    // Schedule next frame
     rafIdRef.current = requestAnimationFrame(updateGhostPosition)
-  }, [isEnabled, isActive, startTime, pb, ghostSpeed, words, containerRef, getElement])
+  }, [
+    isEnabled,
+    isActive,
+    startTime,
+    pb,
+    ghostSpeed,
+    words,
+    containerRef,
+    getElement,
+    isFinished,
+    userInputRef
+  ])
 
   /**
    * Start/stop ghost animation
    */
   useEffect(() => {
-    if (isEnabled && isActive && startTime && pb > 0) {
-      // Clear cache on new test
+    if (isEnabled && isActive && startTime && !isFinished) {
+      progressRef.current = 0
+      lastUpdateRef.current = 0
       cachedElementsRef.current.clear()
-      lastCharIndexRef.current = -1
-
-      // Start animation loop
       rafIdRef.current = requestAnimationFrame(updateGhostPosition)
     } else {
-      // Stop animation
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current)
         rafIdRef.current = null
       }
-
       cachedElementsRef.current.clear()
-      lastCharIndexRef.current = -1
+      document.documentElement.style.setProperty('--ghost-lead', '0')
+      lastLeadRef.current = 0
     }
 
     return () => {
-      if (rafIdRef.current) {
-        cancelAnimationFrame(rafIdRef.current)
-      }
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
+      document.documentElement.style.setProperty('--ghost-lead', '0')
     }
-  }, [isEnabled, isActive, startTime, pb, words, updateGhostPosition, containerRef])
+  }, [isEnabled, isActive, startTime, words, updateGhostPosition, isFinished])
 
   return ghostPos
 }

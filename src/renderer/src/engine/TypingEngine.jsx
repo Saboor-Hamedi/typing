@@ -10,6 +10,7 @@ import { UI } from '../constants'
 import { FastForward, Edit2, Ghost as GhostIcon } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
 import Loader from '../components/Common/Loader'
+import BurstGauge from '../components/Effects/BurstGauge'
 import './TypingEngine.css'
 
 /**
@@ -178,7 +179,9 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     isTyping,
     skipReplay,
     startTime,
-    isLoading
+    isLoading,
+    liveWpm,
+    pb
   } = engine
 
   // Focus management
@@ -207,6 +210,17 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     }
   }, [isOverlayActive, words])
 
+  // Track lag from CSS variable for visual feedback
+  const [lag, setLag] = useState(0)
+  useEffect(() => {
+    const updateLag = () => {
+      const l = parseInt(document.documentElement.style.getPropertyValue('--ghost-lead')) || 0
+      setLag(l)
+    }
+    const interval = setInterval(updateLag, 250)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div
       className="typing-canvas"
@@ -233,7 +247,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         engine.wordProgress &&
         !isFinished &&
         !isReplaying && (
-          <div className="live-progress-counter">
+          <div className={`live-progress-counter ${lag > 5 ? 'is-losing' : ''}`}>
             <span>{engine.wordProgress.typed}</span>
             <span className="remaining">/{engine.wordProgress.total}</span>
           </div>
@@ -245,18 +259,20 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
       >
         {!isFinished ? (
           <>
+            <BurstGauge wpm={liveWpm} pb={pb} isEnabled={startTime && !isFinished} />
+
             {isGhostEnabled && startTime && !isFinished && (
               <div
                 className="caret ghost"
                 style={{
                   position: 'absolute',
-                  left: -10,
-                  top: -5,
+                  left: 0,
+                  top: 0,
                   zIndex: 1,
                   pointerEvents: 'none',
                   transform: `translate3d(${ghostPos.left}px, ${ghostPos.top}px, 0)`,
                   opacity: ghostPos.opacity ?? 1,
-                  transition: 'transform 0.1s ease-out, opacity 0.2s'
+                  transition: 'opacity 0.2s'
                 }}
               >
                 <div className="ghost-icon">

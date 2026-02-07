@@ -1,211 +1,332 @@
 /**
- * SoundEngine - Custom Web Audio API synthesis for typing sounds
- * Generates realistic mechanical keyboard sounds without external samples
+ * SoundEngine - Premium Physical Modeling Synthesis for Typing
+ * Simulates mechanical keyboard acoustics using multi-layered synthesis
  */
 class SoundEngine {
   constructor() {
     this.audioCtx = null
     this.profile = 'asmr'
     this.hallEffect = true
+    this.masterGain = null
     this.reverbNode = null
+    this.plateNode = null
+    this.limiter = null
+    this.noiseBuffer = null // Pre-generated common noise
   }
 
   /**
-   * Initialize AudioContext and reverb
-   * Must be called after user interaction due to browser autoplay policies
+   * Premium Signal Chain initialization
    */
   init() {
-    if (!this.audioCtx) {
-      // Only create context if window is available and user interaction happened
-      try {
-        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-        this.createReverb()
-      } catch (e) {
-        if (import.meta.env.DEV) {
-          console.warn('AudioContext creation failed (silent if no gesture):', e)
-        }
-        return
-      }
+    if (this.audioCtx) {
+      if (this.audioCtx.state === 'suspended') this.audioCtx.resume()
+      return
     }
 
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume()
+    try {
+      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)({
+        latencyHint: 'interactive'
+      })
+
+      // 1. Limiter (Prevents digital clipping, adds "punch")
+      this.limiter = this.audioCtx.createDynamicsCompressor()
+      this.limiter.threshold.setValueAtTime(-8, this.audioCtx.currentTime)
+      this.limiter.ratio.setValueAtTime(12, this.audioCtx.currentTime)
+      this.limiter.attack.setValueAtTime(0.003, this.audioCtx.currentTime)
+      this.limiter.release.setValueAtTime(0.05, this.audioCtx.currentTime)
+
+      // 2. Master Gain
+      this.masterGain = this.audioCtx.createGain()
+      this.masterGain.gain.setValueAtTime(1.2, this.audioCtx.currentTime)
+
+      // 3. Routing
+      this.limiter.connect(this.audioCtx.destination)
+      this.masterGain.connect(this.limiter)
+
+      // 4. Spatial Modeling & Pre-gen
+      this.createRoomReverb()
+      this.createPlateResonance()
+      this.precomputeNoise()
+
+      // Zero-latency kickstart: Play a silent click to wake up hardware
+      this.kickstart()
+    } catch (e) {
+      console.warn('SoundEngine: Failed to reach audio hardware.', e)
     }
   }
 
-  /**
-   * Pre-initialize audio context to avoid first-key lag
-   * Should be called on first user interaction
-   */
   warmUp() {
     this.init()
   }
 
-  /**
-   * Create convolution reverb for hall effect
-   * Generates impulse response with exponential decay
-   */
-  createReverb() {
-    const length = this.audioCtx.sampleRate * 2.5
+  kickstart() {
+    if (!this.audioCtx) return
+    const g = this.audioCtx.createGain()
+    g.gain.value = 0
+    const osc = this.audioCtx.createOscillator()
+    osc.connect(g)
+    g.connect(this.audioCtx.destination)
+    osc.start(0)
+    osc.stop(this.audioCtx.currentTime + 0.1)
+  }
+
+  precomputeNoise() {
+    const duration = 2.0 // 2 seconds of noise
+    const size = this.audioCtx.sampleRate * duration
+    this.noiseBuffer = this.audioCtx.createBuffer(1, size, this.audioCtx.sampleRate)
+    const out = this.noiseBuffer.getChannelData(0)
+    for (let i = 0; i < size; i++) out[i] = Math.random() * 2 - 1
+  }
+
+  createRoomReverb() {
+    const length = this.audioCtx.sampleRate * 1.8
     const impulse = this.audioCtx.createBuffer(2, length, this.audioCtx.sampleRate)
     const left = impulse.getChannelData(0)
     const right = impulse.getChannelData(1)
 
     for (let i = 0; i < length; i++) {
-      const decay = Math.pow(1 - i / length, 3)
-      left[i] = (Math.random() * 2 - 1) * decay
-      right[i] = (Math.random() * 2 - 1) * decay
+      const decay = Math.pow(1 - i / length, 4.5)
+      const comb = Math.sin(i * 0.01) * 0.2
+      left[i] = (Math.random() * 2 - 1 + comb) * decay
+      right[i] = (Math.random() * 2 - 1 + comb) * decay
     }
 
     this.reverbNode = this.audioCtx.createConvolver()
     this.reverbNode.buffer = impulse
 
     this.reverbGain = this.audioCtx.createGain()
-    this.reverbGain.gain.setValueAtTime(0.2, this.audioCtx.currentTime)
+    this.reverbGain.gain.setValueAtTime(0.15, this.audioCtx.currentTime)
 
     this.reverbNode.connect(this.reverbGain)
-    this.reverbGain.connect(this.audioCtx.destination)
+    this.reverbGain.connect(this.masterGain)
   }
 
-  /**
-   * Set sound profile
-   * @param {string} profile - 'thocky', 'creamy', or 'clicky'
-   */
+  createPlateResonance() {
+    const length = this.audioCtx.sampleRate * 0.08
+    const impulse = this.audioCtx.createBuffer(2, length, this.audioCtx.sampleRate)
+    const left = impulse.getChannelData(0)
+    const right = impulse.getChannelData(1)
+
+    for (let i = 0; i < length; i++) {
+      const decay = Math.pow(1 - i / length, 2)
+      left[i] = (Math.random() * 2 - 1) * decay * 0.3
+      right[i] = (Math.random() * 2 - 1) * decay * 0.3
+    }
+
+    this.plateNode = this.audioCtx.createConvolver()
+    this.plateNode.buffer = impulse
+    this.plateGain = this.audioCtx.createGain()
+    this.plateGain.gain.setValueAtTime(0.4, this.audioCtx.currentTime)
+
+    this.plateNode.connect(this.plateGain)
+    this.plateGain.connect(this.masterGain)
+  }
+
   setProfile(profile) {
     this.profile = profile
   }
-
-  /**
-   * Enable/disable hall effect reverb
-   * @param {boolean} enabled - Whether to enable reverb
-   */
   setHallEffect(enabled) {
     this.hallEffect = enabled
   }
 
-  getNoiseBuffer() {
-    const bufferSize = this.audioCtx.sampleRate * 0.08
-    const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate)
-    const output = buffer.getChannelData(0)
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1
-    }
-    return buffer
+  /**
+   * Optimized: Reuses pre-computed noise buffer with random offset
+   */
+  getNoiseSource() {
+    if (!this.noiseBuffer) this.precomputeNoise()
+    const source = this.audioCtx.createBufferSource()
+    source.buffer = this.noiseBuffer
+    source.loop = true
+    // Randomize start position for variation
+    const offset = Math.random() * (source.buffer.duration - 0.5)
+    return { source, offset }
   }
 
-  /**
-   * Play a synthesized mechanical key sound
-   * @param {string} type - 'key', 'space', or 'backspace'
-   */
   playKeySound(type = 'key') {
     this.init()
     if (!this.audioCtx) return
-    if (this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume()
-    }
 
     const now = this.audioCtx.currentTime
+    const s = this.getProfileSettings()
 
-    // Add micro-randomness to pitch and gain for "organic" feel
-    const pitchJitter = 1 + (Math.random() - 0.5) * 0.05
-    const volumeJitter = 1 + (Math.random() - 0.5) * 0.1
+    const pitch = 1 + (Math.random() - 0.5) * 0.06
+    const velocity = 0.95 + Math.random() * 0.05
+    const panVal = (Math.random() - 0.5) * 0.45
 
-    const masterGain = this.audioCtx.createGain()
-    masterGain.gain.setValueAtTime(0.8 * volumeJitter, now)
-    masterGain.connect(this.audioCtx.destination)
+    const panner = this.audioCtx.createStereoPanner()
+    panner.pan.setValueAtTime(panVal, now)
+    panner.connect(this.masterGain)
+    panner.connect(this.plateNode)
+    if (this.hallEffect) panner.connect(this.reverbNode)
 
-    if (this.hallEffect && this.reverbNode) {
-      masterGain.connect(this.reverbNode)
+    const voiceGain = this.audioCtx.createGain()
+    voiceGain.gain.setValueAtTime(velocity, now)
+    voiceGain.connect(panner)
+
+    const bodyFreqMod = type === 'space' ? 0.6 : type === 'backspace' ? 1.2 : 1.0
+    const volumeMod = type === 'space' ? 1.5 : type === 'backspace' ? 0.9 : 1.0
+
+    // --- LAYER 1: The "Body" ---
+    const body = this.audioCtx.createOscillator()
+    const bGain = this.audioCtx.createGain()
+    body.type = s.bodyType
+    body.frequency.setValueAtTime(s.bodyFreq * bodyFreqMod * pitch, now)
+    body.frequency.exponentialRampToValueAtTime(s.bodyFreq * 0.6, now + s.bodyDecay)
+    bGain.gain.setValueAtTime(s.bodyGain * volumeMod, now)
+    bGain.gain.exponentialRampToValueAtTime(0.001, now + s.bodyDecay)
+    body.connect(bGain)
+    bGain.connect(voiceGain)
+
+    // --- LAYER 2: The "Impact" (Optimized with reused buffer) ---
+    const { source: noise, offset } = this.getNoiseSource()
+    const nFilter = this.audioCtx.createBiquadFilter()
+    const nGain = this.audioCtx.createGain()
+    nFilter.type = s.noiseFilter
+    nFilter.frequency.setValueAtTime(s.noiseFreq, now)
+    nGain.gain.setValueAtTime(s.noiseGain * volumeMod, now)
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + s.noiseDecay)
+    noise.connect(nFilter)
+    nFilter.connect(nGain)
+    nGain.connect(voiceGain)
+
+    // --- LAYER 3: Stabilizer ---
+    if (type === 'space') {
+      const stab = this.audioCtx.createOscillator()
+      const sGain = this.audioCtx.createGain()
+      stab.type = 'triangle'
+      stab.frequency.setValueAtTime(2400 * pitch, now)
+      sGain.gain.setValueAtTime(0.04, now)
+      sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
+      stab.connect(sGain)
+      sGain.connect(voiceGain)
+      stab.start(now)
+      stab.stop(now + 0.05)
     }
 
-    // Sound profile definitions
-    const settings = {
+    // --- LAYER 4: Switch Click ---
+    if (s.clickGain > 0) {
+      const click = this.audioCtx.createOscillator()
+      const cGain = this.audioCtx.createGain()
+      click.type = 'square'
+      click.frequency.setValueAtTime(s.clickFreq * pitch, now)
+      cGain.gain.setValueAtTime(s.clickGain, now)
+      cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.015)
+      click.connect(cGain)
+      cGain.connect(voiceGain)
+      click.start(now)
+      click.stop(now + 0.02)
+    }
+
+    body.start(now)
+    noise.start(now, offset)
+    body.stop(now + s.bodyDecay + 0.1)
+    noise.stop(now + s.noiseDecay + 0.1)
+  }
+
+  getProfileSettings() {
+    const p = {
       thocky: {
-        body: { type: 'sine', freq: 160, decay: 0.12, gain: 0.6 },
-        low: { type: 'sine', freq: 80, decay: 0.15, gain: 0.8 },
-        noise: { filter: 'lowpass', freq: 250, decay: 0.05, gain: 0.15 }
+        bodyType: 'sine',
+        bodyFreq: 130,
+        bodyDecay: 0.16,
+        bodyGain: 0.8,
+        noiseFreq: 300,
+        noiseDecay: 0.09,
+        noiseGain: 0.35,
+        noiseFilter: 'lowpass',
+        clickGain: 0
       },
       creamy: {
-        body: { type: 'triangle', freq: 320, decay: 0.1, gain: 0.4 },
-        low: { type: 'sine', freq: 120, decay: 0.12, gain: 0.3 },
-        noise: { filter: 'bandpass', freq: 1200, decay: 0.04, gain: 0.1 }
+        bodyType: 'triangle',
+        bodyFreq: 280,
+        bodyDecay: 0.11,
+        bodyGain: 0.5,
+        noiseFreq: 1200,
+        noiseDecay: 0.07,
+        noiseGain: 0.3,
+        noiseFilter: 'bandpass',
+        clickGain: 0
       },
       clicky: {
-        body: { type: 'square', freq: 1800, decay: 0.02, gain: 0.05 },
-        low: { type: 'sine', freq: 400, decay: 0.06, gain: 0.15 },
-        noise: { filter: 'highpass', freq: 3000, decay: 0.015, gain: 0.12 }
-      },
-      raindrop: {
-        body: { type: 'sine', freq: 2200, decay: 0.04, gain: 0.08 },
-        noise: { filter: 'highpass', freq: 5000, decay: 0.01, gain: 0.03 }
-      },
-      wood: {
-        body: { type: 'triangle', freq: 180, decay: 0.1, gain: 0.5 },
-        low: { type: 'sine', freq: 90, decay: 0.12, gain: 0.4 },
-        noise: { filter: 'bandpass', freq: 400, decay: 0.04, gain: 0.15 }
+        bodyType: 'square',
+        bodyFreq: 600,
+        bodyDecay: 0.05,
+        bodyGain: 0.2,
+        noiseFreq: 3200,
+        noiseDecay: 0.03,
+        noiseGain: 0.4,
+        noiseFilter: 'highpass',
+        clickFreq: 4200,
+        clickGain: 0.15
       },
       asmr: {
-        body: { type: 'sine', freq: 180, decay: 0.15, gain: 0.5 },
-        low: { type: 'sine', freq: 90, decay: 0.2, gain: 0.4 },
-        noise: { filter: 'bandpass', freq: 1400, decay: 0.08, gain: 0.25 }
+        bodyType: 'sine',
+        bodyFreq: 95,
+        bodyDecay: 0.24,
+        bodyGain: 0.75,
+        noiseFreq: 1500,
+        noiseDecay: 0.12,
+        noiseGain: 0.55,
+        noiseFilter: 'bandpass',
+        clickGain: 0
+      },
+      wood: {
+        bodyType: 'triangle',
+        bodyFreq: 175,
+        bodyDecay: 0.13,
+        bodyGain: 0.7,
+        noiseFreq: 550,
+        noiseDecay: 0.06,
+        noiseGain: 0.4,
+        noiseFilter: 'bandpass',
+        clickGain: 0
+      },
+      raindrop: {
+        bodyFreq: 1800,
+        bodyDecay: 0.05,
+        bodyGain: 0.3,
+        bodyType: 'sine',
+        noiseFreq: 4500,
+        noiseDecay: 0.02,
+        noiseGain: 0.2,
+        noiseFilter: 'highpass',
+        clickGain: 0
+      },
+      velvet: {
+        bodyType: 'sine',
+        bodyFreq: 75,
+        bodyDecay: 0.28,
+        bodyGain: 0.9,
+        noiseFreq: 200,
+        noiseDecay: 0.15,
+        noiseGain: 0.4,
+        noiseFilter: 'lowpass',
+        clickGain: 0
+      },
+      zen: {
+        bodyType: 'sine',
+        bodyFreq: 440,
+        bodyDecay: 0.1,
+        bodyGain: 0.6,
+        noiseFreq: 2200,
+        noiseDecay: 0.3,
+        noiseGain: 0.3,
+        noiseFilter: 'bandpass',
+        clickGain: 0
+      },
+      paper: {
+        bodyType: 'triangle',
+        bodyFreq: 120,
+        bodyDecay: 0.05,
+        bodyGain: 0.5,
+        noiseFreq: 1800,
+        noiseDecay: 0.06,
+        noiseGain: 0.7,
+        noiseFilter: 'highpass',
+        clickGain: 0
       }
     }
-
-    const s = settings[this.profile] || settings.thocky
-
-    // 1. Body Component
-    const bodyOsc = this.audioCtx.createOscillator()
-    const bodyGain = this.audioCtx.createGain()
-    bodyOsc.type = s.body.type
-    bodyOsc.frequency.setValueAtTime(s.body.freq * pitchJitter, now)
-    bodyOsc.frequency.exponentialRampToValueAtTime(s.body.freq * 0.5, now + s.body.decay)
-    bodyGain.gain.setValueAtTime(s.body.gain, now)
-    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + s.body.decay)
-    bodyOsc.connect(bodyGain)
-    bodyGain.connect(masterGain)
-
-    // 2. Low End Component
-    if (s.low) {
-      const lowOsc = this.audioCtx.createOscillator()
-      const lowGain = this.audioCtx.createGain()
-      lowOsc.type = s.low.type
-      lowOsc.frequency.setValueAtTime(s.low.freq * pitchJitter, now)
-      lowGain.gain.setValueAtTime(s.low.gain, now)
-      lowGain.gain.exponentialRampToValueAtTime(0.001, now + s.low.decay)
-      lowOsc.connect(lowGain)
-      lowGain.connect(masterGain)
-      lowOsc.start(now)
-      lowOsc.stop(now + s.low.decay + 0.05)
-    }
-
-    // 3. Impact Noise
-    const impactNoise = this.audioCtx.createBufferSource()
-    impactNoise.buffer = this.getNoiseBuffer()
-    const noiseFilter = this.audioCtx.createBiquadFilter()
-    const noiseGain = this.audioCtx.createGain()
-    noiseFilter.type = s.noise.filter
-    noiseFilter.frequency.setValueAtTime(s.noise.freq, now)
-    noiseGain.gain.setValueAtTime(s.noise.gain, now)
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + s.noise.decay)
-
-    impactNoise.connect(noiseFilter)
-    noiseFilter.connect(noiseGain)
-    noiseGain.connect(masterGain)
-
-    // Modifications based on key type
-    if (type === 'space') {
-      bodyOsc.frequency.setValueAtTime(s.body.freq * 0.6 * pitchJitter, now)
-      masterGain.gain.setValueAtTime(1.2 * volumeJitter, now)
-    } else if (type === 'backspace') {
-      bodyOsc.frequency.setValueAtTime(s.body.freq * 1.2 * pitchJitter, now)
-      bodyGain.gain.setValueAtTime(0.4, now)
-      masterGain.gain.setValueAtTime(0.6 * volumeJitter, now)
-    }
-
-    bodyOsc.start(now)
-    impactNoise.start(now)
-    bodyOsc.stop(now + s.body.decay + 0.05)
-    impactNoise.stop(now + s.noise.decay + 0.05)
+    return p[this.profile] || p.thocky
   }
 }
 

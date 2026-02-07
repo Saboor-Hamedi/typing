@@ -2,7 +2,7 @@ import React, { memo } from 'react'
 import { motion } from 'framer-motion'
 import '../../components/Layout/AppLayout.css' // Reuse CSS
 
-const ChameleonAura = memo(({ heat, isEnabled }) => {
+const ChameleonAura = memo(({ isEnabled }) => {
   if (!isEnabled) return null
 
   return (
@@ -10,26 +10,28 @@ const ChameleonAura = memo(({ heat, isEnabled }) => {
       {/* Ground Heat Base */}
       <div className="chameleon-fire-base" />
 
-      {/* Optimized: Reduced flame count from 16 to 8 for performance */}
+      {/* Optimized: Using CSS-driven animations for zero re-renders */}
       {[...Array(8)].map((_, i) => (
         <motion.div
           key={i}
           className="chameleon-flame-tongue"
           animate={{
-            opacity: heat > 0.3 ? (heat - 0.3) * 0.6 : 0,
-            height: [`${2 + heat * 15}%`, `${5 + heat * 25}%`, `${3 + heat * 18}%`],
+            height: [
+              `calc(2% + var(--chameleon-heat) * 15%)`,
+              `calc(5% + var(--chameleon-heat) * 25%)`,
+              `calc(3% + var(--chameleon-heat) * 18%)`
+            ],
             scaleX: [1, 1.05, 0.98, 1],
             translateX: [`${(i / 8) * 100 - 2}%`, `${(i / 8) * 100 + 1}%`, `${(i / 8) * 100 - 2}%`]
           }}
           transition={{
             height: { duration: 1.5 + Math.random() * 1, repeat: Infinity, ease: 'easeInOut' },
             scaleX: { duration: 2 + Math.random() * 1, repeat: Infinity, ease: 'easeInOut' },
-            translateX: { duration: 3 + Math.random() * 2, repeat: Infinity, ease: 'easeInOut' },
-            opacity: { duration: 0.5 }
+            translateX: { duration: 3 + Math.random() * 2, repeat: Infinity, ease: 'easeInOut' }
           }}
           style={{
             left: `${(i / 8) * 100}%`,
-            width: '20%', // Wider flames to cover gaps
+            width: '20%',
             background: `linear-gradient(to top, rgba(var(--main-color-rgb), 0.45) 0%, rgba(var(--main-color-rgb), 0.15) 60%, transparent)`
           }}
         />
