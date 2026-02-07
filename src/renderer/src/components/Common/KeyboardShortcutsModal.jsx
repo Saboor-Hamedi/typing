@@ -1,8 +1,8 @@
 /**
  * KeyboardShortcutsModal Component
- * 
+ *
  * Displays a modal with all available keyboard shortcuts
- * 
+ *
  * @component
  */
 import { memo, useEffect } from 'react'
@@ -37,7 +37,7 @@ const KeyboardShortcutsModal = memo(({ isOpen, onClose }) => {
       items: [
         { keys: ['Tab'], description: 'Restart test' },
         { keys: ['Enter', 'Esc'], description: 'Close results view' },
-        { keys: ['Ctrl', 'R'], description: 'Restart test (alternative)' },
+        { keys: ['Ctrl', 'R'], description: 'Restart test (alternative)' }
       ]
     },
     {
@@ -46,14 +46,14 @@ const KeyboardShortcutsModal = memo(({ isOpen, onClose }) => {
         { keys: ['Ctrl', ','], description: 'Open settings' },
         { keys: ['Ctrl', 'T'], description: 'Open themes' },
         { keys: ['Ctrl', 'P'], description: 'Command Palette' },
-        { keys: ['?'], description: 'Show keyboard shortcuts' },
+        { keys: ['?'], description: 'Show keyboard shortcuts' }
       ]
     },
     {
       category: 'General',
       items: [
         { keys: ['Esc'], description: 'Close modals/dropdowns' },
-        { keys: ['Enter', 'Space'], description: 'Activate buttons' },
+        { keys: ['Enter', 'Space'], description: 'Activate buttons' }
       ]
     }
   ]
@@ -66,8 +66,8 @@ const KeyboardShortcutsModal = memo(({ isOpen, onClose }) => {
             <Keyboard size={20} />
             <span>Keyboard Shortcuts</span>
           </div>
-          <button 
-            className="modal-close-btn" 
+          <button
+            className="modal-close-btn"
             onClick={onClose}
             aria-label="Close keyboard shortcuts"
             type="button"
@@ -87,7 +87,9 @@ const KeyboardShortcutsModal = memo(({ isOpen, onClose }) => {
                       {item.keys.map((key, keyIdx) => (
                         <span key={keyIdx}>
                           <kbd>{key}</kbd>
-                          {keyIdx < item.keys.length - 1 && <span className="key-separator">+</span>}
+                          {keyIdx < item.keys.length - 1 && (
+                            <span className="key-separator">+</span>
+                          )}
                         </span>
                       ))}
                     </div>

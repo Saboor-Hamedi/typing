@@ -26,12 +26,12 @@ export const AVATAR_MAP = {
   9: avatar9,
   10: avatar10,
   11: avatar11,
-  12: avatar12,
+  12: avatar12
 }
 
 // Dynamically fill remaining to avoid repetition but allow overrides
 for (let i = 13; i <= 28; i++) {
-  if (!AVATAR_MAP[i]) AVATAR_MAP[i] = null; // Set to null so UniversalAvatar knows to use icon fallback
+  if (!AVATAR_MAP[i]) AVATAR_MAP[i] = null // Set to null so UniversalAvatar knows to use icon fallback
 }
 
 export const AVATAR_DEFS = [

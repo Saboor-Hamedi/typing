@@ -143,8 +143,14 @@
   pointer-events: none;
 }
 
-header, footer, .main-sidebar, .config-bar-container {
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease;
+header,
+footer,
+.main-sidebar,
+.config-bar-container {
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s ease;
 }
 
 /* removed is-typing styles */
@@ -154,7 +160,6 @@ header, footer, .main-sidebar, .config-bar-container {
   margin: 0;
   padding: 0;
   cursor: default; /* Typing-centric default */
-  -webkit-app-region: no-drag;
 }
 
 /* Ensure all interactive elements show a pointer */
@@ -162,10 +167,10 @@ button,
 a,
 select,
 label,
-input[type="button"],
-input[type="submit"],
-input[type="range"],
-[role="button"],
+input[type='button'],
+input[type='submit'],
+input[type='range'],
+[role='button'],
 .clickable,
 .config-btn,
 .text-btn,
@@ -185,16 +190,17 @@ input[type="range"],
   cursor: pointer !important;
 }
 
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="number"],
-input[type="search"],
+input[type='text'],
+input[type='password'],
+input[type='email'],
+input[type='number'],
+input[type='search'],
 textarea {
   cursor: text !important;
 }
 
-input, textarea {
+input,
+textarea {
   cursor: text;
 }
 
@@ -243,7 +249,9 @@ body {
   background: var(--bg-color);
   border-bottom: 1px solid var(--sub-alt-color);
   /* Absolute clean default for typing */
-  transition: opacity 0.3s ease, visibility 0.3s;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s;
 }
 
 /* removed :has(.typing-canvas) hiding styles */
@@ -286,7 +294,6 @@ body {
     padding: 1rem 1rem 2rem 1rem;
   }
 }
-
 
 .placeholder-view {
   padding: 4rem;
@@ -334,7 +341,8 @@ body {
   transition: all 0.2s;
 }
 
-.config-group span:hover, .config-group span.active {
+.config-group span:hover,
+.config-group span.active {
   color: var(--main-color);
   text-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.3);
 }
@@ -455,22 +463,27 @@ main {
   height: 8px;
   background: var(--main-color);
   border-radius: 50%;
-  box-shadow: 
+  box-shadow:
     0 0 5px var(--main-color),
     0 0 10px var(--main-color);
   animation: dotGlow 1.5s ease-in-out infinite;
 }
 
 @keyframes dotGlow {
-  0%, 100% { 
+  0%,
+  100% {
     transform: scale(1);
     opacity: 0.8;
-    box-shadow: 0 0 5px var(--main-color), 0 0 10px var(--main-color);
+    box-shadow:
+      0 0 5px var(--main-color),
+      0 0 10px var(--main-color);
   }
-  50% { 
+  50% {
     transform: scale(1.3);
     opacity: 1;
-    box-shadow: 0 0 10px var(--main-color), 0 0 20px var(--main-color);
+    box-shadow:
+      0 0 10px var(--main-color),
+      0 0 20px var(--main-color);
   }
 }
 
@@ -517,7 +530,7 @@ main {
   .kb-hint {
     display: none;
   }
-  
+
   footer {
     padding: 0.5rem 0;
   }
@@ -625,8 +638,8 @@ main {
 /* Ensure minimum touch target size (44x44px) */
 button,
 a,
-input[type="checkbox"],
-input[type="radio"] {
+input[type='checkbox'],
+input[type='radio'] {
   min-width: 32px;
   min-height: 32px;
   display: inline-flex;
@@ -685,7 +698,7 @@ kbd {
 
 /* Loading state for buttons */
 button:disabled,
-button[aria-busy="true"] {
+button[aria-busy='true'] {
   opacity: 0.6;
   cursor: not-allowed;
   pointer-events: none;

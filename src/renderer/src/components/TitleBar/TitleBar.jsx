@@ -19,14 +19,11 @@ const TitleBar = () => {
     <div className="titlebar">
       <div className="titlebar-drag-region">
         <div className="titlebar-title">
-           <div 
-             className="app-icon-img" 
-             style={{ '--logo-url': `url(${logo})` }} 
-           />
-           {/* <span>TypingZone</span> */}
+          <div className="app-icon-img" style={{ '--logo-url': `url(${logo})` }} />
+          {/* <span>TypingZone</span> */}
         </div>
       </div>
-      
+
       <div className="titlebar-controls">
         <button onClick={handleMinimize} className="control-btn minimize" title="Minimize">
           <Minus size={14} />

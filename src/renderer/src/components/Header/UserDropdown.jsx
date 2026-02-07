@@ -5,9 +5,9 @@ import UniversalAvatar from '../Common/UniversalAvatar'
 
 /**
  * UserDropdown Component
- * 
+ *
  * User profile dropdown menu with account info, typing speed, and navigation options.
- * 
+ *
  * @component
  * @param {Object} props - Component props
  * @param {string} props.username - Current username
@@ -18,11 +18,11 @@ import UniversalAvatar from '../Common/UniversalAvatar'
  * @param {number} [props.selectedAvatarId=1] - Selected avatar ID
  * @param {Function} [props.onNavigateDashboard] - Function to navigate to dashboard
  * @param {number} [props.wpm] - Current typing speed in WPM
- * 
+ *
  * @example
  * ```jsx
- * <UserDropdown 
- *   username="John" 
+ * <UserDropdown
+ *   username="John"
  *   isLoggedIn={true}
  *   setUsername={setUsername}
  *   onLogoutRequest={handleLogout}
@@ -30,84 +30,96 @@ import UniversalAvatar from '../Common/UniversalAvatar'
  * />
  * ```
  */
-const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, onLogoutRequest, selectedAvatarId = 1, onNavigateDashboard, wpm }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [tempName, setTempName] = useState('')
-  const dropdownRef = useRef(null)
+const UserDropdown = memo(
+  ({
+    username,
+    isLoggedIn,
+    setUsername,
+    openLoginModal,
+    onLogoutRequest,
+    selectedAvatarId = 1,
+    onNavigateDashboard,
+    wpm
+  }) => {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
+    const [tempName, setTempName] = useState('')
+    const dropdownRef = useRef(null)
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!isDropdownOpen) return
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false)
+    // Close dropdown on outside click
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (!isDropdownOpen) return
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsDropdownOpen(false)
+        }
       }
-    }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('touchstart', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('touchstart', handleClickOutside)
-    }
-  }, [isDropdownOpen])
-
-  // Close on Escape
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (!isDropdownOpen) return
-      if (e.key === 'Escape') {
-        setIsDropdownOpen(false)
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+        document.removeEventListener('touchstart', handleClickOutside)
       }
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [isDropdownOpen])
+    }, [isDropdownOpen])
 
-  return (
-    <div className="dropdown-container" ref={dropdownRef}>
-      <button 
-        className={`user-trigger ${isDropdownOpen ? 'active' : ''}`}
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        aria-label={`User menu for ${username}`}
-        aria-expanded={isDropdownOpen}
-        aria-haspopup="menu"
-        type="button"
-      >
-        <div className="trigger-avatar">
-          <UniversalAvatar 
-            avatarId={selectedAvatarId} 
-            theme={AVATAR_DEFS.find(a => a.id === selectedAvatarId)?.theme}
-            size={36}
-          />
-          {isLoggedIn && <div className="online-indicator" aria-label="Online" />}
-        </div>
-      </button>
+    // Close on Escape
+    useEffect(() => {
+      const handleKey = (e) => {
+        if (!isDropdownOpen) return
+        if (e.key === 'Escape') {
+          setIsDropdownOpen(false)
+        }
+      }
+      window.addEventListener('keydown', handleKey)
+      return () => window.removeEventListener('keydown', handleKey)
+    }, [isDropdownOpen])
 
-      {isDropdownOpen && (
-        <>
-          <div className="dropdown-overlay" onClick={() => setIsDropdownOpen(false)} />
-          <div className="user-dropdown glass-panel" role="menu" aria-label="User menu">
+    return (
+      <div className="dropdown-container" ref={dropdownRef}>
+        <button
+          className={`user-trigger ${isDropdownOpen ? 'active' : ''}`}
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          aria-label={`User menu for ${username}`}
+          aria-expanded={isDropdownOpen}
+          aria-haspopup="menu"
+          type="button"
+        >
+          <div className="trigger-avatar">
+            <UniversalAvatar
+              avatarId={selectedAvatarId}
+              theme={AVATAR_DEFS.find((a) => a.id === selectedAvatarId)?.theme}
+              size={36}
+            />
+            {isLoggedIn && <div className="online-indicator" aria-label="Online" />}
+          </div>
+        </button>
+
+        {isDropdownOpen && (
+          <>
+            <div className="dropdown-overlay" onClick={() => setIsDropdownOpen(false)} />
+            <div className="user-dropdown glass-panel" role="menu" aria-label="User menu">
               <div className="dropdown-header">
                 <div className="user-info-section">
-                   <div className="name-row">
-                      <span className="name-text">{username}</span>
-                      <span className={`identity-badge ${isLoggedIn ? 'cloud' : 'local'}`}>
-                         {isLoggedIn ? 'Logged In' : 'Guest'}
-                      </span>
-                   </div>
-                   <span className="dropdown-subtitle">Status & Account</span>
+                  <div className="name-row">
+                    <span className="name-text">{username}</span>
+                    <span className={`identity-badge ${isLoggedIn ? 'cloud' : 'local'}`}>
+                      {isLoggedIn ? 'Logged In' : 'Guest'}
+                    </span>
+                  </div>
+                  <span className="dropdown-subtitle">Status & Account</span>
                 </div>
               </div>
 
               <div className="dropdown-section">
                 <div className="dropdown-item profile-setting">
-                  <div className="item-icon"><User size={14} /></div>
+                  <div className="item-icon">
+                    <User size={14} />
+                  </div>
                   <div className="item-content">
                     {isEditing ? (
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         className="username-input"
                         value={tempName}
                         onChange={(e) => setTempName(e.target.value)}
@@ -120,7 +132,7 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             if (tempName.trim() && tempName.trim() !== username) {
-                               setUsername(tempName.trim())
+                              setUsername(tempName.trim())
                             }
                             setIsEditing(false)
                           } else if (e.key === 'Escape') {
@@ -133,7 +145,13 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                         aria-label="Edit username"
                       />
                     ) : (
-                      <div className="name-wrapper" onClick={() => { setIsEditing(true); setTempName(username); }}>
+                      <div
+                        className="name-wrapper"
+                        onClick={() => {
+                          setIsEditing(true)
+                          setTempName(username)
+                        }}
+                      >
                         <div className="name-row">
                           <span className="name-text-sm">{username}</span>
                         </div>
@@ -144,7 +162,9 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                 </div>
                 {wpm !== undefined && (
                   <div className="dropdown-item">
-                    <div className="item-icon"><Activity size={14} /></div>
+                    <div className="item-icon">
+                      <Activity size={14} />
+                    </div>
                     <div className="item-content">
                       <span className="label">Typing Speed</span>
                       <span className="status-text">{wpm} WPM</span>
@@ -152,11 +172,16 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                   </div>
                 )}
                 {typeof onNavigateDashboard === 'function' && (
-                  <div 
+                  <div
                     className="dropdown-item clickable"
-                    onClick={() => { onNavigateDashboard(); setIsDropdownOpen(false); }}
+                    onClick={() => {
+                      onNavigateDashboard()
+                      setIsDropdownOpen(false)
+                    }}
                   >
-                    <div className="item-icon"><LayoutDashboard size={14} /></div>
+                    <div className="item-icon">
+                      <LayoutDashboard size={14} />
+                    </div>
                     <div className="item-content">
                       <span className="label">Dashboard</span>
                       <span className="status-text">View profile & stats</span>
@@ -167,9 +192,12 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
 
               <div className="dropdown-footer">
                 {isLoggedIn ? (
-                  <button 
-                    className="logout-btn" 
-                    onClick={() => { onLogoutRequest(); setIsDropdownOpen(false); }}
+                  <button
+                    className="logout-btn"
+                    onClick={() => {
+                      onLogoutRequest()
+                      setIsDropdownOpen(false)
+                    }}
                     type="button"
                     aria-label="Sign out"
                   >
@@ -177,9 +205,12 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                     <span>Sign Out</span>
                   </button>
                 ) : (
-                  <button 
-                    className="login-btn-dropdown" 
-                    onClick={() => { openLoginModal(); setIsDropdownOpen(false); }}
+                  <button
+                    className="login-btn-dropdown"
+                    onClick={() => {
+                      openLoginModal()
+                      setIsDropdownOpen(false)
+                    }}
                     type="button"
                     aria-label="Sign in"
                   >
@@ -188,12 +219,13 @@ const UserDropdown = memo(({ username, isLoggedIn, setUsername, openLoginModal, 
                   </button>
                 )}
               </div>
-          </div>
-        </>
-      )}
-    </div>
-  )
-})
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+)
 
 UserDropdown.displayName = 'UserDropdown'
 

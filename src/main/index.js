@@ -29,7 +29,7 @@ function handleDeepLink(url) {
     if (mainWindow.isMinimized()) mainWindow.restore()
     mainWindow.show()
     mainWindow.focus()
-    
+
     if (mainWindow.webContents) {
       mainWindow.webContents.send('deep-link', url)
     }
@@ -52,7 +52,7 @@ if (!gotTheLock) {
       mainWindow.focus()
     }
     // On Windows, the deep link URL can be anywhere in the command line
-    const url = commandLine.find(arg => arg.startsWith('typingzone://'))
+    const url = commandLine.find((arg) => arg.startsWith('typingzone://'))
     if (url) handleDeepLink(url)
   })
 }
@@ -65,7 +65,7 @@ function createWindow() {
     show: false,
     autoHideMenuBar: true,
     frame: false, // Frameless window
-    ...((process.platform === 'linux' || process.platform === 'win32') ? { icon } : {}),
+    ...(process.platform === 'linux' || process.platform === 'win32' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -76,7 +76,7 @@ function createWindow() {
     mainWindow.maximize() // Start maximized
     mainWindow.show()
   })
-  
+
   // Remove default menu for true frameless experience
   mainWindow.setMenu(null)
 
@@ -142,19 +142,26 @@ app.whenReady().then(() => {
     try {
       const legacyPb = legacyStore.get('pb')
       const legacyHistory = legacyStore.get('history')
-      
+
       // If we have legacy data but new data store is empty, migrate
       if (legacyPb && !dataStore.has('pb')) {
         dataStore.set('pb', legacyPb)
         dataStore.set('history', legacyHistory || [])
         // Optional: clear legacy to prevent re-migration
-        // legacyStore.clear() 
+        // legacyStore.clear()
       }
-      
+
       // Migrate settings if settings store is fresh
       if (legacyStore.has('theme') && !settingsStore.has('theme')) {
-        const keys = ['theme', 'testMode', 'testLimit', 'isGhostEnabled', 'isSoundEnabled', 'isHallEffect']
-        keys.forEach(key => {
+        const keys = [
+          'theme',
+          'testMode',
+          'testLimit',
+          'isGhostEnabled',
+          'isSoundEnabled',
+          'isHallEffect'
+        ]
+        keys.forEach((key) => {
           if (legacyStore.has(key)) settingsStore.set(key, legacyStore.get(key))
         })
       }
@@ -273,7 +280,7 @@ app.whenReady().then(() => {
 
   // Handle launch URL on Windows/Linux Cold Boot
   if (process.platform === 'win32' || process.platform === 'linux') {
-    const protocolUrl = process.argv.find(arg => arg.startsWith('typingzone://'))
+    const protocolUrl = process.argv.find((arg) => arg.startsWith('typingzone://'))
     if (protocolUrl) handleDeepLink(protocolUrl)
   }
 

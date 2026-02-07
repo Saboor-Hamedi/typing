@@ -26,7 +26,7 @@ export const SettingsProvider = ({ children }) => {
   const [testMode, setTestMode] = useState(() => {
     return localStorage.getItem(STORAGE_KEYS.TEST_MODE) || GAME.DEFAULT_MODE
   })
-  
+
   const [testLimit, setTestLimit] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.TEST_LIMIT)
     return saved ? Number(saved) : GAME.DEFAULT_LIMIT
@@ -201,7 +201,7 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEYS.HAS_NUMBERS, hasNumbers)
     localStorage.setItem(STORAGE_KEYS.HAS_CAPS, hasCaps)
     localStorage.setItem('isSentenceMode', isSentenceMode)
-    
+
     // Save to electron-store
     if (window.api?.settings) {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.TEST_MODE, testMode)
@@ -223,9 +223,27 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
       window.api.settings.set('isSentenceMode', isSentenceMode)
     }
-  }, [testMode, testLimit, isChameleonEnabled, isKineticEnabled, isSmoothCaret, isGhostEnabled, ghostSpeed, caretStyle, isFireCaretEnabled, isErrorFeedbackEnabled, isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isSettingsLoaded])
-
-
+  }, [
+    testMode,
+    testLimit,
+    isChameleonEnabled,
+    isKineticEnabled,
+    isSmoothCaret,
+    isGhostEnabled,
+    ghostSpeed,
+    caretStyle,
+    isFireCaretEnabled,
+    isErrorFeedbackEnabled,
+    isSoundEnabled,
+    isHallEffect,
+    soundProfile,
+    isCenteredScrolling,
+    hasPunctuation,
+    hasNumbers,
+    hasCaps,
+    isSentenceMode,
+    isSettingsLoaded
+  ])
 
   /**
    * Update test mode and set appropriate default limit
@@ -245,75 +263,92 @@ export const SettingsProvider = ({ children }) => {
    * Update test limit with validation
    * @param {number} limit - New test limit
    */
-  const updateTestLimit = useCallback((limit) => {
-    const validLimits = testMode === 'time' ? GAME.TIME_LIMITS : GAME.WORD_LIMITS
-    if (validLimits.includes(limit)) {
-      setTestLimit(limit)
-    }
-  }, [testMode])
-
-
-
-  const value = useMemo(() => ({
-    // Test configuration
-    testMode,
-    testLimit,
-    setTestMode: updateTestMode,
-    setTestLimit: updateTestLimit,
-
-    // Visual settings
-    isChameleonEnabled,
-    setIsChameleonEnabled,
-    isKineticEnabled,
-    setIsKineticEnabled,
-    isSmoothCaret,
-    setIsSmoothCaret,
-    isGhostEnabled,
-    setIsGhostEnabled,
-    ghostSpeed,
-    setGhostSpeed,
-    caretStyle,
-    setCaretStyle,
-    isErrorFeedbackEnabled,
-    setIsErrorFeedbackEnabled,
-    isSoundEnabled,
-    setIsSoundEnabled,
-    isHallEffect,
-    setIsHallEffect,
-    soundProfile,
-    setSoundProfile,
-    isCenteredScrolling,
-    setIsCenteredScrolling,
-    hasPunctuation,
-    setHasPunctuation,
-    hasNumbers,
-    setHasNumbers,
-    hasCaps,
-    setHasCaps,
-    isSentenceMode,
-    setIsSentenceMode,
-    isFireCaretEnabled,
-    setIsFireCaretEnabled,
-
-    // UI state
-    isZenMode,
-    setIsZenMode,
-
-    // Loading state
-    isSettingsLoaded,
-  }), [
-    testMode, testLimit, updateTestMode, updateTestLimit,
-    isChameleonEnabled, isKineticEnabled, isSmoothCaret,
-    isGhostEnabled, ghostSpeed, caretStyle, isFireCaretEnabled, isErrorFeedbackEnabled,
-    isSoundEnabled, isHallEffect, soundProfile, isCenteredScrolling,
-    hasPunctuation, hasNumbers, hasCaps, isSentenceMode, isZenMode, isSettingsLoaded
-  ])
-
-  return (
-    <SettingsContext.Provider value={value}>
-      {children}
-    </SettingsContext.Provider>
+  const updateTestLimit = useCallback(
+    (limit) => {
+      const validLimits = testMode === 'time' ? GAME.TIME_LIMITS : GAME.WORD_LIMITS
+      if (validLimits.includes(limit)) {
+        setTestLimit(limit)
+      }
+    },
+    [testMode]
   )
+
+  const value = useMemo(
+    () => ({
+      // Test configuration
+      testMode,
+      testLimit,
+      setTestMode: updateTestMode,
+      setTestLimit: updateTestLimit,
+
+      // Visual settings
+      isChameleonEnabled,
+      setIsChameleonEnabled,
+      isKineticEnabled,
+      setIsKineticEnabled,
+      isSmoothCaret,
+      setIsSmoothCaret,
+      isGhostEnabled,
+      setIsGhostEnabled,
+      ghostSpeed,
+      setGhostSpeed,
+      caretStyle,
+      setCaretStyle,
+      isErrorFeedbackEnabled,
+      setIsErrorFeedbackEnabled,
+      isSoundEnabled,
+      setIsSoundEnabled,
+      isHallEffect,
+      setIsHallEffect,
+      soundProfile,
+      setSoundProfile,
+      isCenteredScrolling,
+      setIsCenteredScrolling,
+      hasPunctuation,
+      setHasPunctuation,
+      hasNumbers,
+      setHasNumbers,
+      hasCaps,
+      setHasCaps,
+      isSentenceMode,
+      setIsSentenceMode,
+      isFireCaretEnabled,
+      setIsFireCaretEnabled,
+
+      // UI state
+      isZenMode,
+      setIsZenMode,
+
+      // Loading state
+      isSettingsLoaded
+    }),
+    [
+      testMode,
+      testLimit,
+      updateTestMode,
+      updateTestLimit,
+      isChameleonEnabled,
+      isKineticEnabled,
+      isSmoothCaret,
+      isGhostEnabled,
+      ghostSpeed,
+      caretStyle,
+      isFireCaretEnabled,
+      isErrorFeedbackEnabled,
+      isSoundEnabled,
+      isHallEffect,
+      soundProfile,
+      isCenteredScrolling,
+      hasPunctuation,
+      hasNumbers,
+      hasCaps,
+      isSentenceMode,
+      isZenMode,
+      isSettingsLoaded
+    ]
+  )
+
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
 }
 
 /**

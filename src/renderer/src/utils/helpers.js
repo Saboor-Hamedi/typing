@@ -104,7 +104,7 @@ export const formatRelativeTime = (timestamp) => {
   if (diffMins < 60) return `${diffMins}m ago`
   if (diffHours < 24) return `${diffHours}h ago`
   if (diffDays < 7) return `${diffDays}d ago`
-  
+
   return date.toLocaleDateString()
 }
 
@@ -118,7 +118,7 @@ export const formatRelativeTime = (timestamp) => {
 export const calculateWPM = (chars, durationMs, charsPerWord = 5) => {
   if (durationMs <= 0) return 0
   const durationMin = durationMs / 60000
-  return Math.max(0, Math.round((chars / charsPerWord) / durationMin))
+  return Math.max(0, Math.round(chars / charsPerWord / durationMin))
 }
 
 /**
@@ -179,7 +179,7 @@ export class CircularBuffer {
   push(item) {
     this.buffer[this.tail] = item
     this.tail = (this.tail + 1) % this.capacity
-    
+
     if (this.size < this.capacity) {
       this.size++
     } else {
@@ -220,7 +220,7 @@ export const isOnline = () => {
  * @returns {Promise} Promise that resolves after delay
  */
 export const wait = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**

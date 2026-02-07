@@ -1,6 +1,6 @@
 /**
  * TypingEngine Tests
- * 
+ *
  * Basic tests for the TypingEngine component
  */
 
@@ -29,12 +29,7 @@ describe('TypingEngine', () => {
     })
 
     render(
-      <TypingEngine
-        engine={mockEngine}
-        testMode="words"
-        testLimit={25}
-        isOverlayActive={false}
-      />
+      <TypingEngine engine={mockEngine} testMode="words" testLimit={25} isOverlayActive={false} />
     )
 
     expect(screen.getByText('hello')).toBeInTheDocument()
@@ -48,12 +43,7 @@ describe('TypingEngine', () => {
     })
 
     render(
-      <TypingEngine
-        engine={mockEngine}
-        testMode="words"
-        testLimit={25}
-        isOverlayActive={false}
-      />
+      <TypingEngine engine={mockEngine} testMode="words" testLimit={25} isOverlayActive={false} />
     )
 
     expect(screen.getByTestId('results-view')).toBeInTheDocument()
@@ -63,12 +53,7 @@ describe('TypingEngine', () => {
     const mockEngine = createMockEngine()
 
     render(
-      <TypingEngine
-        engine={mockEngine}
-        testMode="words"
-        testLimit={25}
-        isOverlayActive={false}
-      />
+      <TypingEngine engine={mockEngine} testMode="words" testLimit={25} isOverlayActive={false} />
     )
 
     const input = screen.getByLabelText('Typing input field')

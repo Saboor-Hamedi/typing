@@ -3,19 +3,24 @@ import { Clock } from 'lucide-react'
 
 const SessionCard = ({ session, index }) => {
   const { mode, limit, date, wpm, accuracy } = session
-  
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.02 }}
       className="history-session-card glass-panel"
     >
       <div className="session-card-header">
-        <div className="mode-tag">{mode} {limit || ''}</div>
+        <div className="mode-tag">
+          {mode} {limit || ''}
+        </div>
         <div className="session-timestamp">
           <Clock size={12} />
-          <span>{new Date(date).toLocaleDateString()} • {new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span>
+            {new Date(date).toLocaleDateString()} •{' '}
+            {new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
         </div>
       </div>
 
@@ -36,8 +41,11 @@ const SessionCard = ({ session, index }) => {
             </div>
           </div>
         </div>
-        
-        <div className="session-visual-marker" style={{ background: wpm >= 100 ? 'var(--main-color)' : 'rgba(255,255,255,0.05)' }} />
+
+        <div
+          className="session-visual-marker"
+          style={{ background: wpm >= 100 ? 'var(--main-color)' : 'rgba(255,255,255,0.05)' }}
+        />
       </div>
     </motion.div>
   )

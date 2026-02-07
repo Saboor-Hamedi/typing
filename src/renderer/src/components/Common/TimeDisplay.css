@@ -19,6 +19,7 @@
 
 /* Ensure consistent width to prevent layout shifts */
 .time-display[data-seconds] {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
+  font-family:
+    'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
   letter-spacing: 0.02em;
 }

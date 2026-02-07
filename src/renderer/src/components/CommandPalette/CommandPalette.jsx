@@ -1,15 +1,20 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, Command } from 'lucide-react'
+import {
+  Search,
+  Keyboard,
+  Palette,
+  Globe,
+  History,
+  Trophy,
+  Settings,
+  LogOut,
+  Play,
+  Command
+} from 'lucide-react'
 import './CommandPalette.css'
 
-const CommandPalette = ({ 
-  isOpen, 
-  onClose, 
-  actions,
-  theme,
-  initialQuery = '' 
-}) => {
+const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) => {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef(null)
@@ -18,20 +23,20 @@ const CommandPalette = ({
   const effectiveQuery = isCommandMode ? query.slice(1).trim() : query.trim()
 
   const uniqueActions = useMemo(() => {
-    const seen = new Set();
-    return actions.filter(a => {
-      const key = a.id || a.label;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [actions]);
+    const seen = new Set()
+    return actions.filter((a) => {
+      const key = a.id || a.label
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }, [actions])
 
-  const filteredActions = uniqueActions.filter(action => {
+  const filteredActions = uniqueActions.filter((action) => {
     if (isCommandMode) {
       if (action.type !== 'command') return false
-    } 
-    if (!effectiveQuery) return true;
+    }
+    if (!effectiveQuery) return true
     return (
       action.label.toLowerCase().includes(effectiveQuery.toLowerCase()) ||
       (action.id && action.id.toLowerCase().includes(effectiveQuery.toLowerCase()))
@@ -44,8 +49,8 @@ const CommandPalette = ({
       setSelectedIndex(0)
       setTimeout(() => {
         if (inputRef.current) {
-           inputRef.current.focus()
-           inputRef.current.setSelectionRange(initialQuery.length, initialQuery.length)
+          inputRef.current.focus()
+          inputRef.current.setSelectionRange(initialQuery.length, initialQuery.length)
         }
       }, 10)
     }
@@ -59,10 +64,10 @@ const CommandPalette = ({
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedIndex(prev => (prev + 1) % filteredActions.length)
+      setSelectedIndex((prev) => (prev + 1) % filteredActions.length)
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setSelectedIndex(prev => (prev - 1 + filteredActions.length) % filteredActions.length)
+      setSelectedIndex((prev) => (prev - 1 + filteredActions.length) % filteredActions.length)
     } else if (e.key === 'Enter') {
       e.preventDefault()
       if (filteredActions[selectedIndex]) {
@@ -78,24 +83,30 @@ const CommandPalette = ({
     <AnimatePresence>
       {isOpen && (
         <div className="command-palette-overlay" onClick={onClose}>
-          <motion.div 
+          <motion.div
             className="command-palette-container"
             initial={{ opacity: 0, scale: 0.98, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98, y: -20 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="command-palette-search">
               <div className="search-icon-wrap">
-                 {isCommandMode ? <Command size={18} className="search-icon" /> : <Search size={18} className="search-icon" />}
+                {isCommandMode ? (
+                  <Command size={18} className="search-icon" />
+                ) : (
+                  <Search size={18} className="search-icon" />
+                )}
               </div>
               <input
                 ref={inputRef}
                 type="text"
-                placeholder={isCommandMode ? "Type a command..." : "Search commands, modes, settings..."}
+                placeholder={
+                  isCommandMode ? 'Type a command...' : 'Search commands, modes, settings...'
+                }
                 value={query}
-                onChange={e => setQuery(e.target.value)}
+                onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 spellCheck={false}
               />
@@ -105,9 +116,10 @@ const CommandPalette = ({
             <div className="command-palette-list">
               {filteredActions.length > 0 ? (
                 filteredActions.map((action, index) => {
-                  const isSelected = index === selectedIndex;
-                  const showCategory = index === 0 || filteredActions[index - 1].category !== action.category;
-                  
+                  const isSelected = index === selectedIndex
+                  const showCategory =
+                    index === 0 || filteredActions[index - 1].category !== action.category
+
                   return (
                     <div key={action.id || action.label}>
                       {showCategory && action.category && (
@@ -118,21 +130,21 @@ const CommandPalette = ({
                         className={`command-item ${isSelected ? 'selected' : ''}`}
                         onMouseEnter={() => setSelectedIndex(index)}
                         onClick={() => {
-                           action.onSelect()
-                           onClose()
+                          action.onSelect()
+                          onClose()
                         }}
                         initial={false}
                       >
-                        <div className="item-icon">
-                          {action.icon}
-                        </div>
+                        <div className="item-icon">{action.icon}</div>
                         <div className="item-info">
                           <div className="item-label">{action.label}</div>
-                          {action.shortcut && <div className="item-shortcut">{action.shortcut}</div>}
+                          {action.shortcut && (
+                            <div className="item-shortcut">{action.shortcut}</div>
+                          )}
                         </div>
                       </motion.div>
                     </div>
-                  );
+                  )
                 })
               ) : (
                 <div className="no-results">
@@ -141,7 +153,7 @@ const CommandPalette = ({
                 </div>
               )}
             </div>
-            
+
             <div className="command-palette-footer">
               <div className="footer-hint">
                 <kbd>↑↓</kbd> <span>Navigate</span>

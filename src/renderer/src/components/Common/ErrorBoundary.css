@@ -181,20 +181,20 @@
   .error-boundary-content {
     padding: 1.5rem 1rem;
   }
-  
+
   .error-title {
     font-size: 1.25rem;
   }
-  
+
   .error-message {
     font-size: 0.85rem;
   }
-  
+
   .error-actions {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .error-btn {
     width: 100%;
     justify-content: center;

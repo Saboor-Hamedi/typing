@@ -5,7 +5,7 @@ import { PERFORMANCE, GAME, UI } from '../constants'
 /**
  * Optimized Telemetry Hook
  * Collects WPM data over time using circular buffer for efficiency
- * 
+ *
  * @param {boolean} isActive - Whether test is active
  * @param {number} startTime - Test start timestamp
  * @param {string} userInput - Current user input
@@ -33,14 +33,14 @@ export const useTelemetry = (isActive, startTime, userInput, words, testMode) =>
     // Calculate net WPM (correct characters only)
     const targetText = words.join(' ')
     let correctChars = 0
-    
+
     for (let i = 0; i < userInput.length; i++) {
       if (userInput[i] === targetText[i]) {
         correctChars++
       }
     }
 
-    return Math.round((correctChars / GAME.CHARS_PER_WORD) / elapsedMin) || 0
+    return Math.round(correctChars / GAME.CHARS_PER_WORD / elapsedMin) || 0
   }, [startTime, userInput, words])
 
   /**
@@ -54,7 +54,7 @@ export const useTelemetry = (isActive, startTime, userInput, words, testMode) =>
 
     if (elapsedMin <= 0) return 0
 
-    return Math.round((userInput.length / GAME.CHARS_PER_WORD) / elapsedMin) || 0
+    return Math.round(userInput.length / GAME.CHARS_PER_WORD / elapsedMin) || 0
   }, [startTime, userInput])
 
   /**
@@ -62,21 +62,21 @@ export const useTelemetry = (isActive, startTime, userInput, words, testMode) =>
    */
   const addDataPoint = useCallback(() => {
     const elapsedSec = Math.round((performance.now() - startTime) / 1000)
-    
+
     // Only add one point per second
     if (elapsedSec <= lastSecondRef.current) return
-    
+
     lastSecondRef.current = elapsedSec
 
     const dataPoint = {
       sec: elapsedSec,
       wpm: calculateCurrentWPM(),
-      raw: calculateRawWPM(),
+      raw: calculateRawWPM()
     }
 
     // Add to circular buffer
     bufferRef.current.push(dataPoint)
-    
+
     // Update state (convert buffer to array)
     setTelemetry(bufferRef.current.toArray())
   }, [startTime, calculateCurrentWPM, calculateRawWPM])

@@ -1,8 +1,8 @@
 /**
  * Test Helpers
- * 
+ *
  * Utility functions for testing TypingZone components and hooks
- * 
+ *
  * @module testHelpers
  */
 
@@ -65,7 +65,7 @@ export function createMockSettings(overrides = {}) {
  * @returns {Promise} Promise that resolves after the delay
  */
 export function wait(ms = 0) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**

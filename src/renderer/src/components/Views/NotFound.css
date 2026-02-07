@@ -32,9 +32,18 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); filter: drop-shadow(0 0 0px var(--main-color)); }
-  50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(var(--main-color-rgb), 0.4)); }
-  100% { transform: scale(1); filter: drop-shadow(0 0 0px var(--main-color)); }
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px var(--main-color));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 15px rgba(var(--main-color-rgb), 0.4));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px var(--main-color));
+  }
 }
 
 .not-found-content h1 {

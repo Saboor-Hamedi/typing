@@ -40,7 +40,32 @@ import { deleteUserData } from '../../utils/supabase'
 import { LoadingSpinner, KeyboardShortcutsModal, Tooltip } from '../Common'
 import CommandPalette from '../CommandPalette/CommandPalette'
 import ChameleonAura from '../Effects/ChameleonAura'
-import { Search, Keyboard, Palette, Globe, History, Trophy, Settings, LogOut, Play, RefreshCw, User, Shield, Flame, Type, Zap, Ghost, Volume2, VolumeX, Cpu, Activity, AlertCircle, BookOpen, Quote, Edit } from 'lucide-react'
+import {
+  Search,
+  Keyboard,
+  Palette,
+  Globe,
+  History,
+  Trophy,
+  Settings,
+  LogOut,
+  Play,
+  RefreshCw,
+  User,
+  Shield,
+  Flame,
+  Type,
+  Zap,
+  Ghost,
+  Volume2,
+  VolumeX,
+  Cpu,
+  Activity,
+  AlertCircle,
+  BookOpen,
+  Quote,
+  Edit
+} from 'lucide-react'
 import './AppLayout.css'
 
 // Lazy load views for code splitting
@@ -48,6 +73,8 @@ const SettingsView = lazy(() => import('../Settings/SettingsView'))
 const DashboardView = lazy(() => import('../Dashboard/DashboardView'))
 const LeaderboardView = lazy(() => import('../Leaderboard/LeaderboardView'))
 const HistoryView = lazy(() => import('../History/HistoryView'))
+const AchievementsView = lazy(() => import('../Achievements/AchievementsView'))
+const DocumentationView = lazy(() => import('../Documentation/DocumentationView'))
 const NotFound = lazy(() => import('../Views/NotFound'))
 
 /**
@@ -61,10 +88,10 @@ const AppLayout = ({ addToast }) => {
 
   // Get context values
   const { theme, setTheme } = useTheme()
-  const { 
-    testMode, 
-    testLimit, 
-    setTestMode, 
+  const {
+    testMode,
+    testLimit,
+    setTestMode,
     setTestLimit,
     isChameleonEnabled,
     setIsChameleonEnabled,
@@ -81,10 +108,10 @@ const AppLayout = ({ addToast }) => {
     isErrorFeedbackEnabled,
     setIsErrorFeedbackEnabled
   } = useSettings()
-  
-  const { 
-    isLoggedIn, 
-    username, 
+
+  const {
+    isLoggedIn,
+    username,
     selectedAvatarId,
     unlockedAvatars,
     updateAvatar,
@@ -111,7 +138,7 @@ const AppLayout = ({ addToast }) => {
   const [paletteInitialQuery, setPaletteInitialQuery] = useState('')
 
   // Engine hook
-  const engine = useEngine(testMode, testLimit)
+  const engine = useEngine(testMode, testLimit, activeTab)
   const {
     startTime,
     isFinished,
@@ -139,21 +166,16 @@ const AppLayout = ({ addToast }) => {
 
   // Account manager hook
   const account = useAccountManager(engine, addToast)
-  const { mergedHistory, currentLevel } = account
+  const { mergedHistory, currentLevel, progression } = account
 
   // Chameleon Flow (optimized)
-  const { heat } = useChameleonFlow(
-    liveWpm,
-    pb,
-    isTestRunning,
-    isChameleonEnabled
-  )
+  const { heat } = useChameleonFlow(liveWpm, pb, isTestRunning, isChameleonEnabled)
 
   // Combined Progress Calculation
   const testProgress = useMemo(() => {
     if (!isTestRunning) return 0
     if (testMode === 'time') {
-      return 1 - (timeLeft / testLimit)
+      return 1 - timeLeft / testLimit
     } else if (engine.wordProgress) {
       const typed = engine.wordProgress.typed
       const total = engine.words.length
@@ -167,32 +189,34 @@ const AppLayout = ({ addToast }) => {
     if (!isUserLoaded || typeof currentLevel !== 'number') return
 
     // Calculate which avatars SHOULD be unlocked based on current level
-    const eligibleIds = PROGRESSION.AVATAR_UNLOCK_LEVELS
-        .filter(entry => currentLevel >= entry.level)
-        .map(entry => entry.id)
+    const eligibleIds = PROGRESSION.AVATAR_UNLOCK_LEVELS.filter(
+      (entry) => currentLevel >= entry.level
+    ).map((entry) => entry.id)
 
     // Merge existing persistsed unlocks with new eligible ones (never remove)
-    const updatedUnlocked = [...new Set([...unlockedAvatars, ...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...eligibleIds])]
+    const updatedUnlocked = [
+      ...new Set([...unlockedAvatars, ...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...eligibleIds])
+    ]
     const currentUnlockedSorted = [...unlockedAvatars].sort((a, b) => a - b)
     const updatedUnlockedSorted = [...updatedUnlocked].sort((a, b) => a - b)
 
     // Only update if there are NEW unlocks
     if (JSON.stringify(updatedUnlockedSorted) !== JSON.stringify(currentUnlockedSorted)) {
-       const newlyUnlocked = updatedUnlocked.filter(id => !unlockedAvatars.includes(id))
-       if (newlyUnlocked.length > 0) {
-         newlyUnlocked.forEach(id => {
-           const def = PROGRESSION.AVATAR_UNLOCK_LEVELS.find(a => a.id === id)
-           if (def) addToast?.(`${SUCCESS_MESSAGES.AVATAR_UNLOCKED}: ${def.name}`, 'success')
-         })
-         // Persist the new unlock set
-         setUnlockedAvatars(updatedUnlocked)
-       }
+      const newlyUnlocked = updatedUnlocked.filter((id) => !unlockedAvatars.includes(id))
+      if (newlyUnlocked.length > 0) {
+        newlyUnlocked.forEach((id) => {
+          const def = PROGRESSION.AVATAR_UNLOCK_LEVELS.find((a) => a.id === id)
+          if (def) addToast?.(`${SUCCESS_MESSAGES.AVATAR_UNLOCKED}: ${def.name}`, 'success')
+        })
+        // Persist the new unlock set
+        setUnlockedAvatars(updatedUnlocked)
+      }
     }
   }, [currentLevel, unlockedAvatars, setUnlockedAvatars, addToast, isUserLoaded])
 
   // Global interactions
   const handleGlobalInteraction = useCallback(() => soundEngine.warmUp(), [])
-  
+
   const handleReload = useCallback(() => {
     setActiveTab('typing')
     engine.resetGame()
@@ -240,9 +264,12 @@ const AppLayout = ({ addToast }) => {
   const toggleDeleteAccountModal = useCallback((isOpen) => setIsDeleteAccountModalOpen(isOpen), [])
 
   // Theme change handler
-  const handleThemeChange = useCallback((newTheme) => {
-    setTheme(newTheme)
-  }, [setTheme])
+  const handleThemeChange = useCallback(
+    (newTheme) => {
+      setTheme(newTheme)
+    },
+    [setTheme]
+  )
 
   // Auto-close Login modal upon successful authentication (OAuth or password)
   useEffect(() => {
@@ -264,7 +291,13 @@ const AppLayout = ({ addToast }) => {
   }, [])
 
   // Detect if any modal/overlay is currently active
-  const isOverlayActive = isThemeModalOpen || isLoginModalOpen || isLogoutModalOpen || isClearDataModalOpen || isShortcutsModalOpen || isCommandPaletteOpen
+  const isOverlayActive =
+    isThemeModalOpen ||
+    isLoginModalOpen ||
+    isLogoutModalOpen ||
+    isClearDataModalOpen ||
+    isShortcutsModalOpen ||
+    isCommandPaletteOpen
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -340,22 +373,31 @@ const AppLayout = ({ addToast }) => {
       // Ctrl/Cmd + P: Open Command Palette
       if (ctrlKey && e.key.toLowerCase() === 'p' && !e.shiftKey) {
         e.preventDefault()
-        setPaletteInitialQuery('') 
-        setIsCommandPaletteOpen(prev => !prev)
+        setPaletteInitialQuery('')
+        setIsCommandPaletteOpen((prev) => !prev)
         return
       }
 
       // Ctrl/Cmd + T: Open Themes
       if (ctrlKey && e.key === 't') {
         e.preventDefault()
-        setIsThemeModalOpen(prev => !prev)
+        setIsThemeModalOpen((prev) => !prev)
         return
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOverlayActive, isThemeModalOpen, isLoginModalOpen, isLogoutModalOpen, isClearDataModalOpen, isShortcutsModalOpen, isCommandPaletteOpen, engine])
+  }, [
+    isOverlayActive,
+    isThemeModalOpen,
+    isLoginModalOpen,
+    isLogoutModalOpen,
+    isClearDataModalOpen,
+    isShortcutsModalOpen,
+    isCommandPaletteOpen,
+    engine
+  ])
 
   // Display value for header (Now always WPM)
   const displayValue = (() => {
@@ -367,78 +409,286 @@ const AppLayout = ({ addToast }) => {
   // Define Command Palette Actions
 
   const commandPaletteActions = [
-    { id: 'restart', label: 'Restart Test', icon: <RefreshCw size={18} />, shortcut: 'Tab', type: 'command', category: 'Game', onSelect: () => engine.resetGame() },
-    { id: 'chameleon', label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, type: 'command', category: 'Effects', onSelect: () => setIsChameleonEnabled(!isChameleonEnabled) },
-    { 
-      id: 'caret-style-thick-block', 
-      label: `Caret Style: ${caretStyle === 'block' ? 'Thick Block' : 'Line Caret'}`, 
-      icon: <Type size={18} />, 
+    {
+      id: 'restart',
+      label: 'Restart Test',
+      icon: <RefreshCw size={18} />,
+      shortcut: 'Tab',
+      type: 'command',
+      category: 'Game',
+      onSelect: () => engine.resetGame()
+    },
+    {
+      id: 'chameleon',
+      label: `Chameleon Flow: ${isChameleonEnabled ? 'ON' : 'OFF'}`,
+      icon: <Flame size={18} />,
+      type: 'command',
+      category: 'Effects',
+      onSelect: () => setIsChameleonEnabled(!isChameleonEnabled)
+    },
+    {
+      id: 'caret-style-thick-block',
+      label: `Caret Style: ${caretStyle === 'block' ? 'Thick Block' : 'Line Caret'}`,
+      icon: <Type size={18} />,
       type: 'command',
       category: 'Display',
       onSelect: () => {
-        const styles = ['bar', 'block'];
-        const next = styles[(styles.indexOf(caretStyle) + 1) % styles.length];
-        setCaretStyle(next);
-      } 
+        const styles = ['bar', 'block']
+        const next = styles[(styles.indexOf(caretStyle) + 1) % styles.length]
+        setCaretStyle(next)
+      }
     },
-    { id: 'fire-caret', label: `Fire Caret Effect: ${isFireCaretEnabled ? 'ON' : 'OFF'}`, icon: <Flame size={18} />, type: 'command', category: 'Effects', onSelect: () => setIsFireCaretEnabled(!isFireCaretEnabled) },
-    { id: 'smooth-caret', label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`, icon: <Zap size={18} />, type: 'command', category: 'Display', onSelect: () => setIsSmoothCaret(!isSmoothCaret) },
-    { id: 'kinetic', label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`, icon: <Activity size={18} />, type: 'command', category: 'Feedback', onSelect: () => setIsKineticEnabled(!isKineticEnabled) },
-    { id: 'sound-toggle', label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`, icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />, type: 'command', category: 'Audio', onSelect: () => setIsSoundEnabled(!isSoundEnabled) },
-    { id: 'sound-thocky', label: 'Sound: Thocky', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('thocky') },
-    { id: 'sound-creamy', label: 'Sound: Creamy', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('creamy') },
-    { id: 'sound-clicky', label: 'Sound: Clicky', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('clicky') },
-    { id: 'sound-asmr', label: 'Sound: ASMR', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('asmr') },
-    { id: 'sound-raindrop', label: 'Sound: Raindrop', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('raindrop') },
-    { id: 'sound-wood', label: 'Sound: Wood', icon: <Volume2 size={18} />, type: 'command', category: 'Sound Profiles', onSelect: () => engine.setSoundProfile('wood') },
-    { id: 'hall-effect', label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`, icon: <Cpu size={18} />, type: 'command', category: 'Audio', onSelect: () => setIsHallEffect(!isHallEffect) },
-    { id: 'error-feedback', label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`, icon: <AlertCircle size={18} />, type: 'command', category: 'Feedback', onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled) },
-    { id: 'ghost', label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`, icon: <Ghost size={18} />, type: 'command', category: 'Game', onSelect: () => setIsGhostEnabled(!isGhostEnabled) },
-    { id: 'zen', label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`, icon: <Play size={18} />, type: 'command', category: 'Modes', onSelect: () => setIsZenMode(!isZenMode) },
-    { id: 'typing', label: 'Typing Mode', icon: <Keyboard size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('typing') },
-    { id: 'leaderboard', label: 'Global Leaderboard', icon: <Globe size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('leaderboard') },
-    { id: 'history', label: 'Test History', icon: <History size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('history') },
-    { id: 'dashboard', label: 'Profile Dashboard', icon: <User size={18} />, type: 'command', category: 'Navigation', onSelect: () => setActiveTab('dashboard') },
-    { id: 'themes', label: 'Change Theme', icon: <Palette size={18} />, shortcut: 'Ctrl+T', type: 'command', category: 'Navigation', onSelect: () => setIsThemeModalOpen(true) },
-    { id: 'settings', label: 'App Settings', icon: <Settings size={18} />, shortcut: 'Ctrl+,', type: 'command', category: 'Navigation', onSelect: () => setActiveTab('settings') },
-    { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: <Shield size={18} />, shortcut: '?', type: 'command', category: 'System', onSelect: () => setIsShortcutsModalOpen(true) },
-    { id: 'reload-window', label: 'Reload Window', icon: <RefreshCw size={18} />, shortcut: 'Ctrl+Shift+R', type: 'command', category: 'System', onSelect: () => window.location.reload() },
-    { id: 'emergency-logout', label: 'Emergency Sign Out', icon: <LogOut size={18} />, type: 'command', category: 'System', onSelect: () => handleLogout() },
-    isLoggedIn 
-      ? { id: 'logout', label: 'Sign Out', icon: <LogOut size={18} />, type: 'command', onSelect: () => toggleLogoutModal(true) }
-      : { id: 'login', label: 'Sign In / Register', icon: <User size={18} />, type: 'command', onSelect: () => toggleLoginModal(true) }
+    {
+      id: 'fire-caret',
+      label: `Fire Caret Effect: ${isFireCaretEnabled ? 'ON' : 'OFF'}`,
+      icon: <Flame size={18} />,
+      type: 'command',
+      category: 'Effects',
+      onSelect: () => setIsFireCaretEnabled(!isFireCaretEnabled)
+    },
+    {
+      id: 'smooth-caret',
+      label: `Smooth Caret: ${isSmoothCaret ? 'ON' : 'OFF'}`,
+      icon: <Zap size={18} />,
+      type: 'command',
+      category: 'Display',
+      onSelect: () => setIsSmoothCaret(!isSmoothCaret)
+    },
+    {
+      id: 'kinetic',
+      label: `Kinetic Feedback: ${isKineticEnabled ? 'ON' : 'OFF'}`,
+      icon: <Activity size={18} />,
+      type: 'command',
+      category: 'Feedback',
+      onSelect: () => setIsKineticEnabled(!isKineticEnabled)
+    },
+    {
+      id: 'sound-toggle',
+      label: `Sound Effects: ${isSoundEnabled ? 'ON' : 'OFF'}`,
+      icon: isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />,
+      type: 'command',
+      category: 'Audio',
+      onSelect: () => setIsSoundEnabled(!isSoundEnabled)
+    },
+    {
+      id: 'sound-thocky',
+      label: 'Sound: Thocky',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('thocky')
+    },
+    {
+      id: 'sound-creamy',
+      label: 'Sound: Creamy',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('creamy')
+    },
+    {
+      id: 'sound-clicky',
+      label: 'Sound: Clicky',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('clicky')
+    },
+    {
+      id: 'sound-asmr',
+      label: 'Sound: ASMR',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('asmr')
+    },
+    {
+      id: 'sound-raindrop',
+      label: 'Sound: Raindrop',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('raindrop')
+    },
+    {
+      id: 'sound-wood',
+      label: 'Sound: Wood',
+      icon: <Volume2 size={18} />,
+      type: 'command',
+      category: 'Sound Profiles',
+      onSelect: () => engine.setSoundProfile('wood')
+    },
+    {
+      id: 'hall-effect',
+      label: `Hall Effect: ${isHallEffect ? 'ON' : 'OFF'}`,
+      icon: <Cpu size={18} />,
+      type: 'command',
+      category: 'Audio',
+      onSelect: () => setIsHallEffect(!isHallEffect)
+    },
+    {
+      id: 'error-feedback',
+      label: `Error Feedback: ${isErrorFeedbackEnabled ? 'ON' : 'OFF'}`,
+      icon: <AlertCircle size={18} />,
+      type: 'command',
+      category: 'Feedback',
+      onSelect: () => setIsErrorFeedbackEnabled(!isErrorFeedbackEnabled)
+    },
+    {
+      id: 'ghost',
+      label: `Ghost Racing: ${isGhostEnabled ? 'ON' : 'OFF'}`,
+      icon: <Ghost size={18} />,
+      type: 'command',
+      category: 'Game',
+      onSelect: () => setIsGhostEnabled(!isGhostEnabled)
+    },
+    {
+      id: 'zen',
+      label: `Zen Mode: ${isZenMode ? 'ON' : 'OFF'}`,
+      icon: <Play size={18} />,
+      type: 'command',
+      category: 'Modes',
+      onSelect: () => setIsZenMode(!isZenMode)
+    },
+    {
+      id: 'typing',
+      label: 'Typing Mode',
+      icon: <Keyboard size={18} />,
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setActiveTab('typing')
+    },
+    {
+      id: 'leaderboard',
+      label: 'Global Leaderboard',
+      icon: <Globe size={18} />,
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setActiveTab('leaderboard')
+    },
+    {
+      id: 'achievements',
+      label: 'Rank & Achievements',
+      icon: <Trophy size={18} />,
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setActiveTab('achievements')
+    },
+    {
+      id: 'docs',
+      label: 'System Documentation',
+      icon: <BookOpen size={18} />,
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setActiveTab('docs')
+    },
+    {
+      id: 'history',
+      label: 'Test History',
+      icon: <History size={18} />,
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setActiveTab('history')
+    },
+    {
+      id: 'dashboard',
+      label: 'Profile Dashboard',
+      icon: <User size={18} />,
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setActiveTab('dashboard')
+    },
+    {
+      id: 'themes',
+      label: 'Change Theme',
+      icon: <Palette size={18} />,
+      shortcut: 'Ctrl+T',
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setIsThemeModalOpen(true)
+    },
+    {
+      id: 'settings',
+      label: 'App Settings',
+      icon: <Settings size={18} />,
+      shortcut: 'Ctrl+,',
+      type: 'command',
+      category: 'Navigation',
+      onSelect: () => setActiveTab('settings')
+    },
+    {
+      id: 'shortcuts',
+      label: 'Keyboard Shortcuts',
+      icon: <Shield size={18} />,
+      shortcut: '?',
+      type: 'command',
+      category: 'System',
+      onSelect: () => setIsShortcutsModalOpen(true)
+    },
+    {
+      id: 'reload-window',
+      label: 'Reload Window',
+      icon: <RefreshCw size={18} />,
+      shortcut: 'Ctrl+Shift+R',
+      type: 'command',
+      category: 'System',
+      onSelect: () => window.location.reload()
+    },
+    {
+      id: 'emergency-logout',
+      label: 'Emergency Sign Out',
+      icon: <LogOut size={18} />,
+      type: 'command',
+      category: 'System',
+      onSelect: () => handleLogout()
+    },
+    isLoggedIn
+      ? {
+          id: 'logout',
+          label: 'Sign Out',
+          icon: <LogOut size={18} />,
+          type: 'command',
+          onSelect: () => toggleLogoutModal(true)
+        }
+      : {
+          id: 'login',
+          label: 'Sign In / Register',
+          icon: <User size={18} />,
+          type: 'command',
+          onSelect: () => toggleLoginModal(true)
+        }
   ]
 
   return (
-    <div 
+    <div
       className={`app-container ${isTestRunning ? 'is-typing' : ''}`}
-      onClick={handleGlobalInteraction} 
+      onClick={handleGlobalInteraction}
       onKeyDown={handleGlobalInteraction}
       style={{ paddingTop: isWeb ? '0' : '32px' }}
       id="main-content"
     >
-
-
       {/* Performance/Progress Hybrid Bar */}
       {isTestRunning && (
-        <motion.div 
+        <motion.div
           className="chameleon-progress-bar"
           initial={{ width: '0%' }}
-          animate={{ 
-            width: `${testProgress * 100}%` 
+          animate={{
+            width: `${testProgress * 100}%`
           }}
-          transition={{ 
+          transition={{
             width: { type: 'spring', stiffness: 300, damping: 30 },
             layout: { duration: 0.2 }
           }}
           style={{
             // Extra glow purely based on speed
-            filter: isChameleonEnabled ? `brightness(${1 + heat}) drop-shadow(0 0 ${heat * 10}px var(--main-color))` : 'none'
+            filter: isChameleonEnabled
+              ? `brightness(${1 + heat}) drop-shadow(0 0 ${heat * 10}px var(--main-color))`
+              : 'none'
           }}
         />
       )}
       {!isWeb && <TitleBar />}
-      
+
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -460,7 +710,7 @@ const AppLayout = ({ addToast }) => {
       <div className="main-viewport">
         {/* Chameleon Ambient Aura & Fire Effect (Centered behind content) */}
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-           <ChameleonAura heat={heat} isEnabled={isTestRunning && isChameleonEnabled} />
+          <ChameleonAura heat={heat} isEnabled={isTestRunning && isChameleonEnabled} />
         </div>
         {!isOverlayActive && (
           <Header
@@ -514,6 +764,7 @@ const AppLayout = ({ addToast }) => {
                     selectedAvatarId={selectedAvatarId}
                     unlockedAvatars={unlockedAvatars}
                     currentLevel={currentLevel}
+                    progression={progression}
                     onUpdateAvatar={updateAvatar}
                     setUsername={updateUsername}
                     isLoggedIn={isLoggedIn}
@@ -522,24 +773,29 @@ const AppLayout = ({ addToast }) => {
                     onSettings={() => setActiveTab('settings')}
                     openLoginModal={() => toggleLoginModal(true)}
                   />
+                ) : activeTab === 'docs' ? (
+                  <DocumentationView />
                 ) : activeTab === 'leaderboard' ? (
                   <LeaderboardView currentUser={username} />
+                ) : activeTab === 'achievements' ? (
+                  <AchievementsView currentLevel={currentLevel} unlockedAvatars={unlockedAvatars} />
                 ) : (
-                  <NotFound 
-                    activeTab={activeTab} 
-                    onBackHome={() => setActiveTab('typing')} 
-                  />
+                  <NotFound activeTab={activeTab} onBackHome={() => setActiveTab('typing')} />
                 )}
               </Suspense>
             </motion.div>
           </AnimatePresence>
         </main>
 
-        <footer className={`status-bar ${(!!startTime && !isFinished && isZenMode) ? 'zen-active' : ''}`}>
+        <footer
+          className={`status-bar ${!!startTime && !isFinished && isZenMode ? 'zen-active' : ''}`}
+        >
           <div className="status-bar-left">
             <div className="status-item">
               <span className="status-label">WPM</span>
-              <span className="status-value">{(!!startTime && !isFinished) ? liveWpm : (isFinished ? results.wpm : '—')}</span>
+              <span className="status-value">
+                {!!startTime && !isFinished ? liveWpm : isFinished ? results.wpm : '—'}
+              </span>
             </div>
             {(testMode === 'time' || testMode === 'words') && (
               <div className="status-item">
@@ -601,8 +857,6 @@ const AppLayout = ({ addToast }) => {
         onClose={() => toggleLoginModal(false)}
         onLogin={() => toggleLoginModal(false)}
       />
-
-
 
       <ConfirmationModal
         isOpen={isLogoutModalOpen}

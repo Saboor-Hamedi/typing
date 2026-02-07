@@ -1,7 +1,7 @@
 .settings-container {
   max-width: 700px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem 1rem 10rem 1rem; /* Added generous bottom padding to clear taskbar */
 }
 
 .settings-header {
@@ -103,20 +103,20 @@
   right: 0;
   bottom: 0;
   background-color: var(--bg-color);
-  transition: .3s;
+  transition: 0.3s;
   border-radius: var(--round);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .slider:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 16px;
   width: 16px;
   left: 3px;
   bottom: 3px;
   background-color: var(--sub-color);
-  transition: .3s;
+  transition: 0.3s;
   border-radius: 3px;
 }
 
@@ -218,13 +218,13 @@ input:checked + .slider:before {
   .settings-header h1 {
     font-size: 1.8rem;
   }
-  
+
   .setting-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .toggle-switch {
     align-self: flex-end;
   }

@@ -1,6 +1,6 @@
 /**
  * TimeDisplay Component
- * 
+ *
  * Purpose: Robust, stable time display that doesn't shake
  * - Uses memoization to prevent unnecessary re-renders
  * - Smooth formatting and display
@@ -20,7 +20,7 @@ const TimeDisplay = memo(({ seconds, format = 's' }) => {
   }
 
   let displayText = ''
-  
+
   if (format === 'mm:ss') {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60

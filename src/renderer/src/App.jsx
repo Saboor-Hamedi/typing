@@ -28,16 +28,16 @@ function App() {
 
     // Use a stable ID to prevent re-mounting/re-animating on rapid clicks
     const id = 'singleton-toast'
-    
+
     setToasts([{ id, message, type }])
-    
+
     toastTimeoutRef.current = setTimeout(() => {
       setToasts([])
     }, 4000)
   }, [])
 
   const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id))
+    setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
   return (
@@ -46,12 +46,12 @@ function App() {
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
-      
+
       {/* Screen reader announcements */}
       <div id="sr-announcer" className="sr-only" aria-live="polite" aria-atomic="true" />
-      
+
       <OfflineBanner />
-      
+
       <ThemeProvider>
         <SettingsProvider>
           <UserProvider addToast={addToast}>

@@ -27,7 +27,7 @@ class SoundEngine {
         return
       }
     }
-    
+
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       this.audioCtx.resume()
     }
@@ -62,7 +62,7 @@ class SoundEngine {
 
     this.reverbGain = this.audioCtx.createGain()
     this.reverbGain.gain.setValueAtTime(0.2, this.audioCtx.currentTime)
-    
+
     this.reverbNode.connect(this.reverbGain)
     this.reverbGain.connect(this.audioCtx.destination)
   }
@@ -84,13 +84,13 @@ class SoundEngine {
   }
 
   getNoiseBuffer() {
-    const bufferSize = this.audioCtx.sampleRate * 0.08;
-    const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
-    const output = buffer.getChannelData(0);
+    const bufferSize = this.audioCtx.sampleRate * 0.08
+    const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate)
+    const output = buffer.getChannelData(0)
     for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
+      output[i] = Math.random() * 2 - 1
     }
-    return buffer;
+    return buffer
   }
 
   /**
@@ -105,17 +105,17 @@ class SoundEngine {
     }
 
     const now = this.audioCtx.currentTime
-    
+
     // Add micro-randomness to pitch and gain for "organic" feel
     const pitchJitter = 1 + (Math.random() - 0.5) * 0.05
     const volumeJitter = 1 + (Math.random() - 0.5) * 0.1
 
     const masterGain = this.audioCtx.createGain()
-    masterGain.gain.setValueAtTime(0.8 * volumeJitter, now) 
+    masterGain.gain.setValueAtTime(0.8 * volumeJitter, now)
     masterGain.connect(this.audioCtx.destination)
-    
+
     if (this.hallEffect && this.reverbNode) {
-        masterGain.connect(this.reverbNode)
+      masterGain.connect(this.reverbNode)
     }
 
     // Sound profile definitions
@@ -152,7 +152,7 @@ class SoundEngine {
     }
 
     const s = settings[this.profile] || settings.thocky
-    
+
     // 1. Body Component
     const bodyOsc = this.audioCtx.createOscillator()
     const bodyGain = this.audioCtx.createGain()
@@ -187,15 +187,19 @@ class SoundEngine {
     noiseFilter.frequency.setValueAtTime(s.noise.freq, now)
     noiseGain.gain.setValueAtTime(s.noise.gain, now)
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + s.noise.decay)
-    
+
     impactNoise.connect(noiseFilter)
     noiseFilter.connect(noiseGain)
     noiseGain.connect(masterGain)
 
-    // Modification for Spacebar (deeper, more resonance)
+    // Modifications based on key type
     if (type === 'space') {
       bodyOsc.frequency.setValueAtTime(s.body.freq * 0.6 * pitchJitter, now)
       masterGain.gain.setValueAtTime(1.2 * volumeJitter, now)
+    } else if (type === 'backspace') {
+      bodyOsc.frequency.setValueAtTime(s.body.freq * 1.2 * pitchJitter, now)
+      bodyGain.gain.setValueAtTime(0.4, now)
+      masterGain.gain.setValueAtTime(0.6 * volumeJitter, now)
     }
 
     bodyOsc.start(now)
@@ -205,4 +209,4 @@ class SoundEngine {
   }
 }
 
-export const soundEngine = new SoundEngine();
+export const soundEngine = new SoundEngine()

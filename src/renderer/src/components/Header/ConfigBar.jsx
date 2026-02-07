@@ -1,15 +1,15 @@
 import { memo, useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Clock, 
-  Type, 
-  Eye, 
-  EyeOff, 
-  Hash, 
-  CaseSensitive, 
-  FileText, 
-  Settings, 
-  ChevronDown, 
+import {
+  Clock,
+  Type,
+  Eye,
+  EyeOff,
+  Hash,
+  CaseSensitive,
+  FileText,
+  Settings,
+  ChevronDown,
   Sparkles,
   Zap,
   Quote,
@@ -27,9 +27,9 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef(null)
 
-  const { 
-    testMode, 
-    setTestMode, 
+  const {
+    testMode,
+    setTestMode,
     isZenMode,
     setIsZenMode,
     hasPunctuation,
@@ -65,26 +65,32 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
   }, [])
 
   // Robust update helper that forces immediate reset with overrides
-  const toggleSetting = useCallback((setter, current, key) => {
-    const newValue = !current
-    setter(newValue)
-    if (resetGame) {
-      // Pass the immediate change as an override to bypass stale closures
-      resetGame({ [key]: newValue })
-    }
-  }, [resetGame])
+  const toggleSetting = useCallback(
+    (setter, current, key) => {
+      const newValue = !current
+      setter(newValue)
+      if (resetGame) {
+        // Pass the immediate change as an override to bypass stale closures
+        resetGame({ [key]: newValue })
+      }
+    },
+    [resetGame]
+  )
 
-  const setModeValue = useCallback((setter, value, key) => {
-    setter(value)
-    if (resetGame) {
-      resetGame({ [key]: value })
-    }
-  }, [resetGame])
+  const setModeValue = useCallback(
+    (setter, value, key) => {
+      setter(value)
+      if (resetGame) {
+        resetGame({ [key]: value })
+      }
+    },
+    [resetGame]
+  )
 
   return (
     <div className="config-container" ref={menuRef}>
       {/* Trigger Pill */}
-      <motion.button 
+      <motion.button
         className={`config-trigger ${isOpen ? 'active' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.02 }}
@@ -101,7 +107,7 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
       {/* Beautiful Dropdown Menu */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             className="config-menu-panel"
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -112,7 +118,7 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
             <div className="config-section">
               <span className="config-section-label">Test Mode</span>
               <div className="config-options-grid">
-                <button 
+                <button
                   className={`menu-item-btn ${testMode === 'time' ? 'active' : ''}`}
                   onClick={() => setModeValue(setTestMode, 'time', 'testMode')}
                 >
@@ -120,7 +126,7 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
                   <span>Time</span>
                   <div className="status-dot" />
                 </button>
-                <button 
+                <button
                   className={`menu-item-btn ${testMode === 'words' ? 'active' : ''}`}
                   onClick={() => setModeValue(setTestMode, 'words', 'testMode')}
                 >
@@ -135,7 +141,7 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
             <div className="config-section">
               <span className="config-section-label">Content</span>
               <div className="config-options-grid">
-                <button 
+                <button
                   className={`menu-item-btn ${!isSentenceMode ? 'active' : ''}`}
                   onClick={() => setModeValue(setIsSentenceMode, false, 'isSentenceMode')}
                 >
@@ -143,7 +149,7 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
                   <span>Standard</span>
                   <div className="status-dot" />
                 </button>
-                <button 
+                <button
                   className={`menu-item-btn ${isSentenceMode ? 'active' : ''}`}
                   onClick={() => setModeValue(setIsSentenceMode, true, 'isSentenceMode')}
                 >
@@ -158,54 +164,63 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
             <div className="config-section">
               <span className="config-section-label">General Modifiers</span>
               <div className="modifiers-row">
-                <button 
+                <button
                   className={`menu-item-btn ${hasPunctuation ? 'active' : ''}`}
                   onClick={() => toggleSetting(setHasPunctuation, hasPunctuation, 'hasPunctuation')}
                 >
                   <span style={{ fontSize: '1.2rem', fontWeight: 900, lineHeight: 1 }}>.</span>
-                  <div className="status-dot" style={{ position: 'absolute', top: 6, right: 6, margin: 0 }} />
+                  <div
+                    className="status-dot"
+                    style={{ position: 'absolute', top: 6, right: 6, margin: 0 }}
+                  />
                 </button>
-                <button 
+                <button
                   className={`menu-item-btn ${hasNumbers ? 'active' : ''}`}
                   onClick={() => toggleSetting(setHasNumbers, hasNumbers, 'hasNumbers')}
                 >
                   <Hash size={16} />
-                  <div className="status-dot" style={{ position: 'absolute', top: 6, right: 6, margin: 0 }} />
+                  <div
+                    className="status-dot"
+                    style={{ position: 'absolute', top: 6, right: 6, margin: 0 }}
+                  />
                 </button>
-                <button 
+                <button
                   className={`menu-item-btn ${hasCaps ? 'active' : ''}`}
                   onClick={() => toggleSetting(setHasCaps, hasCaps, 'hasCaps')}
                 >
                   <CaseSensitive size={18} />
-                  <div className="status-dot" style={{ position: 'absolute', top: 6, right: 6, margin: 0 }} />
+                  <div
+                    className="status-dot"
+                    style={{ position: 'absolute', top: 6, right: 6, margin: 0 }}
+                  />
                 </button>
               </div>
             </div>
 
             {/* Section: Utilities */}
             <div className="config-section">
-               <span className="config-section-label">Appearance & View</span>
-               <div className="utilities-row">
-                 <button 
-                   className={`utility-btn ${isZenMode ? 'active' : ''}`}
-                   onClick={() => setIsZenMode(!isZenMode)}
-                 >
-                   {isZenMode ? <EyeOff size={14} /> : <Eye size={14} />}
-                   <span>Zen</span>
-                   <div className="status-dot" />
-                 </button>
+              <span className="config-section-label">Appearance & View</span>
+              <div className="utilities-row">
+                <button
+                  className={`utility-btn ${isZenMode ? 'active' : ''}`}
+                  onClick={() => setIsZenMode(!isZenMode)}
+                >
+                  {isZenMode ? <EyeOff size={14} /> : <Eye size={14} />}
+                  <span>Zen</span>
+                  <div className="status-dot" />
+                </button>
 
-                 <button 
-                   className="utility-btn"
-                   onClick={() => {
-                     setIsOpen(false)
-                     if (openThemeModal) openThemeModal()
-                   }}
-                 >
-                   <Palette size={14} />
-                   <span>Themes</span>
-                 </button>
-               </div>
+                <button
+                  className="utility-btn"
+                  onClick={() => {
+                    setIsOpen(false)
+                    if (openThemeModal) openThemeModal()
+                  }}
+                >
+                  <Palette size={14} />
+                  <span>Themes</span>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

@@ -40,7 +40,7 @@ export const PERFORMANCE = {
   AUTH_CHECK_DELAY: 2000,
 
   // Logout cooldown period (ms)
-  LOGOUT_COOLDOWN: 2500,
+  LOGOUT_COOLDOWN: 2500
 }
 
 // ============================================
@@ -80,7 +80,7 @@ export const UI = {
   ZEN_TRANSITION_DURATION: 0.5,
 
   // Word dimming transition duration (s)
-  WORD_DIM_TRANSITION_DURATION: 0.2,
+  WORD_DIM_TRANSITION_DURATION: 0.2
 }
 
 // ============================================
@@ -95,14 +95,12 @@ export const GAME = {
   // Test mode options
   TIME_LIMITS: [15, 30, 60],
   WORD_LIMITS: [10, 25, 50],
-  
 
-  
   // Modifiers
   MODIFIERS: {
     PUNCTUATION: 'punctuation',
     NUMBERS: 'numbers',
-    CAPS: 'caps',
+    CAPS: 'caps'
   },
 
   // Word generation multiplier for time mode
@@ -120,7 +118,7 @@ export const GAME = {
   // Ghost speed multiplier range
   GHOST_SPEED_MIN: 0.5,
   GHOST_SPEED_MAX: 2.0,
-  GHOST_SPEED_DEFAULT: 1.0,
+  GHOST_SPEED_DEFAULT: 1.0
 }
 
 // ============================================
@@ -163,7 +161,7 @@ export const PROGRESSION = {
   DEFAULT_UNLOCKED_AVATARS: [0, 1],
 
   // Default selected avatar
-  DEFAULT_AVATAR_ID: 1,
+  DEFAULT_AVATAR_ID: 1
 }
 
 // ============================================
@@ -187,7 +185,7 @@ export const AUDIO = {
   PITCH_JITTER: 0.05,
 
   // Noise buffer duration
-  NOISE_BUFFER_DURATION: 0.08,
+  NOISE_BUFFER_DURATION: 0.08
 }
 
 // ============================================
@@ -195,7 +193,17 @@ export const AUDIO = {
 // ============================================
 
 export const THEMES = {
-  AVAILABLE: ['carbon', 'nord', 'dracula', 'serika_blue', 'matrix', 'lavender', 'rose_pine', 'cyberpunk', 'synthwave'],
+  AVAILABLE: [
+    'carbon',
+    'nord',
+    'dracula',
+    'serika_blue',
+    'matrix',
+    'lavender',
+    'rose_pine',
+    'cyberpunk',
+    'synthwave'
+  ],
   DEFAULT: 'carbon',
 
   // RGB values for Chameleon Flow
@@ -208,21 +216,21 @@ export const THEMES = {
     lavender: [203, 166, 247],
     rose_pine: [235, 188, 186],
     cyberpunk: [246, 1, 157],
-    synthwave: [255, 126, 219],
+    synthwave: [255, 126, 219]
   },
 
   // Theme-specific hot colors for Chameleon Flow
   HOT_COLORS: {
-    carbon: [255, 78, 0],       // Deep Orange
-    nord: [255, 78, 0],         // Deep Orange
-    dracula: [255, 121, 198],    // Pink
+    carbon: [255, 78, 0], // Deep Orange
+    nord: [255, 78, 0], // Deep Orange
+    dracula: [255, 121, 198], // Pink
     serika_blue: [255, 255, 255], // Pure White
-    matrix: [0, 255, 65],       // Matrix Green
-    lavender: [255, 255, 255],   // White
-    rose_pine: [235, 111, 146],  // Love (Pink)
-    cyberpunk: [0, 255, 255],    // Cyan
-    synthwave: [254, 231, 21],   // Yellow
-  },
+    matrix: [0, 255, 65], // Matrix Green
+    lavender: [255, 255, 255], // White
+    rose_pine: [235, 111, 146], // Love (Pink)
+    cyberpunk: [0, 255, 255], // Cyan
+    synthwave: [254, 231, 21] // Yellow
+  }
 }
 
 // ============================================
@@ -239,7 +247,7 @@ export const VALIDATION = {
   EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 
   // Default values
-  DEFAULT_USERNAME: 'Guest',
+  DEFAULT_USERNAME: 'Guest'
 }
 
 // ============================================
@@ -285,16 +293,15 @@ export const STORAGE_KEYS = {
     HAS_PUNCTUATION: 'hasPunctuation',
     HAS_NUMBERS: 'hasNumbers',
     HAS_CAPS: 'hasCaps',
-    GHOST_SPEED: 'ghostSpeed',
-
+    GHOST_SPEED: 'ghostSpeed'
   },
 
   // Electron store keys (data.json)
   DATA: {
     PB: 'pb',
     HISTORY: 'history',
-    XP: 'xp',
-  },
+    XP: 'xp'
+  }
 }
 
 // ============================================
@@ -323,7 +330,7 @@ export const ERROR_MESSAGES = {
   SYNC_FAILED: 'Cloud sync failed. Your data is saved locally.',
 
   // Generic
-  UNKNOWN_ERROR: 'An unexpected error occurred.',
+  UNKNOWN_ERROR: 'An unexpected error occurred.'
 }
 
 // ============================================
@@ -346,9 +353,8 @@ export const SUCCESS_MESSAGES = {
   DATA_CLEARED: 'History and PBs cleared',
 
   // Progression
-  AVATAR_UNLOCKED: 'New Avatar',
+  AVATAR_UNLOCKED: 'New Avatar'
 }
-
 
 // ============================================
 // ACCESSIBILITY
@@ -363,7 +369,7 @@ export const A11Y = {
   MIN_TOUCH_TARGET: 44,
 
   // Animation duration for reduced motion (s)
-  REDUCED_MOTION_DURATION: 0.01,
+  REDUCED_MOTION_DURATION: 0.01
 }
 
 // ============================================
@@ -373,5 +379,5 @@ export const A11Y = {
 export const BREAKPOINTS = {
   MOBILE: 480,
   TABLET: 900,
-  DESKTOP: 1200,
+  DESKTOP: 1200
 }

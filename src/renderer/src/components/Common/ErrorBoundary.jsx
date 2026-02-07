@@ -10,9 +10,9 @@ import './ErrorBoundary.css'
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { 
-      hasError: false, 
-      error: null, 
+    this.state = {
+      hasError: false,
+      error: null,
       errorInfo: null,
       copied: false
     }
@@ -25,13 +25,13 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Log error details
     console.error('ErrorBoundary caught an error:', error, errorInfo)
-    
+
     this.setState({ error, errorInfo })
   }
 
   handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null, copied: false })
-    
+
     if (this.props.onReset) {
       this.props.onReset()
     }
@@ -44,7 +44,7 @@ class ErrorBoundary extends React.Component {
   handleCopyError = () => {
     const { error, errorInfo } = this.state
     const errorText = `Error: ${error?.toString()}\n\nStack Trace:\n${errorInfo?.componentStack}`
-    
+
     navigator.clipboard.writeText(errorText).then(() => {
       this.setState({ copied: true })
       setTimeout(() => this.setState({ copied: false }), 2000)
@@ -61,10 +61,11 @@ class ErrorBoundary extends React.Component {
             <div className="error-icon">
               <AlertTriangle size={32} />
             </div>
-            
+
             <h1 className="error-title">Oops! Something went wrong</h1>
             <p className="error-message">
-              The application encountered an unexpected error. Try refreshing the page or resetting the app.
+              The application encountered an unexpected error. Try refreshing the page or resetting
+              the app.
             </p>
 
             <div className="error-actions">
@@ -77,8 +78,8 @@ class ErrorBoundary extends React.Component {
                 <span>Reload App</span>
               </button>
               {isDev && (
-                <button 
-                  onClick={this.handleCopyError} 
+                <button
+                  onClick={this.handleCopyError}
                   className="error-btn copy"
                   title="Copy error details"
                 >
@@ -95,7 +96,8 @@ class ErrorBoundary extends React.Component {
                   <strong>Error:</strong> {this.state.error.toString()}
                   {this.state.errorInfo && (
                     <>
-                      <br /><br />
+                      <br />
+                      <br />
                       <strong>Component Stack:</strong>
                       {this.state.errorInfo.componentStack}
                     </>

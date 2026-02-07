@@ -1,11 +1,11 @@
 .dashboard-container {
-  padding: 1rem 1.25rem 0 1.25rem;
+  padding: 1rem 1.25rem 8rem 1.25rem; /* Added bottom padding to clear taskbar */
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 1000px; /* Reduced from 1200px */
+  max-width: 1000px;
   box-sizing: border-box;
   animation: fadeIn 0.4s ease-out;
 }
@@ -15,7 +15,7 @@
   background: var(--bg-color);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .profile-cover {
@@ -30,7 +30,7 @@
 .cover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
 }
 
 .profile-main-info-row {
@@ -45,12 +45,12 @@
 
 .avatar-wrapper-fb {
   position: relative;
-  width: 100px; 
+  width: 100px;
   height: 100px;
   flex-shrink: 0;
   border-radius: 50%;
   padding: 0;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   background: var(--bg-color);
   display: flex;
   align-items: center;
@@ -66,9 +66,6 @@
   object-fit: cover;
   transition: transform 0.3s ease;
 }
-
-
-
 
 .profile-text-section {
   flex: 1;
@@ -260,7 +257,7 @@
     padding: 0 1.5rem 1.5rem 1.5rem;
     margin-top: -84px;
   }
-  
+
   .profile-avatar-section {
     width: 160px;
     height: 160px;
@@ -274,7 +271,7 @@
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .name-display-row-fb h1 {
     font-size: 1.8rem;
   }
@@ -304,12 +301,12 @@
     flex-direction: column;
     text-align: center;
   }
-  
+
   .hero-content {
     flex-direction: column;
     gap: 1.5rem;
   }
-  
+
   .profile-section {
     flex-direction: column;
     gap: 1.1rem;
@@ -330,7 +327,7 @@
     margin-bottom: 0.25rem;
     text-align: center;
   }
-  
+
   .name-display-row {
     justify-content: center;
   }
@@ -338,7 +335,7 @@
   .level-badge {
     margin-bottom: 0.5rem;
   }
-  
+
   .level-progress-container {
     width: 100%;
     max-width: 260px;
@@ -370,15 +367,22 @@
 .level-progress-bar::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   animation: barFlow 2s infinite linear;
   background-size: 200% 100%;
 }
 
 @keyframes barFlow {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 
 .exp-text {
@@ -773,9 +777,6 @@
 }
 
 /* Wardrobe Section (Persistent Gallery) */
-.section-wardrobe {
-  padding: 1.25rem;
-}
 
 .wardrobe-grid {
   display: grid;
@@ -798,7 +799,7 @@
 .wardrobe-item.unlocked:hover {
   transform: scale(1.05);
   z-index: 2;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
 }
 
 .wardrobe-item.selected {
@@ -836,15 +837,34 @@
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
+  gap: 4px;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.3); /* Add subtle dim to locked items */
+  backdrop-filter: blur(1px);
+}
+
+.unlock-lv {
+  font-size: 0.6rem;
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
 }
 
 .selected-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, transparent 40%, rgba(var(--main-color-rgb), 0.2) 100%);
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    rgba(var(--main-color-rgb), 0.2) 100%
+  );
   pointer-events: none;
 }
 
@@ -883,7 +903,7 @@
   flex-direction: column;
   gap: 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.03);
-  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .mini-stat-card .m-header {
@@ -939,6 +959,30 @@
 
 .activity-row:hover {
   background: rgba(255, 255, 255, 0.03);
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  color: var(--sub-color);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.section-header svg {
+  color: var(--main-color);
+  filter: drop-shadow(0 0 8px rgba(var(--main-color-rgb), 0.3));
+}
+
+.section-header span {
+  color: #fff;
+  opacity: 1;
 }
 
 /* Responsive Grid */

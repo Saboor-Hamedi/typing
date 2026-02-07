@@ -19,7 +19,7 @@ const ThemeModal = ({ isOpen, onClose, currentTheme, onSelect }) => {
     <AnimatePresence>
       {isOpen && (
         <div className="theme-modal-overlay" onClick={onClose}>
-          <motion.div 
+          <motion.div
             className="theme-modal glass-panel"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -29,7 +29,7 @@ const ThemeModal = ({ isOpen, onClose, currentTheme, onSelect }) => {
           >
             <div className="theme-modal-header window-like-header">
               <div className="header-title">
-                <Palette size={12} className="header-icon"/>
+                <Palette size={12} className="header-icon" />
                 <span>Select Theme</span>
               </div>
               <button className="header-close-btn" onClick={onClose}>
@@ -39,8 +39,8 @@ const ThemeModal = ({ isOpen, onClose, currentTheme, onSelect }) => {
 
             <div className="theme-grid">
               {THEMES.map((t) => (
-                <div 
-                  key={t.id} 
+                <div
+                  key={t.id}
                   className={`theme-item ${currentTheme === t.id ? 'active' : ''}`}
                   onClick={() => {
                     onSelect(t.id)
@@ -50,10 +50,15 @@ const ThemeModal = ({ isOpen, onClose, currentTheme, onSelect }) => {
                   <div className="theme-preview" style={{ background: t.bg }}>
                     <div className="preview-top">
                       <div className="preview-dot" style={{ background: t.main }} />
-                      <div className="preview-text" style={{ color: t.text, fontSize: '10px' }}>text</div>
+                      <div className="preview-text" style={{ color: t.text, fontSize: '10px' }}>
+                        text
+                      </div>
                     </div>
                     <div className="preview-line" style={{ background: t.main }} />
-                    <div className="preview-line" style={{ background: t.text, opacity: 0.3, width: '60%' }} />
+                    <div
+                      className="preview-line"
+                      style={{ background: t.text, opacity: 0.3, width: '60%' }}
+                    />
                   </div>
                   <div className="theme-info">
                     <span className="theme-name">{t.name}</span>

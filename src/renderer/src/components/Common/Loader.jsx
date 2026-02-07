@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import './Loader.css';
+import React from 'react'
+import { motion } from 'framer-motion'
+import './Loader.css'
 
 const Loader = () => {
   return (
@@ -8,18 +8,18 @@ const Loader = () => {
       <motion.div
         className="loader-pill"
         initial={{ width: 0, opacity: 0 }}
-        animate={{ 
+        animate={{
           width: ['0%', '150px', '200px'],
           opacity: [0, 1, 0]
         }}
-        transition={{ 
+        transition={{
           duration: 0.4,
           times: [0, 0.5, 1],
-          ease: "circOut"
+          ease: 'circOut'
         }}
       />
     </div>
-  );
-};
+  )
+}
 
-export default Loader;
+export default Loader

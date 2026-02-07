@@ -16,28 +16,26 @@
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://shzdlheswrasstwmwvig.supabase.co'
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_FtRC3jIu6VNBG1vBThjThg_d1o-VvrD'
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_FtRC3jIu6VNBG1vBThjThg_d1o-VvrD'
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 export const deleteUserData = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession()
+  const {
+    data: { session },
+    error
+  } = await supabase.auth.getSession()
   if (error) throw error
 
   const user = session?.user
   if (!user?.id) throw new Error('No active Supabase session found')
 
-  const { error: scoresError } = await supabase
-    .from('scores')
-    .delete()
-    .eq('user_id', user.id)
+  const { error: scoresError } = await supabase.from('scores').delete().eq('user_id', user.id)
 
   if (scoresError) throw scoresError
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', user.id)
+  const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.id)
 
   if (profileError) throw profileError
 
@@ -47,7 +45,9 @@ export const deleteUserData = async () => {
 }
 
 export const getCurrentUser = async () => {
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session }
+  } = await supabase.auth.getSession()
   return session?.user || null
 }
 

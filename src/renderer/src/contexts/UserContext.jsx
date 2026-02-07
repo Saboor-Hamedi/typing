@@ -28,7 +28,7 @@ const UserContext = createContext(null)
 const safeGetStr = (key, fallback) => {
   let val = localStorage.getItem(key)
   if (!val) return fallback
-  
+
   while (typeof val === 'string' && val.startsWith('"') && val.endsWith('"')) {
     try {
       const parsed = JSON.parse(val)
@@ -48,16 +48,20 @@ const safeGetStr = (key, fallback) => {
 export const UserProvider = ({ children, addToast }) => {
   // Auth state
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [username, setUsername] = useState(() => safeGetStr(STORAGE_KEYS.USERNAME, VALIDATION.DEFAULT_USERNAME))
-  const [localUsername, setLocalUsername] = useState(() => safeGetStr(STORAGE_KEYS.LOCAL_USERNAME, VALIDATION.DEFAULT_USERNAME))
-  
+  const [username, setUsername] = useState(() =>
+    safeGetStr(STORAGE_KEYS.USERNAME, VALIDATION.DEFAULT_USERNAME)
+  )
+  const [localUsername, setLocalUsername] = useState(() =>
+    safeGetStr(STORAGE_KEYS.LOCAL_USERNAME, VALIDATION.DEFAULT_USERNAME)
+  )
+
   // Profile state
   const [selectedAvatarId, setSelectedAvatarId] = useState(PROGRESSION.DEFAULT_AVATAR_ID)
   const [unlockedAvatars, setUnlockedAvatars] = useState([...PROGRESSION.DEFAULT_UNLOCKED_AVATARS])
-  
+
   // Loading state
   const [isUserLoaded, setIsUserLoaded] = useState(false)
-  
+
   // Refs for state management
   const isFirstAuthCheck = useRef(true)
   const lastNotifiedUser = useRef(null)
@@ -70,14 +74,16 @@ export const UserProvider = ({ children, addToast }) => {
         const [savedUser, savedAvatarId, savedUnlocked] = await Promise.all([
           window.api.settings.get(STORAGE_KEYS.SETTINGS.LOCAL_USERNAME),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.AVATAR_ID),
-          window.api.settings.get(STORAGE_KEYS.SETTINGS.UNLOCKED_AVATARS),
+          window.api.settings.get(STORAGE_KEYS.SETTINGS.UNLOCKED_AVATARS)
         ])
 
         if (savedUser) setLocalUsername(savedUser)
         if (savedAvatarId !== undefined) setSelectedAvatarId(savedAvatarId)
         if (savedUnlocked && Array.isArray(savedUnlocked)) {
           // Merge saved unlocked avatars with defaults, ensuring avatar 1 is always available
-          const mergedUnlocked = [...new Set([...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...savedUnlocked])]
+          const mergedUnlocked = [
+            ...new Set([...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...savedUnlocked])
+          ]
           setUnlockedAvatars(mergedUnlocked)
         }
       }
@@ -102,18 +108,21 @@ export const UserProvider = ({ children, addToast }) => {
 
   // Single Auth Listener
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       const user = session?.user
-      
+
       if (user) {
         // Robust name extraction from social metadata
-        const name = user.user_metadata?.full_name || 
-                     user.user_metadata?.preferred_username || 
-                     user.user_metadata?.user_name || 
-                     user.user_metadata?.username || 
-                     user.email?.split('@')[0] || 
-                     'User'
-        
+        const name =
+          user.user_metadata?.full_name ||
+          user.user_metadata?.preferred_username ||
+          user.user_metadata?.user_name ||
+          user.user_metadata?.username ||
+          user.email?.split('@')[0] ||
+          'User'
+
         // Clear manual logout flag on fresh login
         localStorage.removeItem(STORAGE_KEYS.MANUAL_LOGOUT)
 
@@ -121,14 +130,29 @@ export const UserProvider = ({ children, addToast }) => {
         setIsLoggedIn(true)
 
         // Load cloud profile
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
         if (profile) {
-          const cloudUnlocked = Array.isArray(profile.unlocked_avatars) ? profile.unlocked_avatars : []
-          const mergedUnlocked = [...new Set([...PROGRESSION.DEFAULT_UNLOCKED_AVATARS, ...unlockedAvatars, ...cloudUnlocked])]
+          const cloudUnlocked = Array.isArray(profile.unlocked_avatars)
+            ? profile.unlocked_avatars
+            : []
+          const mergedUnlocked = [
+            ...new Set([
+              ...PROGRESSION.DEFAULT_UNLOCKED_AVATARS,
+              ...unlockedAvatars,
+              ...cloudUnlocked
+            ])
+          ]
 
           // Sync back to cloud if local has more unlocks than cloud
           if (mergedUnlocked.length > cloudUnlocked.length) {
-            await supabase.from('profiles').update({ unlocked_avatars: mergedUnlocked }).eq('id', user.id)
+            await supabase
+              .from('profiles')
+              .update({ unlocked_avatars: mergedUnlocked })
+              .eq('id', user.id)
           }
 
           setUnlockedAvatars(mergedUnlocked)
@@ -140,7 +164,11 @@ export const UserProvider = ({ children, addToast }) => {
         }
 
         // Show welcome toast
-        if (event === 'SIGNED_IN' && !isFirstAuthCheck.current && lastNotifiedUser.current !== name) {
+        if (
+          event === 'SIGNED_IN' &&
+          !isFirstAuthCheck.current &&
+          lastNotifiedUser.current !== name
+        ) {
           addToast?.(`${SUCCESS_MESSAGES.LOGIN_SUCCESS}, ${name}!`, 'success')
         }
         lastNotifiedUser.current = name
@@ -154,7 +182,9 @@ export const UserProvider = ({ children, addToast }) => {
       }
     })
 
-    const timer = setTimeout(() => { isFirstAuthCheck.current = false }, 2000)
+    const timer = setTimeout(() => {
+      isFirstAuthCheck.current = false
+    }, 2000)
     return () => {
       subscription?.unsubscribe()
       clearTimeout(timer)
@@ -167,9 +197,9 @@ export const UserProvider = ({ children, addToast }) => {
 
     const unsubscribeDeepLink = window.api.onDeepLink(async (url) => {
       if (!url) return
-      
+
       const cleanUrl = url.replace(/['"]/g, '').trim()
-      
+
       // DEBUG: Show the exact protocol received
       if (cleanUrl.startsWith('typingzone')) {
         addToast?.('Link detected: ' + cleanUrl.substring(0, 35) + '...', 'info')
@@ -204,19 +234,20 @@ export const UserProvider = ({ children, addToast }) => {
             access_token: accessToken,
             refresh_token: refreshToken
           })
-          
+
           if (error) {
             console.error('Session error:', error)
             addToast?.('Sync Failed: ' + error.message, 'error')
           } else if (data.user) {
             const user = data.user
-            const name = user.user_metadata?.full_name || 
-                         user.user_metadata?.preferred_username || 
-                         user.user_metadata?.user_name || 
-                         user.user_metadata?.username || 
-                         user.email?.split('@')[0] || 
-                         'User'
-            
+            const name =
+              user.user_metadata?.full_name ||
+              user.user_metadata?.preferred_username ||
+              user.user_metadata?.user_name ||
+              user.user_metadata?.username ||
+              user.email?.split('@')[0] ||
+              'User'
+
             setUsername(name)
             setIsLoggedIn(true)
             addToast?.(`Verified: Logged in as ${name}`, 'success')
@@ -245,62 +276,81 @@ export const UserProvider = ({ children, addToast }) => {
   /**
    * Update username with validation
    */
-  const updateUsername = useCallback(async (newName) => {
-    const validation = validateUsername(newName)
-    if (!validation.isValid) {
-      addToast?.(validation.error, 'error')
-      return false
-    }
-
-    const trimmed = newName.trim()
-    setUsername(trimmed)
-    setLocalUsername(trimmed)
-
-    if (isLoggedIn) {
-      try {
-        const { error } = await supabase.auth.updateUser({ data: { username: trimmed } })
-        if (error) throw error
-        addToast?.(SUCCESS_MESSAGES.PROFILE_UPDATED, 'success')
-      } catch (err) {
-        addToast?.('Cloud sync failed', 'warning')
+  const updateUsername = useCallback(
+    async (newName) => {
+      const validation = validateUsername(newName)
+      if (!validation.isValid) {
+        addToast?.(validation.error, 'error')
+        return false
       }
-    } else {
-      addToast?.(SUCCESS_MESSAGES.LOCAL_NICKNAME_SAVED, 'success')
-    }
-    return true
-  }, [isLoggedIn, addToast])
+
+      const trimmed = newName.trim()
+      setUsername(trimmed)
+      setLocalUsername(trimmed)
+
+      if (isLoggedIn) {
+        try {
+          const { error } = await supabase.auth.updateUser({ data: { username: trimmed } })
+          if (error) throw error
+          addToast?.(SUCCESS_MESSAGES.PROFILE_UPDATED, 'success')
+        } catch (err) {
+          addToast?.('Cloud sync failed', 'warning')
+        }
+      } else {
+        addToast?.(SUCCESS_MESSAGES.LOCAL_NICKNAME_SAVED, 'success')
+      }
+      return true
+    },
+    [isLoggedIn, addToast]
+  )
 
   /**
    * Update selected avatar
    */
-  const updateAvatar = useCallback(async (avatarId) => {
-    if (!unlockedAvatars.includes(avatarId)) {
-      addToast?.('Avatar not unlocked', 'error')
-      return
-    }
-    setSelectedAvatarId(avatarId)
-    if (isLoggedIn) {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        await supabase.from('profiles').update({ selected_avatar_id: avatarId }).eq('id', session.user.id)
+  const updateAvatar = useCallback(
+    async (avatarId) => {
+      if (!unlockedAvatars.includes(avatarId)) {
+        addToast?.('Avatar not unlocked', 'error')
+        return
       }
-    }
-  }, [isLoggedIn, unlockedAvatars, addToast])
+      setSelectedAvatarId(avatarId)
+      if (isLoggedIn) {
+        const {
+          data: { session }
+        } = await supabase.auth.getSession()
+        if (session?.user) {
+          await supabase
+            .from('profiles')
+            .update({ selected_avatar_id: avatarId })
+            .eq('id', session.user.id)
+        }
+      }
+    },
+    [isLoggedIn, unlockedAvatars, addToast]
+  )
 
   /**
    * Unlock new avatar
    */
-  const unlockAvatar = useCallback(async (avatarId) => {
-    if (unlockedAvatars.includes(avatarId)) return
-    const updatedList = [...new Set([...unlockedAvatars, avatarId])]
-    setUnlockedAvatars(updatedList)
-    if (isLoggedIn) {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        await supabase.from('profiles').update({ unlocked_avatars: updatedList }).eq('id', session.user.id)
+  const unlockAvatar = useCallback(
+    async (avatarId) => {
+      if (unlockedAvatars.includes(avatarId)) return
+      const updatedList = [...new Set([...unlockedAvatars, avatarId])]
+      setUnlockedAvatars(updatedList)
+      if (isLoggedIn) {
+        const {
+          data: { session }
+        } = await supabase.auth.getSession()
+        if (session?.user) {
+          await supabase
+            .from('profiles')
+            .update({ unlocked_avatars: updatedList })
+            .eq('id', session.user.id)
+        }
       }
-    }
-  }, [isLoggedIn, unlockedAvatars])
+    },
+    [isLoggedIn, unlockedAvatars]
+  )
 
   /**
    * Handle user logout
@@ -319,7 +369,7 @@ export const UserProvider = ({ children, addToast }) => {
     localStorage.setItem(STORAGE_KEYS.MANUAL_LOGOUT, 'true')
 
     // Aggressively clear ALL Supabase and auth related tokens
-    Object.keys(localStorage).forEach(key => {
+    Object.keys(localStorage).forEach((key) => {
       if (key.includes('auth-token') || key.startsWith('sb-')) {
         localStorage.removeItem(key)
       }
@@ -333,7 +383,9 @@ export const UserProvider = ({ children, addToast }) => {
       // Even if cloud logout fails, local state is already cleared
       addToast?.('Signed out locally', 'info')
     } finally {
-      setTimeout(() => { isLoggingOut.current = false }, 2500)
+      setTimeout(() => {
+        isLoggingOut.current = false
+      }, 2500)
     }
   }, [localUsername, addToast])
 
@@ -351,14 +403,10 @@ export const UserProvider = ({ children, addToast }) => {
     unlockAvatar,
     handleLogout,
     isUserLoaded,
-    isLoggingOut,
+    isLoggingOut
   }
 
-  return (
-    <UserContext.Provider value={value}>
-      {children}
-    </UserContext.Provider>
-  )
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
 export const useUser = () => {

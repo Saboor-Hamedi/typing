@@ -1,8 +1,8 @@
 /**
  * usePerformanceMonitor Hook
- * 
+ *
  * Monitors React component performance using React DevTools Profiler API
- * 
+ *
  * @param {string} componentName - Name of the component being monitored
  * @param {boolean} enabled - Whether monitoring is enabled
  * @returns {Object} Performance metrics
@@ -26,13 +26,14 @@ export const usePerformanceMonitor = (componentName, enabled = false) => {
     return () => {
       if (renderStartRef.current) {
         const renderTime = performance.now() - renderStartRef.current
-        
+
         renderTimesRef.current.push(renderTime)
         if (renderTimesRef.current.length > 100) {
           renderTimesRef.current.shift() // Keep only last 100 renders
         }
 
-        const average = renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length
+        const average =
+          renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length
 
         setMetrics({
           renderCount: renderTimesRef.current.length,

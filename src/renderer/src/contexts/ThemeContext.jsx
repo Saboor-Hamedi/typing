@@ -11,7 +11,7 @@ export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem(STORAGE_KEYS.THEME) || THEMES.DEFAULT
   })
-  
+
   const [isThemeLoaded, setIsThemeLoaded] = useState(false)
 
   // Load theme from electron-store on mount
@@ -31,7 +31,7 @@ export const ThemeProvider = ({ children }) => {
   // Apply theme to DOM (synchronous for zero-flash)
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    
+
     // Update CSS variable for Chameleon Flow
     const colors = THEMES.COLORS
     const rgb = colors[theme] || colors[THEMES.DEFAULT]
@@ -41,9 +41,9 @@ export const ThemeProvider = ({ children }) => {
   // Persist theme changes
   useEffect(() => {
     if (!isThemeLoaded) return
-    
+
     localStorage.setItem(STORAGE_KEYS.THEME, theme)
-    
+
     if (window.api?.settings) {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.THEME, theme)
     }
@@ -69,14 +69,10 @@ export const ThemeProvider = ({ children }) => {
     theme,
     setTheme: changeTheme,
     availableThemes: THEMES.AVAILABLE,
-    isThemeLoaded,
+    isThemeLoaded
   }
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  )
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 /**

@@ -24,8 +24,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinner-small {
@@ -63,7 +67,7 @@
   .loading-spinner {
     animation: none;
   }
-  
+
   .spinner-circle {
     border-top-color: var(--main-color);
     border-right-color: var(--main-color);

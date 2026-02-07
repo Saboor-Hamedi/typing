@@ -59,13 +59,12 @@
   justify-content: center;
   padding: 0 3px;
   border: 1px solid var(--bg-color);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   z-index: 10;
   pointer-events: none;
   font-family: var(--font-family);
   user-select: none;
 }
-
 
 @media (max-width: 768px) {
   .main-sidebar {
@@ -99,7 +98,9 @@
   justify-content: center;
   cursor: pointer;
   color: var(--sub-color);
-  transition: color 0.2s ease, background 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
   border-radius: 0;
   flex-shrink: 0; /* Prevent shrinking */
   cursor: pointer !important;
@@ -177,8 +178,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .active-green {
@@ -216,7 +221,7 @@
     width: 45px;
     height: 45px;
   }
-  
+
   .nav-item svg {
     width: 18px;
     height: 18px;
@@ -227,17 +232,17 @@
   .main-sidebar {
     width: 45px;
   }
-  
+
   .nav-item {
     width: 45px;
     height: 45px;
   }
-  
+
   .nav-item svg {
     width: 16px;
     height: 16px;
   }
-  
+
   .nav-item.toggle-active {
     transform: scale(1); /* No scale on small screens */
   }

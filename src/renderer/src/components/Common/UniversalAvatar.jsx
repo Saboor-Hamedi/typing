@@ -1,18 +1,18 @@
 import React, { useState } from 'react'
-import { 
-  Flame, 
-  Sun, 
-  Zap, 
-  Ghost, 
-  Moon, 
-  Star, 
-  Crown, 
-  Shield, 
-  Sword, 
-  Eye, 
-  Orbit, 
-  Globe, 
-  CloudRain, 
+import {
+  Flame,
+  Sun,
+  Zap,
+  Ghost,
+  Moon,
+  Star,
+  Crown,
+  Shield,
+  Sword,
+  Eye,
+  Orbit,
+  Globe,
+  CloudRain,
   Wind,
   Infinity,
   ZapOff
@@ -21,8 +21,8 @@ import { AVATAR_MAP } from '../../assets/avatars'
 
 /**
  * THEME_CONFIG
- * 
- * Provides fallback icons and gradient colors for tiers that do not have 
+ *
+ * Provides fallback icons and gradient colors for tiers that do not have
  * established image assets yet.
  */
 const THEME_CONFIG = {
@@ -53,12 +53,12 @@ const THEME_CONFIG = {
   energy: { colors: ['#00ff00', '#ccff00'], icon: Sword },
   magic: { colors: ['#ff00ff', '#ffffff'], icon: Eye },
   eternal: { colors: ['#ff4e00', '#ffcc00'], icon: Infinity },
-  omega: { colors: ['#000000', '#00ff00'], icon: ZapOff },
+  omega: { colors: ['#000000', '#00ff00'], icon: ZapOff }
 }
 
 /**
  * UniversalAvatar
- * 
+ *
  * Purpose:
  * - High-performance wrapper for user profile images.
  * - Handles rounded frames, consistent sizing, and glow effects.
@@ -68,7 +68,7 @@ const UniversalAvatar = ({ avatarId, size, className = '', theme }) => {
   const [imgError, setImgError] = useState(false)
   const avatarSrc = AVATAR_MAP[avatarId]
   const config = THEME_CONFIG[theme] || { colors: ['#2c2e31', '#1a1a1a'], icon: Ghost }
-  
+
   const showImage = avatarSrc && !imgError
 
   const containerStyle = {
@@ -85,29 +85,37 @@ const UniversalAvatar = ({ avatarId, size, className = '', theme }) => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: showImage ? 'rgba(255, 255, 255, 0.03)' : `linear-gradient(135deg, ${config.colors[0]}, ${config.colors[1]})`,
-    border: theme ? `2px solid var(--theme-${theme}, rgba(255,255,255,0.05))` : '1px solid rgba(255,255,255,0.05)',
+    background: showImage
+      ? 'rgba(255, 255, 255, 0.03)'
+      : `linear-gradient(135deg, ${config.colors[0]}, ${config.colors[1]})`,
+    border: theme
+      ? `2px solid var(--theme-${theme}, rgba(255,255,255,0.05))`
+      : '1px solid rgba(255,255,255,0.05)'
   }
 
   return (
     <div className={`universal-avatar-container ${className}`} style={containerStyle}>
       {avatarSrc && (
-        <img 
-          src={avatarSrc} 
-          alt={`Avatar ${avatarId}`} 
-          style={{ 
-            width: '100%', 
-            height: '100%', 
+        <img
+          src={avatarSrc}
+          alt={`Avatar ${avatarId}`}
+          style={{
+            width: '100%',
+            height: '100%',
             objectFit: 'cover',
             display: showImage ? 'block' : 'none'
-          }} 
+          }}
           onLoad={() => setImgError(false)}
           onError={() => setImgError(true)}
         />
       )}
-      
+
       {!showImage && (
-        <config.icon size={(typeof size === 'number' ? size : 40) * 0.55} color="#fff" style={{ opacity: 0.9 }} />
+        <config.icon
+          size={(typeof size === 'number' ? size : 40) * 0.55}
+          color="#fff"
+          style={{ opacity: 0.9 }}
+        />
       )}
     </div>
   )

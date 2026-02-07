@@ -32,8 +32,14 @@
   border-radius: 50%;
 }
 
-.legend-dot.net { background: var(--main-color); box-shadow: 0 0 5px var(--main-color); }
-.legend-dot.raw { background: var(--sub-color); opacity: 0.5; }
+.legend-dot.net {
+  background: var(--main-color);
+  box-shadow: 0 0 5px var(--main-color);
+}
+.legend-dot.raw {
+  background: var(--sub-color);
+  opacity: 0.5;
+}
 
 .telemetry-svg-wrapper {
   position: relative;
@@ -103,7 +109,13 @@
 }
 
 @keyframes pulse {
-  0% { opacity: 0.4; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.4; }
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.4;
+  }
 }

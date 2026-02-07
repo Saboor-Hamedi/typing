@@ -19,7 +19,12 @@ const AnimatedCounter = ({ value, duration = 1.5, suffix = '' }) => {
     requestAnimationFrame(animate)
   }, [value, duration])
 
-  return <span>{count}{suffix}</span>
+  return (
+    <span>
+      {count}
+      {suffix}
+    </span>
+  )
 }
 
 const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onReplay }) => {
@@ -32,10 +37,11 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
   }, [results.duration])
 
   const stats = useMemo(() => {
-    if (!telemetry || telemetry.length === 0) return { consistency: 0, bestSecond: 0, averageWpm: 0 }
-    const values = telemetry.map(t => t.wpm).filter(w => w > 0)
+    if (!telemetry || telemetry.length === 0)
+      return { consistency: 0, bestSecond: 0, averageWpm: 0 }
+    const values = telemetry.map((t) => t.wpm).filter((w) => w > 0)
     if (values.length === 0) return { consistency: 0, bestSecond: 0, averageWpm: 0 }
-    
+
     const avg = Math.round(values.reduce((a, b) => a + b, 0) / values.length)
     const best = Math.max(...values)
     const variance = values.reduce((acc, v) => acc + Math.pow(v - avg, 2), 0) / values.length
@@ -46,7 +52,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
   }, [telemetry])
 
   return (
-    <motion.div 
+    <motion.div
       className="results-container glass-panel"
       initial={{ opacity: 0, scale: 0.95, y: 30 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -55,7 +61,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
       <div className="results-content">
         <div className="results-metrics-main">
           <div className="metric-group-large">
-            <motion.div 
+            <motion.div
               className="metric-card main-stat"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -65,7 +71,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
                 <TrendingUp size={14} />
                 <span className="label">wpm</span>
                 {results.isNewPb && (
-                  <motion.span 
+                  <motion.span
                     className="pb-badge"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1, rotate: [0, -10, 10, 0] }}
@@ -80,7 +86,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
               </span>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               className="metric-card main-stat accent"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -96,7 +102,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
             </motion.div>
           </div>
 
-          <motion.div 
+          <motion.div
             className="results-graph-wrapper secondary-glass"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -110,7 +116,7 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
           </motion.div>
         </div>
 
-        <motion.div 
+        <motion.div
           className="results-stats-bar"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -120,22 +126,30 @@ const ResultsView = ({ results, telemetry, testMode, testLimit, onRestart, onRep
             { label: 'test type', val: `${testMode} ${testLimit}`, icon: <TrendingUp size={12} /> },
             { label: 'time', val: formattedDuration, icon: <Clock size={12} /> },
             { label: 'raw wpm', val: results.rawWpm },
-            { label: 'errors', val: results.errors, isError: true, icon: <AlertCircle size={12} /> },
-            { label: 'consistency', val: `${stats.consistency}%`, hide: !stats.consistency },
-          ].map((item, idx) => !item.hide && (
-            <motion.div 
-              key={idx} 
-              className="stat-pill-modern"
-              whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.05)' }}
-            >
-              <span className="label">{item.label}</span>
-              <span className={`val ${item.isError ? 'error' : ''}`}>{item.val}</span>
-            </motion.div>
-          ))}
+            {
+              label: 'errors',
+              val: results.errors,
+              isError: true,
+              icon: <AlertCircle size={12} />
+            },
+            { label: 'consistency', val: `${stats.consistency}%`, hide: !stats.consistency }
+          ].map(
+            (item, idx) =>
+              !item.hide && (
+                <motion.div
+                  key={idx}
+                  className="stat-pill-modern"
+                  whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                >
+                  <span className="label">{item.label}</span>
+                  <span className={`val ${item.isError ? 'error' : ''}`}>{item.val}</span>
+                </motion.div>
+              )
+          )}
         </motion.div>
       </div>
-      
-      <motion.div 
+
+      <motion.div
         className="results-actions"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

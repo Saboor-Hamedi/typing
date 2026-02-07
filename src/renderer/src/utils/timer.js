@@ -1,6 +1,6 @@
 /**
  * Timer Utility
- * 
+ *
  * Purpose: Robust, performant timer for typing tests
  * - Prevents UI shaking by using refs and requestAnimationFrame
  * - DRY, reusable, and optimized for performance
@@ -65,12 +65,12 @@ export function createCountdownTimer(initialSeconds, onTick, onFinish) {
     }
 
     isRunning = true
-    
+
     // Immediately call onTick with initial value to show time right away (synchronously)
     if (onTick && !isPaused) {
       onTick(remainingSeconds, 0)
     }
-    
+
     // Start the animation frame loop
     animationFrameId = requestAnimationFrame(tick)
   }

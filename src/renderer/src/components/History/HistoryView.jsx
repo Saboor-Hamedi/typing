@@ -5,15 +5,15 @@ import SessionCard from './SessionCard'
 
 const HistoryView = ({ data }) => {
   const [displayCount, setDisplayCount] = useState(12)
-  
+
   if (!data || data.length === 0) {
     return (
       <div className="history-empty glass-panel section-card">
-         <div className="empty-content">
-           <History size={48} className="empty-icon" />
-           <p>No typing sessions recorded yet.</p>
-           <span>Complete a test to see your performance history here.</span>
-         </div>
+        <div className="empty-content">
+          <History size={48} className="empty-icon" />
+          <p>No typing sessions recorded yet.</p>
+          <span>Complete a test to see your performance history here.</span>
+        </div>
       </div>
     )
   }
@@ -22,7 +22,7 @@ const HistoryView = ({ data }) => {
   const hasMore = displayCount < data.length
 
   const handleLoadMore = () => {
-    setDisplayCount(prev => prev + 12)
+    setDisplayCount((prev) => prev + 12)
   }
 
   return (
@@ -36,11 +36,7 @@ const HistoryView = ({ data }) => {
 
       <div className="history-sessions-grid">
         {visibleData.map((item, i) => (
-          <SessionCard 
-              key={`${item.date}-${i}`} 
-              session={item} 
-              index={i} 
-          />
+          <SessionCard key={`${item.date}-${i}`} session={item} index={i} />
         ))}
       </div>
 

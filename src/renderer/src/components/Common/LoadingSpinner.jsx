@@ -3,7 +3,7 @@ import './LoadingSpinner.css'
 /**
  * Loading Spinner Component
  * Displays animated loading indicator
- * 
+ *
  * @param {string} size - Size variant: 'small', 'medium', 'large'
  * @param {string} message - Optional loading message
  */
@@ -19,11 +19,7 @@ const LoadingSpinner = ({ size = 'medium', message }) => {
       <div className={`loading-spinner ${sizeClasses[size]}`}>
         <div className="spinner-circle" />
       </div>
-      {message && (
-        <p className="loading-message">
-          {message}
-        </p>
-      )}
+      {message && <p className="loading-message">{message}</p>}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 /**
  * Error Handler Utility
- * 
+ *
  * Purpose: Centralized error handling with proper logging and user feedback
  * - DRY error handling patterns
  * - Production-safe error logging
@@ -32,16 +32,35 @@ export function getErrorType(error) {
   const message = error.message?.toLowerCase() || ''
   const code = error.code?.toLowerCase() || ''
 
-  if (message.includes('network') || message.includes('fetch') || message.includes('offline') || code === 'network_error') {
+  if (
+    message.includes('network') ||
+    message.includes('fetch') ||
+    message.includes('offline') ||
+    code === 'network_error'
+  ) {
     return ErrorType.NETWORK
   }
-  if (message.includes('auth') || message.includes('session') || message.includes('login') || code.includes('auth')) {
+  if (
+    message.includes('auth') ||
+    message.includes('session') ||
+    message.includes('login') ||
+    code.includes('auth')
+  ) {
     return ErrorType.AUTH
   }
-  if (message.includes('validation') || message.includes('invalid') || message.includes('required')) {
+  if (
+    message.includes('validation') ||
+    message.includes('invalid') ||
+    message.includes('required')
+  ) {
     return ErrorType.VALIDATION
   }
-  if (message.includes('save') || message.includes('load') || message.includes('data') || message.includes('storage')) {
+  if (
+    message.includes('save') ||
+    message.includes('load') ||
+    message.includes('data') ||
+    message.includes('storage')
+  ) {
     return ErrorType.DATA
   }
 
@@ -105,15 +124,15 @@ export async function safeAsync(fn, onError, onSuccess) {
     return result
   } catch (error) {
     const errorMessage = getErrorMessage(error)
-    
+
     if (import.meta.env.DEV) {
       console.error('Safe async error:', error)
     }
-    
+
     if (onError) {
       onError(error, errorMessage)
     }
-    
+
     return null
   }
 }
@@ -127,27 +146,27 @@ export async function safeAsync(fn, onError, onSuccess) {
  */
 export async function retryOperation(fn, maxRetries = 3, baseDelay = 1000) {
   let lastError = null
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn()
     } catch (error) {
       lastError = error
-      
+
       if (i === maxRetries - 1) {
         throw error
       }
-      
+
       // Exponential backoff
       const delay = baseDelay * Math.pow(2, i)
-      await new Promise(resolve => setTimeout(resolve, delay))
-      
+      await new Promise((resolve) => setTimeout(resolve, delay))
+
       if (import.meta.env.DEV) {
         console.warn(`Retry attempt ${i + 1}/${maxRetries} after ${delay}ms`)
       }
     }
   }
-  
+
   throw lastError
 }
 

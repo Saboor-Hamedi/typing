@@ -1,6 +1,6 @@
 /**
  * Word Generation Tests
- * 
+ *
  * Tests for word generation utility
  */
 
@@ -15,11 +15,9 @@ describe('generateWords', () => {
 
   it('generates words from the word list', () => {
     const words = generateWords(5)
-    const wordList = [
-      'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i'
-    ]
-    
-    words.forEach(word => {
+    const wordList = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i']
+
+    words.forEach((word) => {
       expect(wordList).toContain(word)
     })
   })

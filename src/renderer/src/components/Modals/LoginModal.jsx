@@ -19,10 +19,10 @@ import { supabase } from '../../utils/supabase'
 
 const LoginModal = ({ isOpen, onClose, onLogin }) => {
   const [mode, setMode] = useState('login') // 'login' | 'signup'
-  const [formData, setFormData] = useState({ 
-    email: localStorage.getItem('lastEmail') || '', 
-    password: localStorage.getItem('lastPassword') || '', 
-    username: '' 
+  const [formData, setFormData] = useState({
+    email: localStorage.getItem('lastEmail') || '',
+    password: localStorage.getItem('lastPassword') || '',
+    username: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -72,7 +72,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
           email: formData.email,
           password: formData.password
         })
-        
+
         // Signal success immediately
         setLoading(false)
         if (error) throw error
@@ -99,7 +99,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
     try {
       // Construction of the redirect URL that Supabase will use to send the tokens back to Electron
       const redirectTo = 'typingzone://auth'
-      
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
@@ -109,12 +109,12 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       })
 
       if (error) throw error
-      
+
       // Open the returned URL in the system browser
       if (data?.url) {
         window.api.openExternal(data.url)
       }
-      
+
       setLoading(false)
     } catch (err) {
       setLoading(false)
@@ -125,14 +125,14 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           className="modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose} // Simplified: clicking overlay closes
         >
-          <motion.div 
+          <motion.div
             layout
             className="modal-content login-modal glass-panel"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -142,13 +142,13 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             <div className="modal-top-bar">
-                <div className="modal-header-title">
-                  <AppWindow size={12} className="modal-app-icon" />
-                  <span>{mode === 'login' ? 'Authentication' : 'Registration'}</span>
-                </div>
-              <button 
-                className="close-btn" 
-                onClick={onClose} 
+              <div className="modal-header-title">
+                <AppWindow size={12} className="modal-app-icon" />
+                <span>{mode === 'login' ? 'Authentication' : 'Registration'}</span>
+              </div>
+              <button
+                className="close-btn"
+                onClick={onClose}
                 type="button"
                 aria-label="Close modal"
               >
@@ -158,14 +158,14 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
 
             <div className="modal-inner-content">
               <motion.div layout className="auth-tabs">
-                <button 
+                <button
                   type="button"
                   className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
                   onClick={() => setMode('login')}
                 >
                   Log In
                 </button>
-                <button 
+                <button
                   type="button"
                   className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
                   onClick={() => setMode('signup')}
@@ -174,97 +174,106 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                 </button>
               </motion.div>
 
-              <motion.form 
-                layout
-                className="auth-form" 
-                onSubmit={handleSubmit}
-              >
-              <AnimatePresence mode="popLayout" initial={false}>
-                {mode === 'signup' && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="input-group"
+              <motion.form layout className="auth-form" onSubmit={handleSubmit}>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {mode === 'signup' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="input-group"
+                    >
+                      <label>Username</label>
+                      <div className="input-container">
+                        <User size={18} />
+                        <input
+                          type="text"
+                          placeholder="Choose a typing name"
+                          value={formData.username}
+                          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="input-group">
+                  <label>Email Address</label>
+                  <div className="input-container">
+                    <Mail size={18} />
+                    <input
+                      type="email"
+                      placeholder="name@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label>Password</label>
+                  <div className="input-container">
+                    <Lock size={18} />
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="error-message"
+                    style={{
+                      color: '#ff4444',
+                      fontSize: '0.85rem',
+                      background: 'rgba(255, 68, 68, 0.1)',
+                      padding: '10px',
+                      borderRadius: '4px',
+                      marginTop: '5px'
+                    }}
                   >
-                    <label>Username</label>
-                    <div className="input-container">
-                      <User size={18} />
-                      <input 
-                        type="text" 
-                        placeholder="Choose a typing name" 
-                        value={formData.username}
-                        onChange={e => setFormData({...formData, username: e.target.value})}
-                        required 
-                      />
-                    </div>
+                    <AlertCircle
+                      size={14}
+                      style={{ display: 'inline', marginRight: '5px', verticalAlign: '-2px' }}
+                    />
+                    {error}
                   </motion.div>
                 )}
-              </AnimatePresence>
-              
-              <div className="input-group">
-                <label>Email Address</label>
-                <div className="input-container">
-                  <Mail size={18} />
-                  <input 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                    required 
-                  />
-                </div>
-              </div>
 
-              <div className="input-group">
-                <label>Password</label>
-                <div className="input-container">
-                  <Lock size={18} />
-                  <input 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={formData.password}
-                    onChange={e => setFormData({...formData, password: e.target.value})}
-                    required 
-                  />
-                </div>
-              </div>
+                <button type="submit" className="submit-btn" disabled={loading}>
+                  {loading ? 'Processing...' : mode === 'login' ? 'Log In' : 'Create Account'}
+                </button>
+              </motion.form>
 
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="error-message" 
-                  style={{ color: '#ff4444', fontSize: '0.85rem', background: 'rgba(255, 68, 68, 0.1)', padding: '10px', borderRadius: '4px', marginTop: '5px' }}
-                >
-                  <AlertCircle size={14} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-2px' }}/>
-                  {error}
-                </motion.div>
-              )}
+              <motion.div layout className="auth-divider">
+                <span>OR</span>
+              </motion.div>
 
-              <button type="submit" className="submit-btn" disabled={loading}>
-                {loading ? 'Processing...' : (mode === 'login' ? 'Log In' : 'Create Account')}
-              </button>
-            </motion.form>
-
-            <motion.div layout className="auth-divider">
-              <span>OR</span>
-            </motion.div>
-
-            <motion.button 
-              layout 
-              className="social-btn browser" 
-              type="button" 
-              onClick={handleBrowserLogin}
-              disabled={loading}
-            >
-              <Globe size={16} />
-              <span>Continue in Browser</span>
-            </motion.button>
+              <motion.button
+                layout
+                className="social-btn browser"
+                type="button"
+                onClick={handleBrowserLogin}
+                disabled={loading}
+              >
+                <Globe size={16} />
+                <span>Continue in Browser</span>
+              </motion.button>
 
               <motion.p layout className="auth-footer">
-                {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-                <span className="link" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
+                {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                <span
+                  className="link"
+                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                >
                   {mode === 'login' ? 'Sign up' : 'Log in'}
                 </span>
               </motion.p>

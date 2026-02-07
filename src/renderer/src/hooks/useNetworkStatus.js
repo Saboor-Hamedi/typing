@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 /**
  * Network Status Hook
  * Monitors online/offline status with event listeners
- * 
+ *
  * @returns {Object} Network status { isOnline, isOffline }
  */
 export const useNetworkStatus = () => {

@@ -5,7 +5,7 @@ const Tooltip = ({ content, children, direction = 'bottom', align = 'center' }) 
   const [isVisible, setIsVisible] = useState(false)
 
   return (
-    <div 
+    <div
       className="tooltip-wrapper"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
