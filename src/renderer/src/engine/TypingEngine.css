@@ -137,9 +137,15 @@
   position: relative;
 }
 
-.word-inner.error-underline {
-  border-bottom: 2px solid #ff0000;
-  border-radius: 0;
+.word-inner.error-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px; /* Pull it closer to the text */
+  height: 2px;
+  background-color: #ff0000;
+  border-radius: 1px;
 }
 
 .word.dimmed {

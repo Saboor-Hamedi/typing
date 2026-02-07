@@ -80,8 +80,13 @@ const Word = memo(
     }, [chunk, word])
 
     return (
-      <div ref={wordRef} className={`word ${isCurrent ? 'current' : ''} ${isDimmed ? 'dimmed' : ''}`}>
-        <div className={`word-inner ${isErrorUnderlineEnabled && hasErrors ? 'error-underline' : ''}`}>
+      <div
+        ref={wordRef}
+        className={`word ${isCurrent ? 'current' : ''} ${isDimmed ? 'dimmed' : ''}`}
+      >
+        <div
+          className={`word-inner ${isErrorUnderlineEnabled && hasErrors ? 'error-underline' : ''}`}
+        >
           {letters.map((letter, i) => {
             const charIndex = startIndex + i
             let status = ''
