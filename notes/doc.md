@@ -1,47 +1,111 @@
-# 🚀 TypingZone: The Final Typing Evolution
+# TypingZone Architecture & Documentation
 
-TypingZone is a ultra-minimalist, blazing-fast desktop typing application designed for enthusiasts who demand precision, performance, and a "local-first" philosophy.
+## 1. Introduction
 
----
+TypingZone is a modern, performance-oriented typing application designed for enthusiasts and developers. It combines the aesthetic polish of a web app with the power of a native desktop application. The project is built on **Electron** + **React** (via Vite) and emphasizes a **DRY (Don't Repeat Yourself)** architecture.
 
-## 🏗️ Core Architecture
+## 2. Technical Stack
 
-### 1. **Zero-Lag React Engine**
+- **Runtime**: Electron (Windows/Linux/macOS)
+- **Frontend Framework**: React 19
+- **Build Tool**: Electron-Vite
+- **Styling**: Plain CSS (Variables) + Tailwind CSS (Utility classes) + Framer Motion (Animations)
+- **State Management**: React Context + Hooks
+- **Data Persistence**: Electron-Store (Local JSON) + Supabase (Cloud SQL)
+- **Icons**: Lucide React
 
-- **Granular Virtualization**: Every letter is treated as a leaf-node component. By isolatng user-input chunks, we minimize React's reconciliation work, allowing for stable 200+ WPM typing with zero input delay.
-- **Hybrid Ref-Bridge**: Captures raw system keyboard events via a hidden input element while maintaining a completely custom-rendered UI, bypassing browser-default text rendering bottlenecks.
+## 3. Installation & Setup
 
-### 2. **Smoothcare Architecture**
+1. **Prerequisites**: Node.js (v18+ recommended)
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+3. **Development**:
+   ```bash
+   npm run dev
+   ```
+   This launches the Electron app with Hot Module Replacement (HMR).
+4. **Build**:
+   ```bash
+   npm run build:win  # or :mac, :linux
+   ```
 
-- **Spring-Based Pacing**: The caret isn't just an element; it's a physical entity driven by `framer-motion`'s spring physics. This eliminates the "jittery jump" of standard carets, replacing it with a fluid, sliding motion.
-- **Chameleon Flow**: Real-time telemetry monitoring that adjusts the application’s atmosphere (accent colors) based on the user's live performance.
+## 4. Architecture Overview
 
----
+Key principles driving the codebase:
 
-## 💎 Premium Features
+### 4.1 Separation of Concerns
 
-### 🏁 Ghost Racing (PB Mode)
+The application is split into three distinct layers:
+1. **Main Process (`src/main`)**: Handles the OS lifecycle, file system access, and window management. It acts as the "Server" side of the desktop app.
+2. **Renderer Process (`src/renderer`)**: The UI layer. It contains all React code and visual logic.
+3. **Bridge (`src/preload`)**: A secure channel that exposes specific capabilities (like "save settings" or "minimize window") to the Renderer without giving full Node.js access.
 
-Race against your own Personal Best in real-time. A subtle ghost caret shows exactly where your previous record was at that specific point in the test, providing the perfect pacing benchmark.
+### 4.2 The "Engine" Pattern
 
-### 🏠 Local-First Intelligence
+To avoid bloating UI components with logic, the core typing mechanics are abstracted into `src/renderer/src/engine`.
 
-- **Offline Experience**: Every setting, score, and personalization is stored locally in `settings.json` and `data.json`.
-- **Hybrid Identity**: Set a local nickname that persists while offline. If you sign in, your cloud profile takes over; if you sign out, your local persona is instantly restored.
+- **`useEngine.js`**: A custom React Hook that acts as the controller. It owns the state (words, input, timer) and logic (calculation, validation).
+  - *Why it's DRY*: Any component can become a typing interface by consuming this hook. It doesn't care *how* it's rendered, only *what* the state is.
+- **`TypingEngine.jsx`**: A pure presentational component that consumes `useEngine`. It focuses solely on efficiently rendering the DOM nodes for the game.
 
-### 📊 Precision Results
+### 4.3 Context-Based State
 
-- **Telemetry Graph**: A detailed keystroke-by-keystroke analysis of your speed consistency, rendered via SVG for maximum clarity.
-- **Raw vs Adjusted WPM**: Comprehensive breakdown of typing performance, including error tracking and accuracy metrics.
+Global application state is managed via React Context providers in `src/renderer/src/contexts`:
+- **`SettingsContext`**: Loads, validates, and saves user themes, difficulty modes, and preferences. It handles the synchronization between `localStorage` (fast read) and `electron-store` (permanent disk).
+- **`ThemeContext`**: Manages CSS variables for theming (Chameleon mode, etc.).
+- **`UserContext`**: Handles Supabase authentication and user profiles.
 
----
+## 5. Component Hierarchy
 
-## ⌨️ Control Center
+```text
+App (Root)
+├── ErrorBoundary (Crash protection)
+├── ThemeProvider (Visuals)
+├── SettingsProvider (Logic config)
+└── UserProvider (Auth)
+    └── AppLayout (Main Grid)
+        ├── TitleBar (Draggable window controls)
+        ├── NavBar (Navigation)
+        ├── MainContent
+        │   ├── TypingEngine (The Game)
+        │   ├── ResultsView (Stats)
+        │   └── Dashboard/Settings (Views)
+        └── Footer / Notifications
+```
 
-- **Keyboard-Only Flow**: Results view can be dismissed with <kbd>Enter</kbd> or <kbd>Esc</kbd>.
-- **Zen Mode**: Focused environment that fades out distracting UI metrics during the test.
-- **Theme Engine**: Instant, high-contrast theme swapping (Carbon, Nord, Dracula, etc.) using modern CSS variables.
+## 6. Key Modules & Files
 
----
+### **Word Generation (`src/renderer/src/utils/words.js`)**
 
-_Built for speed. Built for focus. Built for you._
+Handles the content generation. It supports:
+- **Complexity Modifiers**: Can inject punctuation, numbers, or capitalization into any word set.
+- **Dictionaries**: Segregated by difficulty (Beginner/Intermediate/Advanced).
+- **Mode Logic**: Handles `generateWords` vs `generateBaseWords`, distinguishing between "Sentence Mode" (coherent quotes) and "Word Mode" (random tokens).
+
+### **Sound Engine (`src/renderer/src/utils/SoundEngine.js`)**
+
+A singleton class that manages audio playback.
+- **Profiles**: Specific key-switch sounds (Mechanical, Cherry Blue, Typewriter).
+- **Performance**: Uses distinct `Audio` instances to allow rapid-fire overlapping sounds without cutting off previous keystrokes (Low latency).
+
+### **Persistence Layer**
+
+Data is saved in two places:
+1. **Local**: `electron-store` saves `pb` (Personal Best) and `history`. This ensures the app works perfectly offline.
+2. **Cloud**: `Supabase` is updated asynchronously after every test. If the user is offline, the cloud sync fails silently (non-blocking) while local data remains accurate.
+
+## 7. DRY Compliance Report
+
+The codebase demonstrates strong adherence to DRY:
+
+- **IPC Bridge**: The `api` object in `preload/index.js` abstracts `ipcRenderer.invoke` calls. Instead of writing `ipcRenderer.invoke('settings-get', 'theme')` in every component, developers use `window.api.settings.get('theme')`.
+- **Shared CSS**: `index.css` and `main.css` define global variables for colors (`--main-color`, `--bg-color`). Components use these variables rather than hardcoding hex values, making theming instantaneous.
+- **Utilities**: Time formatting and WPM calculations are centralized in `src/renderer/src/utils/timer.js` and `helpers.js`.
+
+## 8. Development Guidelines
+
+- **Do not modify `useEngine.js` directly for UI changes.** If you need to change how the caret looks, edit `TypingEngine.jsx` or CSS. Only edit `useEngine.js` if the *rules of the game* change.
+- **Always use `window.api` for file/settings operations.** Never try to import `fs` or `electron` directly in React components.
+- **Keep Components Small.** If a component exceeds 200 lines, check if sub-components (like `Letter` inside `TypingEngine`) can be extracted.
