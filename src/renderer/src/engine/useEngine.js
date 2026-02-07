@@ -96,14 +96,33 @@ export function useEngine(testMode, testLimit) {
     isSettingsLoaded
   } = useSettings();
 
-  /* 
-   * CRITICAL: Initialize isLoading state based on settings load status.
-   * prevents "shuffling" by blocking UI until settings are fully applied.
-   */
+  // State for reset synchronization
+  const [resetSignal, setResetSignal] = useState(0);
+  const [resetOverrides, setResetOverrides] = useState(null);
+  const [wordSetId, setWordSetId] = useState(Date.now());
+  const [isTimeUp, setIsTimeUp] = useState(false);
   const [isLoading, setIsLoading] = useState(!isSettingsLoaded);
 
-  // Time Mode Soft Finish State
-  const [isTimeUp, setIsTimeUp] = useState(false);
+  // Settings Ref for non-reactive access in timing-sensitive handlers
+  const settingsRef = useRef({
+    testMode,
+    testLimit,
+    hasPunctuation,
+    hasNumbers,
+    hasCaps,
+    isSentenceMode
+  });
+
+  useEffect(() => {
+    settingsRef.current = {
+      testMode,
+      testLimit,
+      hasPunctuation,
+      hasNumbers,
+      hasCaps,
+      isSentenceMode
+    };
+  }, [testMode, testLimit, hasPunctuation, hasNumbers, hasCaps, isSentenceMode]);
 
   useEffect(() => {
     if (!isSettingsLoaded) {
@@ -245,9 +264,13 @@ export function useEngine(testMode, testLimit) {
           console.warn('Cloud sync failed (non-critical):', syncError);
         }
       }
+      
+      // Signal that test is no longer active
+      startTimeRef.current = null;
     } catch (error) {
       console.error('Error finishing test:', error);
       setIsFinished(true);
+      startTimeRef.current = null;
     }
   }, [startTime, words, stopTimer, testMode, testLimit, pb]);
 
@@ -260,53 +283,71 @@ export function useEngine(testMode, testLimit) {
     }
   }, []);
 
-  const resetGame = useCallback(() => {
-    console.log('resetGame called'); 
-    stopTimer();
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
-
-    // Increase buffer for Time Mode to ensure we don't run out of text
-    const wordCount = testMode === 'words' ? testLimit : 50;
+  const resetGame = useCallback((overrides = null) => {
+    // Treat any provided argument (even empty obj) as an explicit manual trigger.
+    // Specifically handle mouse events to prevent them from hitting the overrides logic.
+    const isEvent = (overrides && (overrides.nativeEvent || overrides instanceof Event));
+    const manualData = isEvent ? {} : (overrides || {}); 
     
-    try {
-      // Always generate new words (Full Reset as requested)
-      setWords(generateWords(wordCount, {
-        hasPunctuation,
-        hasNumbers,
-        hasCaps,
-        isSentenceMode
-      }));
-    } catch (err) {
-      console.error('Word generation failed:', err);
-      setWords(['system', 'error', 'please', 'check', 'settings']);
+    setResetOverrides(manualData);
+    setResetSignal(prev => prev + 1);
+  }, []);
+
+  // Centralized Word Generation Effect
+  useEffect(() => {
+    if (!isSettingsLoaded) return;
+
+    // RESET GUARD: Only block automatic settings-based resets if mid-typing.
+    // Manual resets (resetOverrides !== null) are ALWAYS allowed.
+    const isManual = resetOverrides !== null;
+    const isInactive = !startTimeRef.current || isFinished;
+    const hasNotStarted = userInput === '';
+    
+    if (!isManual && !isInactive && !hasNotStarted) {
+      return;
     }
 
+    stopTimer();
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    const s = { 
+      testMode, 
+      testLimit, 
+      hasPunctuation, 
+      hasNumbers, 
+      hasCaps, 
+      isSentenceMode,
+      ...(resetOverrides || {}) 
+    };
+    
+    const wordCount = s.testMode === 'words' ? 25 : 40;
+
+    const newWords = generateWords(wordCount, {
+      hasPunctuation: s.hasPunctuation,
+      hasNumbers: s.hasNumbers,
+      hasCaps: s.hasCaps,
+      isSentenceMode: s.isSentenceMode
+    });
+
+    // COMPLETE REPLACEMENT
+    setWords([...newWords]); 
+    setWordSetId(Date.now());
+    
     setUserInput('');
     setStartTime(null);
     startTimeRef.current = null;
-    setTimeLeft(testLimit);
+    setTimeLeft(0);
     setElapsedTime(0);
     setIsFinished(false);
     setIsReplaying(false);
-    setIsTimeUp(false); // Reset soft finish flag
+    setIsTimeUp(false);
     keystrokesRef.current = [];
     telemetryBufferRef.current.clear();
     setTelemetry([]);
     setResults({ wpm: 0, rawWpm: 0, accuracy: 0, errors: 0, duration: 0 });
     setIsTyping(false);
 
-    if (countdownTimerRef.current) {
-      countdownTimerRef.current.reset(testLimit);
-    }
-    if (elapsedTimerRef.current) {
-      elapsedTimerRef.current.reset();
-    }
-    
-    // ... (rest of reset logic) ...
+    if (elapsedTimerRef.current) elapsedTimerRef.current.reset();
     lastLineTop.current = -1;
 
     if (wordContainerRef.current) {
@@ -315,14 +356,17 @@ export function useEngine(testMode, testLimit) {
 
     requestAnimationFrame(() => {
       if (inputRef.current) {
-        inputRef.current.value = ''; 
+        inputRef.current.value = '';
         inputRef.current.focus();
       }
     });
 
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 400);
-  }, [testMode, testLimit, stopTimer, hasPunctuation, hasNumbers, hasCaps, isSentenceMode]);
+    const loaderTimer = setTimeout(() => setIsLoading(false), 200);
+    
+    setResetOverrides(null);
+    return () => clearTimeout(loaderTimer);
+  }, [resetSignal, isSettingsLoaded, resetOverrides]);
 
   const latestUserInputRef = useRef('');
 
@@ -330,21 +374,16 @@ export function useEngine(testMode, testLimit) {
     latestUserInputRef.current = userInput;
   }, [userInput]);
 
+  // Auto-reset when mode-level settings change
   useEffect(() => {
-    // HARDENED AUTO-RESET
-    
     if (!isSettingsLoaded) return;
     if (startTimeRef.current !== null) return;
-    if (latestUserInputRef.current !== '') return;
+    if (userInput !== '') return;
     if (isFinished || isReplaying) return;
 
-    // Full reset on any dependency change
-    console.log('Safe Auto-reset triggered');
     resetGame();
   }, [
-    isSettingsLoaded, 
     testMode, 
-    testLimit, 
     hasPunctuation, 
     hasNumbers, 
     hasCaps,
@@ -387,52 +426,8 @@ export function useEngine(testMode, testLimit) {
       setStartTime(now);
       startTimeRef.current = now;
 
-      if (testMode === 'time') {
-        setTimeLeft(testLimit);
-        setIsTimeUp(false);
-
-        countdownTimerRef.current = createCountdownTimer(
-          testLimit,
-          (remaining, elapsed) => {
-            setTimeLeft(remaining);
-            // ... telemetry ...
-            if (elapsed > 0) {
-                 const durationInMin = elapsed / 60;
-                 const currentInput = inputRef.current?.value || '';
-                 const currentRaw = Math.round((currentInput.length / 5) / durationInMin) || 0;
-                 const targetText = words.join(' ');
-                 let correctChars = 0;
-                 for (let i = 0; i < currentInput.length; i++) {
-                   if (currentInput[i] === targetText[i]) correctChars++;
-                 }
-                 const currentWpm = Math.round((correctChars / 5) / durationInMin) || 0;
-                 telemetryBufferRef.current.push({ sec: elapsed, wpm: currentWpm, raw: currentRaw });
-                 setTelemetry(telemetryBufferRef.current.toArray());
-            }
-          },
-          () => {
-            // Timer Finished Callback
-            // DO NOT finishTest immediately. Set flags.
-            setIsTimeUp(true);
-            
-            // OPTIONAL: If user is IDLE (not typing), finish immediately?
-            // For now, simple logic: Set Time Up, wait for input check.
-            
-            // Actually, if the user stops typing exactly when time is up, we might never finish?
-            // We should check if the last char was a space?
-            // Or just check if we should finish NOW.
-            
-            const currentVal = inputRef.current?.value || '';
-            const lastChar = currentVal[currentVal.length - 1];
-            if (lastChar === ' ' || currentVal.length === 0) {
-               finishTest(currentVal, performance.now());
-            }
-          }
-        );
-        countdownTimerRef.current.start();
-      }
-
-      // ... (elapsed timer) ...
+      // Both modes now use Elapsed Timer only (no 15s limit)
+      // Elapsed timer for WPM calculation and telemetry
       elapsedTimerRef.current = createElapsedTimer((elapsed) => {
           setElapsedTime(elapsed);
           // ... telemetry (same) ...
@@ -453,11 +448,10 @@ export function useEngine(testMode, testLimit) {
     
     keystrokesRef.current.push({ value, timestamp: now });
     
-    if (testMode === 'words') {
-      const totalRequired = words.join(' ').length;
-      if (value.length >= totalRequired) {
-        finishTest(value, now);
-      }
+    // BOTH modes finish when words are complete
+    const totalRequired = words.join(' ').length;
+    if (value.length >= totalRequired) {
+      finishTest(value, now);
     }
     setUserInput(value);
   }, [isFinished, isReplaying, startTime, testMode, words, finishTest, testLimit, isSoundEnabled, isTimeUp]);
@@ -530,11 +524,13 @@ export function useEngine(testMode, testLimit) {
         if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
 
         // Don't restart if user is typing in a different input (like theme search)
+        // BUT if it's our typing input, we definitely want to restart
         if (isInput && !isOurInput) return;
         
         e.preventDefault();
         e.stopPropagation();
-        resetGame();
+        console.log('Tab restart');
+        resetGame({}); // Force manual
         return;
       }
 
@@ -543,7 +539,8 @@ export function useEngine(testMode, testLimit) {
         if (e.key === 'Enter' || e.key === 'Escape') {
           e.preventDefault();
           e.stopPropagation();
-          resetGame();
+          console.log('Results shortcut reset', e.key);
+          resetGame({}); // Pass empty object to signify manual intent
           return;
         }
       }
@@ -637,12 +634,14 @@ export function useEngine(testMode, testLimit) {
     if (!startTime || isFinished || isReplaying) return results.wpm;
     const now = performance.now();
     const diff = (now - startTime) / 60000;
-    if (diff <= 0) return 0;
+    // Don't show WPM for the first 0.5s to avoid erratic jumps
+    if (diff < 0.008) return 0;
     return Math.round((userInput.length / 5) / diff);
   }, [userInput, startTime, isFinished, isReplaying, results.wpm]);
 
   const wordProgress = useMemo(() => {
-    if (testMode !== 'words') return { typed: 0, remaining: 0, total: 0 };
+    // Both modes are now word-mode based
+    if (testMode !== 'words' && testMode !== 'time') return null;
     
     let typed = 0;
     let charCount = 0;
@@ -704,12 +703,13 @@ export function useEngine(testMode, testLimit) {
     wordProgress,
     isLoading,
     activeLineTop,
-    caretPos
+    caretPos,
+    wordSetId
   }), [
     words, userInput, startTime, isFinished, isReplaying, results, 
     timeLeft, elapsedTime, resetGame, handleInput, runReplay, skipReplay, liveWpm, pb,
     isSoundEnabled, soundProfile, isHallEffect, telemetry,
     isGhostEnabled, ghostPos, isTyping, testHistory, clearAllData,
-    ghostSpeed, wordProgress, isLoading, activeLineTop, caretPos
+    ghostSpeed, wordProgress, isLoading, activeLineTop, caretPos, wordSetId
   ]);
 }

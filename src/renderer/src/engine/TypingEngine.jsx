@@ -91,18 +91,20 @@ const Word = memo(({ word, chunk, isCurrent, startIndex, isErrorFeedbackEnabled,
     </div>
   )
 }, (prev, next) => {
-    // Optimization: ONLY re-render if:
-    // 1. This word IS or WAS current (status/caret position)
+    // 1. Word text or position changed (Critical for resets/updates)
+    if (prev.word !== next.word || prev.startIndex !== next.startIndex) return false;
+
+    // 2. This word IS or WAS current (status/caret position)
     if (prev.isCurrent !== next.isCurrent) return false;
     
-    // 2. The input chunk for this word changed
+    // 3. The input chunk for this word changed
     if (prev.chunk !== next.chunk) return false;
     
-    // 3. Settings changed
+    // 4. Settings changed
     if (prev.isKineticEnabled !== next.isKineticEnabled || 
         prev.isErrorFeedbackEnabled !== next.isErrorFeedbackEnabled) return false;
-    
-    // 4. Line position changed significantly (dimming logic)
+
+    // 5. Line position changed significantly (dimming logic)
     // We only care about line shifts if they might cross the dimming threshold
     // Using a 20px buffer to avoid micro-adjustments causing re-renders
     if (Math.abs(prev.activeLineTop - next.activeLineTop) > 20) {
@@ -179,7 +181,17 @@ const TypingEngine = ({
 
 
   return (
-    <div className="typing-canvas" onClick={() => !isOverlayActive && inputRef.current?.focus()}>
+    <div 
+      className="typing-canvas" 
+      onClick={() => {
+        if (isOverlayActive) return;
+        if (isFinished) {
+          resetGame();
+        } else {
+          inputRef.current?.focus();
+        }
+      }}
+    >
       <input
         ref={inputRef}
         type="text"
@@ -194,7 +206,7 @@ const TypingEngine = ({
         ref={wordContainerRef}
       >
 
-        {testMode === 'words' && !isFinished && engine.wordProgress && (
+        {(testMode === 'words' || testMode === 'time') && !isFinished && engine.wordProgress && (
           <div className="live-progress-counter">
             <span>{engine.wordProgress.typed}</span><span className="remaining">/{engine.wordProgress.total}</span>
           </div>
@@ -241,7 +253,7 @@ const TypingEngine = ({
               }}
             />
 
-            <div className="word-wrapper">
+            <div className="word-wrapper" key={engine.wordSetId}>
               <AnimatePresence>
                 {isReplaying && (
                   <motion.button

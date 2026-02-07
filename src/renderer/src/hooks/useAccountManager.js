@@ -176,6 +176,20 @@ export const useAccountManager = (engine, addToast) => {
     }
   }, [testHistory])
 
+  // EFFECT: Safe High Water Mark Persistence
+  useEffect(() => {
+    if (!isLoggedIn) return
+    const mergedStats = calculateLevel(mergedHistory)
+    const xp = mergedStats.experience || 0
+    
+    if (xp > highWaterMarkXP) {
+      setHighWaterMarkXP(xp)
+      if (window.api?.data) {
+        window.api.data.set(STORAGE_KEYS.DATA.XP, xp)
+      }
+    }
+  }, [mergedHistory, isLoggedIn, highWaterMarkXP])
+
   const currentLevel = useMemo(() => {
     // 1. Calculate pure local stats (Offline/Guest View)
     const localStats = calculateLevel(testHistory)
@@ -191,11 +205,6 @@ export const useAccountManager = (engine, addToast) => {
     // If logged in, we use the "High Water Mark" logic to prevent drops during sync
     const xp = mergedStats.experience
     const effectiveXP = Math.max(xp || 0, highWaterMarkXP)
-
-    if (effectiveXP > highWaterMarkXP) {
-      setHighWaterMarkXP(effectiveXP)
-      window.api?.data?.set(STORAGE_KEYS.DATA.XP, effectiveXP)
-    }
 
     return levelFromXP(effectiveXP).level
   }, [mergedHistory, testHistory, highWaterMarkXP, isLoggedIn])

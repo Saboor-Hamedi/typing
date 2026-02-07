@@ -1,0 +1,195 @@
+.config-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* The Trigger Pill - Now even smaller and more minimalist */
+.config-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(16px);
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--sub-color);
+  font-weight: 600;
+  font-size: 0.7rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: 28px;
+}
+
+.config-trigger:hover, .config-trigger.active {
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(var(--main-color-rgb), 0.2);
+  color: var(--text-color);
+}
+
+.config-trigger .chevron {
+  transition: transform 0.3s ease;
+  opacity: 0.3;
+  width: 12px;
+  height: 12px;
+}
+
+.config-trigger.active .chevron {
+  transform: rotate(180deg);
+  opacity: 0.7;
+  color: var(--main-color);
+}
+
+/* The Beautiful Menu Panel - Now right-aligned and more compact */
+.config-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: rgba(10, 10, 10, 0.94);
+  backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 
+              0 0 0 1px rgba(255, 255, 255, 0.01);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-section-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sub-color);
+  opacity: 0.4;
+  margin-left: 2px;
+}
+
+.config-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.menu-item-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--sub-color);
+  padding: 8px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.menu-item-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.menu-item-btn.active {
+  background: rgba(var(--main-color-rgb), 0.1);
+  color: var(--main-color);
+  border-color: rgba(var(--main-color-rgb), 0.15);
+  font-weight: 600;
+}
+
+.menu-item-btn.active svg {
+  filter: drop-shadow(0 0 3px rgba(var(--main-color-rgb), 0.3));
+}
+
+.menu-item-btn .status-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-left: auto;
+  opacity: 0.2;
+}
+
+.menu-item-btn.active .status-dot {
+  opacity: 0.8;
+  box-shadow: 0 0 5px var(--main-color);
+}
+
+.menu-item-btn svg {
+  opacity: 0.5;
+}
+
+.menu-item-btn.active svg {
+  opacity: 0.9;
+}
+
+/* Modifiers row - 3 columns */
+.modifiers-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+/* Utilities row - 2 columns */
+.utilities-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.utility-btn {
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--sub-color);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.utility-btn:hover {
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.utility-btn.active {
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.utility-btn .status-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.2;
+}
+
+.utility-btn.active .status-dot {
+  background: var(--main-color);
+  opacity: 1;
+  box-shadow: 0 0 8px var(--main-color);
+}

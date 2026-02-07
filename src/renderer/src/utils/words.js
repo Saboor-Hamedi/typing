@@ -21,6 +21,10 @@ const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 // Symbols that can be attached to words for punctuation mode
 const ATTACHABLE_PUNCTUATION = ['.', ',', '!', '?', ';', ':'];
 
+// Simple history to prevent rapid sentence repetition
+let quoteHistory = [];
+const MAX_HISTORY = 15;
+
 /**
  * Generate a list of base words (without dynamic modifiers)
  */
@@ -28,15 +32,29 @@ export const generateBaseWords = (count = 50, isSentenceMode = false) => {
   const result = [];
   let currentWordCount = 0;
   
+  // Helper to get a random sentence while avoiding history
+  const getRandomSentence = () => {
+    const available = SENTENCES.filter(s => !quoteHistory.includes(s));
+    // If we've used everything in short order, reset history
+    const targetPool = available.length > 0 ? available : SENTENCES;
+    const picked = targetPool[Math.floor(Math.random() * targetPool.length)];
+    
+    // Update history
+    quoteHistory.push(picked);
+    if (quoteHistory.length > MAX_HISTORY) quoteHistory.shift();
+    
+    return picked;
+  };
   // Reduced sentence frequency for more standard flow
   const useSentenceChance = 0.15;
 
   while (currentWordCount < count) {
     if (isSentenceMode) {
       // Sentence Mode: Pick quotes and ALWAYS finish them
-      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+      const sentence = getRandomSentence();
       const wordsInSentence = sentence.split(/\s+/).filter(Boolean);
       for (let i = 0; i < wordsInSentence.length; i++) {
+        if (currentWordCount >= count) break; // Strict count enforcement
         const w = wordsInSentence[i];
         result.push({ 
           text: w, 
@@ -50,11 +68,12 @@ export const generateBaseWords = (count = 50, isSentenceMode = false) => {
     }
 
     // Standard Mode
-    // Occasional sentence injection - ALWAYS finish the sentence
-    if (Math.random() < useSentenceChance) {
-      const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+    // Occasional sentence injection - only if it fits or we are far from the end
+    if (Math.random() < useSentenceChance && (count - currentWordCount) > 10) {
+      const sentence = getRandomSentence();
       const wordsInSentence = sentence.split(/\s+/).filter(Boolean);
       for (let i = 0; i < wordsInSentence.length; i++) {
+        if (currentWordCount >= count) break; // Strict count enforcement
         const w = wordsInSentence[i];
         const cleanW = w.replace(/[",]/g, ''); 
         result.push({ 

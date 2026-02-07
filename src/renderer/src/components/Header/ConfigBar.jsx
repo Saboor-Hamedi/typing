@@ -1,16 +1,32 @@
-import { memo } from 'react'
-import { Clock, Type, Eye, EyeOff, Hash, CaseSensitive, Quote } from 'lucide-react'
+import { memo, useState, useRef, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  Clock, 
+  Type, 
+  Eye, 
+  EyeOff, 
+  Hash, 
+  CaseSensitive, 
+  FileText, 
+  Settings, 
+  ChevronDown, 
+  Sparkles,
+  Zap,
+  Quote,
+  Palette
+} from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { Tooltip } from '../Common'
+import './ConfigBar.css'
 
 /**
- * ConfigBar Component
- * 
- * Configuration bar for test settings: theme, mode (time/words), limits, and zen mode.
+ * ConfigBar Component (Now transformed into a beautiful Menu)
  */
-const ConfigBar = memo(({ openThemeModal }) => {
-  const { theme } = useTheme()
+const ConfigBar = memo(({ openThemeModal, resetGame }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef(null)
+
   const { 
     testMode, 
     setTestMode, 
@@ -26,81 +42,174 @@ const ConfigBar = memo(({ openThemeModal }) => {
     setIsSentenceMode
   } = useSettings()
 
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen])
+
+  // Handle Escape to close
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setIsOpen(false)
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
+
+  // Robust update helper that forces immediate reset with overrides
+  const toggleSetting = useCallback((setter, current, key) => {
+    const newValue = !current
+    setter(newValue)
+    if (resetGame) {
+      // Pass the immediate change as an override to bypass stale closures
+      resetGame({ [key]: newValue })
+    }
+  }, [resetGame])
+
+  const setModeValue = useCallback((setter, value, key) => {
+    setter(value)
+    if (resetGame) {
+      resetGame({ [key]: value })
+    }
+  }, [resetGame])
+
   return (
-    <div className="master-config">
-      {/* Modifiers Group */}
-      <div className="config-group modifiers">
-        <Tooltip content="Punctuation">
-          <button 
-            onClick={() => setHasPunctuation(!hasPunctuation)}
-            className={`config-btn ${hasPunctuation ? 'active' : ''}`}
-          >
-            <Quote size={14} />
-          </button>
-        </Tooltip>
-        
-        <Tooltip content="Numbers">
-          <button 
-            onClick={() => setHasNumbers(!hasNumbers)}
-            className={`config-btn ${hasNumbers ? 'active' : ''}`}
-          >
-            <Hash size={14} />
-          </button>
-        </Tooltip>
-        
-        <Tooltip content="Capitalization">
-          <button 
-            onClick={() => setHasCaps(!hasCaps)}
-            className={`config-btn ${hasCaps ? 'active' : ''}`}
-          >
-            <CaseSensitive size={14} />
-          </button>
-        </Tooltip>
+    <div className="config-container" ref={menuRef}>
+      {/* Trigger Pill */}
+      <motion.button 
+        className={`config-trigger ${isOpen ? 'active' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <Zap size={14} className={testMode === 'time' ? 'text-main' : ''} />
+        <span>
+          {testMode === 'time' ? 'Time' : 'Words'}
+          {isSentenceMode ? ' (Quotes)' : ''}
+        </span>
+        <ChevronDown size={14} className="chevron" />
+      </motion.button>
 
-        <Tooltip content="Sentence Mode">
-           <button 
-             onClick={() => setIsSentenceMode(!isSentenceMode)}
-             className={`config-btn ${isSentenceMode ? 'active' : ''}`}
-             style={{ display: 'flex' }} // Force display if hidden by CSS
-           >
-             <span style={{ fontSize: '12px', fontWeight: 800, lineHeight: 1 }}>Ab.</span>
-           </button>
-         </Tooltip>
-      </div>
-
-      <div className="config-divider" />
-
-      {/* Mode & Limit Group */}
-      <div className="config-group mode-options">
-        <Tooltip content="Time Mode">
-          <button 
-            onClick={() => setTestMode('time')}
-            className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
+      {/* Beautiful Dropdown Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="config-menu-panel"
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
-            <Clock size={14} />
-          </button>
-        </Tooltip>
-        <Tooltip content="Words Mode">
-          <button 
-            onClick={() => setTestMode('words')}
-            className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
-          >
-            <Type size={14} />
-          </button>
-        </Tooltip>
-      </div>
+            {/* Section: Test Mode */}
+            <div className="config-section">
+              <span className="config-section-label">Test Mode</span>
+              <div className="config-options-grid">
+                <button 
+                  className={`menu-item-btn ${testMode === 'time' ? 'active' : ''}`}
+                  onClick={() => setModeValue(setTestMode, 'time', 'testMode')}
+                >
+                  <Clock size={16} />
+                  <span>Time</span>
+                  <div className="status-dot" />
+                </button>
+                <button 
+                  className={`menu-item-btn ${testMode === 'words' ? 'active' : ''}`}
+                  onClick={() => setModeValue(setTestMode, 'words', 'testMode')}
+                >
+                  <Type size={16} />
+                  <span>Words</span>
+                  <div className="status-dot" />
+                </button>
+              </div>
+            </div>
 
-      <div className="config-divider" />
+            {/* Section: Content Type */}
+            <div className="config-section">
+              <span className="config-section-label">Content</span>
+              <div className="config-options-grid">
+                <button 
+                  className={`menu-item-btn ${!isSentenceMode ? 'active' : ''}`}
+                  onClick={() => setModeValue(setIsSentenceMode, false, 'isSentenceMode')}
+                >
+                  <Zap size={16} />
+                  <span>Standard</span>
+                  <div className="status-dot" />
+                </button>
+                <button 
+                  className={`menu-item-btn ${isSentenceMode ? 'active' : ''}`}
+                  onClick={() => setModeValue(setIsSentenceMode, true, 'isSentenceMode')}
+                >
+                  <Quote size={16} />
+                  <span>Sentences</span>
+                  <div className="status-dot" />
+                </button>
+              </div>
+            </div>
 
-      {/* Zen Toggle (Keep as it is useful for immersion) */}
-      <Tooltip content={isZenMode ? "Disable Zen Mode" : "Enable Zen Mode"}>
-        <button 
-          className={`config-btn ${isZenMode ? 'active' : ''}`}
-          onClick={() => setIsZenMode(!isZenMode)}
-        >
-          {isZenMode ? <EyeOff size={14} /> : <Eye size={14} />}
-        </button>
-      </Tooltip>
+            {/* Section: Modifiers */}
+            <div className="config-section">
+              <span className="config-section-label">General Modifiers</span>
+              <div className="modifiers-row">
+                <button 
+                  className={`menu-item-btn ${hasPunctuation ? 'active' : ''}`}
+                  onClick={() => toggleSetting(setHasPunctuation, hasPunctuation, 'hasPunctuation')}
+                >
+                  <span style={{ fontSize: '1.2rem', fontWeight: 900, lineHeight: 1 }}>.</span>
+                  <div className="status-dot" style={{ position: 'absolute', top: 6, right: 6, margin: 0 }} />
+                </button>
+                <button 
+                  className={`menu-item-btn ${hasNumbers ? 'active' : ''}`}
+                  onClick={() => toggleSetting(setHasNumbers, hasNumbers, 'hasNumbers')}
+                >
+                  <Hash size={16} />
+                  <div className="status-dot" style={{ position: 'absolute', top: 6, right: 6, margin: 0 }} />
+                </button>
+                <button 
+                  className={`menu-item-btn ${hasCaps ? 'active' : ''}`}
+                  onClick={() => toggleSetting(setHasCaps, hasCaps, 'hasCaps')}
+                >
+                  <CaseSensitive size={18} />
+                  <div className="status-dot" style={{ position: 'absolute', top: 6, right: 6, margin: 0 }} />
+                </button>
+              </div>
+            </div>
+
+            {/* Section: Utilities */}
+            <div className="config-section">
+               <span className="config-section-label">Appearance & View</span>
+               <div className="utilities-row">
+                 <button 
+                   className={`utility-btn ${isZenMode ? 'active' : ''}`}
+                   onClick={() => setIsZenMode(!isZenMode)}
+                 >
+                   {isZenMode ? <EyeOff size={14} /> : <Eye size={14} />}
+                   <span>Zen</span>
+                   <div className="status-dot" />
+                 </button>
+
+                 <button 
+                   className="utility-btn"
+                   onClick={() => {
+                     setIsOpen(false)
+                     if (openThemeModal) openThemeModal()
+                   }}
+                 >
+                   <Palette size={14} />
+                   <span>Themes</span>
+                 </button>
+               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 })

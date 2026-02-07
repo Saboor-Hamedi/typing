@@ -279,14 +279,26 @@ const AppLayout = ({ addToast }) => {
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
       if (isInput && active.type !== 'text' && active.type !== 'password') return
 
-      // Escape: Close any open modal
+      // Escape handling
       if (e.key === 'Escape') {
-        if (isThemeModalOpen) setIsThemeModalOpen(false)
-        if (isLoginModalOpen) setIsLoginModalOpen(false)
-        if (isLogoutModalOpen) setIsLogoutModalOpen(false)
-        if (isClearDataModalOpen) setIsClearDataModalOpen(false)
-        if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
-        if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
+        // 1. Close any open modal first
+        if (isOverlayActive) {
+          if (isThemeModalOpen) setIsThemeModalOpen(false)
+          if (isLoginModalOpen) setIsLoginModalOpen(false)
+          if (isLogoutModalOpen) setIsLogoutModalOpen(false)
+          if (isClearDataModalOpen) setIsClearDataModalOpen(false)
+          if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
+          if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
+          return
+        }
+
+        // 2. If no modal is open and we're not in typing tab, go back to typing
+        if (activeTab !== 'typing') {
+          setActiveTab('typing')
+          return
+        }
+
+        // 3. If we're already in typing tab and test is finished, engine.js handles reset via its own listener
       }
 
       // Don't intercept if a modal is open (except shortcuts modal and command palette)
@@ -345,11 +357,11 @@ const AppLayout = ({ addToast }) => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOverlayActive, isThemeModalOpen, isLoginModalOpen, isLogoutModalOpen, isClearDataModalOpen, isShortcutsModalOpen, isCommandPaletteOpen, engine])
 
-  // Display value for header
+  // Display value for header (Now always WPM)
   const displayValue = (() => {
-    if (startTime) return testMode === 'time' ? timeLeft : liveWpm
+    if (startTime) return liveWpm
     if (isFinished) return results.wpm
-    return testMode === 'time' ? testLimit : '—'
+    return '—'
   })()
 
   // Define Command Palette Actions
@@ -462,6 +474,7 @@ const AppLayout = ({ addToast }) => {
             onNavigateDashboard={() => setActiveTab('dashboard')}
             liveWpm={liveWpm}
             openThemeModal={() => toggleThemeModal(true)}
+            resetGame={engine.resetGame}
           />
         )}
 
@@ -528,18 +541,7 @@ const AppLayout = ({ addToast }) => {
               <span className="status-label">WPM</span>
               <span className="status-value">{(!!startTime && !isFinished) ? liveWpm : (isFinished ? results.wpm : '—')}</span>
             </div>
-            {testMode === 'time' && (
-              <div className="status-item">
-                <span className="status-label">Time</span>
-                <span className="status-value">
-                  {(() => {
-                    const displayTime = (!!startTime && !isFinished) ? (timeLeft ?? testLimit) : testLimit
-                    return `${Math.max(0, Math.round(displayTime))}s`
-                  })()}
-                </span>
-              </div>
-            )}
-            {testMode === 'words' && (
+            {(testMode === 'time' || testMode === 'words') && (
               <div className="status-item">
                 <span className="status-label">Time</span>
                 <span className="status-value">
@@ -551,6 +553,12 @@ const AppLayout = ({ addToast }) => {
                         return `${mins}:${String(secs).padStart(2, '0')}`
                       }
                       return `${elapsedTime}s`
+                    }
+                    if (isFinished) {
+                      const mins = Math.floor(results.duration / 60)
+                      const secs = results.duration % 60
+                      if (mins > 0) return `${mins}:${String(secs).padStart(2, '0')}`
+                      return `${results.duration}s`
                     }
                     return '0s'
                   })()}

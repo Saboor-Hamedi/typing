@@ -164,7 +164,7 @@ export function createElapsedTimer(onTick) {
     if (isRunning) return
     startTime = performance.now()
     isRunning = true
-    lastSecond = 0
+    lastSecond = -1 // Force first tick (0s)
     animationFrameId = requestAnimationFrame(tick)
   }
 

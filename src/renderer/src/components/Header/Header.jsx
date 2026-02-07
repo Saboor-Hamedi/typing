@@ -13,7 +13,8 @@ const Header = memo(({
   selectedAvatarId = 1,
   onNavigateDashboard,
   liveWpm,
-  openThemeModal
+  openThemeModal,
+  resetGame
 }) => {
   const { isZenMode } = useSettings()
 
@@ -33,15 +34,16 @@ const Header = memo(({
         </div>
 
         <div className="header-center">
-          {!testStarted && (
-            <ConfigBar 
-              openThemeModal={openThemeModal} 
-            />
-          )}
+          {/* Center now reserved for primary metrics or title if needed */}
         </div>
         
         <div className="header-right">
-          {/* Right side reserved for status metrics or other icons */}
+          {!testStarted && (
+            <ConfigBar 
+              openThemeModal={openThemeModal} 
+              resetGame={resetGame}
+            />
+          )}
         </div>
       </div>
     </header>
