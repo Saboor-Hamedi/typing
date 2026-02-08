@@ -9,6 +9,32 @@
   align-items: center;
   overflow: hidden;
 }
+/* double click copy badge */
+.copy-badge {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(var(--bg-color-rgb), 0.5);
+  backdrop-filter: blur(8px);
+  padding: 0.35rem 0.75rem;
+  border-radius: 5px;
+  border: 1px solid rgba(var(--main-color-rgb), 0.2);
+  color: var(--main-color);
+  font-weight: 500;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.copy-icon {
+  color: var(--main-color);
+  filter: drop-shadow(0 0 5px var(--main-color));
+}
 
 .live-progress-counter {
   position: absolute;

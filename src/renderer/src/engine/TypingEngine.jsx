@@ -3,11 +3,11 @@
  *
  * Interactive typing surface that renders words/letters, caret(s), captures input, and shows results.
  */
-import React, { memo, useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react'
+import React, { memo, useEffect, useMemo, useRef, useState, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../contexts/SettingsContext'
 import { UI } from '../constants'
-import { FastForward, Edit2, Ghost as GhostIcon } from 'lucide-react'
+import { FastForward, Edit2, Ghost as GhostIcon, Copy, Check } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
 import Loader from '../components/Common/Loader'
 import BurstGauge from '../components/Effects/BurstGauge'
@@ -150,7 +150,7 @@ const Word = memo(
 )
 Word.displayName = 'Word'
 
-const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayActive }) => {
+const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayActive, addToast }) => {
   const {
     isSmoothCaret: ctxSmoothCaret,
     caretStyle,
@@ -160,6 +160,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     isKineticEnabled
   } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
+  const [isCopying, setIsCopying] = useState(false)
 
   const {
     words,
@@ -183,6 +184,20 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     liveWpm,
     pb
   } = engine
+
+  const handleDoubleClick = useCallback(() => {
+    if (words.length === 0 || isCopying) return
+    const textToCopy = words.join(' ')
+    
+    setIsCopying(true)
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setTimeout(() => setIsCopying(false), 800)
+    }).catch(err => {
+      console.error('Failed to copy: ', err)
+      addToast?.('Failed to copy sentences', 'error')
+      setIsCopying(false)
+    })
+  }, [words, addToast, isCopying])
 
   // Focus management
   useEffect(() => {
@@ -224,6 +239,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
   return (
     <div
       className="typing-canvas"
+      onDoubleClick={handleDoubleClick}
       onClick={() => {
         if (isOverlayActive) return
         if (isFinished) {
@@ -233,6 +249,20 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         }
       }}
     >
+      <AnimatePresence>
+        {isCopying && (
+          <motion.div
+            className="copy-badge"
+            initial={{ opacity: 0, scale: 0.8, y: 10, x: '-50%' }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, scale: 0.9, y: -10, x: '-50%' }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+          >
+            <Check size={12} className="copy-icon" />
+            <span>Copied</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <input
         ref={inputRef}
         type="text"

@@ -787,6 +787,7 @@ const AppLayout = ({ addToast }) => {
                     testLimit={testLimit}
                     isSmoothCaret={isSmoothCaret}
                     isOverlayActive={isOverlayActive}
+                    addToast={addToast}
                   />
                 ) : activeTab === 'history' ? (
                   <HistoryView
