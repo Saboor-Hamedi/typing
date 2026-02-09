@@ -32,8 +32,12 @@ const ALL_WORDS = [
   ...misspelledWords
 ]
 
-// Sentence pool with tiered fallback
-const SENTENCES = flattenTiers(wordsData.sentences)
+// Sentence pool with tiered fallback - KEEPING THEM SEPARATE to fix mixed-pool bug
+const SENTENCES_BY_DIFF = {
+  easy: flattenTiers(wordsData.sentences?.easy || []),
+  medium: flattenTiers(wordsData.sentences?.medium || []),
+  hard: flattenTiers(wordsData.sentences?.hard || [])
+}
 
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -60,49 +64,49 @@ export const generateBaseWords = async (
   if (difficulty === 'beginner') {
     activeWordPool = beginnerWords
   } else if (difficulty === 'advanced') {
-    activeWordPool = [...advancedWords, ...technicalWords]
+    activeWordPool = [...advancedWords, ...technicalWords, ...misspelledWords]
   }
 
   // Helper to get a random sentence while avoiding history
   const getRandomSentence = async (targetLength = null) => {
+    const dbDifficulty =
+      difficulty === 'beginner' ? 'easy' : difficulty === 'advanced' ? 'hard' : 'medium'
+
     // 1. Strictly use SQLite DB if available
     if (window.api?.db) {
       try {
-        const dbDifficulty =
-          difficulty === 'beginner' ? 'easy' : difficulty === 'advanced' ? 'hard' : 'medium'
-
         const dbSentence = await window.api.db.getRandomSentence(dbDifficulty)
         if (dbSentence) return dbSentence
-        // If DB exists but is empty/fails, we still fall back to local for robustness
-        // unless explicitly told otherwise, but we'll log it.
         console.warn('DB Sentence fetch returned null, using local fallback.')
       } catch (e) {
         console.warn('DB Fetch failed:', e)
       }
     }
 
-    // 2. Fallback to Local Pool
-    if (!SENTENCES || SENTENCES.length === 0) return 'The quick brown fox jumps over the lazy dog.'
+    // 2. Fallback to Local Pool (FIXED: Use tier-specific pool instead of mixed ALL_SENTENCES)
+    const pool = SENTENCES_BY_DIFF[dbDifficulty] || SENTENCES_BY_DIFF.medium
+    
+    if (!pool || pool.length === 0) return 'The quick brown fox jumps over the lazy dog.'
 
     // If a target length is provided, try to find a sentence close to it
-    let pool = SENTENCES.filter((s) => s && !quoteHistory.includes(s))
-    if (pool.length === 0) pool = SENTENCES
+    let filteredPool = pool.filter((s) => s && !quoteHistory.includes(s))
+    if (filteredPool.length === 0) filteredPool = pool
 
     if (targetLength) {
-      const sortedPool = [...pool].sort((a, b) => {
+      const sortedPool = [...filteredPool].sort((a, b) => {
         const lenA = (a || '').split(/\s+/).length
         const lenB = (b || '').split(/\s+/).length
         return Math.abs(lenA - targetLength) - Math.abs(lenB - targetLength)
       })
       const bestFits = sortedPool.slice(0, 3)
-      const picked = bestFits[Math.floor(Math.random() * bestFits.length)] || pool[0]
+      const picked = bestFits[Math.floor(Math.random() * bestFits.length)] || filteredPool[0]
 
       quoteHistory.push(picked)
       if (quoteHistory.length > MAX_HISTORY) quoteHistory.shift()
       return picked
     }
 
-    const picked = pool[Math.floor(Math.random() * pool.length)] || SENTENCES[0]
+    const picked = filteredPool[Math.floor(Math.random() * filteredPool.length)] || pool[0]
     quoteHistory.push(picked)
     if (quoteHistory.length > MAX_HISTORY) quoteHistory.shift()
     return picked
@@ -114,8 +118,14 @@ export const generateBaseWords = async (
   if (isSentenceMode) {
     const usedInThisBatch = new Set()
 
-    // MODIFIED: Fill roughly to count but prefer full sentences
-    while (currentWordCount < count * 0.9) {
+    // NEW LOGIC: Fetch exactly ONE sentence from the database/pool.
+    // This allows the specific character limits of each difficulty (100/130/150) 
+    // to naturally define the length of the test.
+    const maxSentences = 1
+    let sentenceCount = 0
+
+    // Fetch exactly one sentence
+    while (sentenceCount < maxSentences) {
       let sentence = null
 
       // Try up to 3 times to get a unique sentence
@@ -127,7 +137,7 @@ export const generateBaseWords = async (
         }
       }
 
-      // If we failed to find a unique one, just take whatever (or break if null)
+      // If we failed to find a unique one, just take whatever
       if (!sentence) {
         sentence = await getRandomSentence(count - currentWordCount)
         if (!sentence) break
@@ -148,7 +158,10 @@ export const generateBaseWords = async (
         currentWordCount++
       }
 
-      if (currentWordCount >= count - 3) break
+      sentenceCount++
+      // If we've already satisfied a reasonable length for the requested count, 
+      // AND we have at least one sentence, we can stop for Easy.
+      if (difficulty === 'beginner' && sentenceCount >= 1) break
     }
     return result
   }
