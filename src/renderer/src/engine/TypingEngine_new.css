@@ -1,0 +1,108 @@
+.typing-canvas {
+  padding: 0;
+  margin: 0;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto; /* Allow scrolling here */
+  overflow-x: hidden;
+  isolation: isolate;
+  /* Removed justify-content for safe centering via margin:auto on container */
+}
+
+/* double click copy badge */
+.copy-badge {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(var(--bg-color-rgb), 0.5);
+  backdrop-filter: blur(8px);
+  padding: 0.35rem 0.75rem;
+  border-radius: 5px;
+  border: 1px solid rgba(var(--main-color-rgb), 0.2);
+  color: var(--main-color);
+  font-weight: 500;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.copy-icon {
+  color: var(--main-color);
+  filter: drop-shadow(0 0 5px var(--main-color));
+}
+
+.live-progress-counter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  font-size: clamp(4rem, 15vw, 10rem);
+  font-weight: 900;
+  color: var(--main-color);
+  opacity: 0.12;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 0 0 30px rgba(var(--main-color-rgb), 0.15);
+  line-height: 1;
+  white-space: nowrap;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  transition:
+    color 0.5s ease,
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.live-progress-counter.is-losing {
+  color: #00d2ff;
+  opacity: 0.2;
+  transform: translate(-50%, -50%) scale(1.1);
+  text-shadow: 0 0 40px rgba(0, 210, 255, 0.3);
+}
+
+.typing-container {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  margin: auto; /* Centering */
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  height: 14rem;
+  min-height: 14rem;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Growth for results */
+.typing-container:has(.results-container),
+.typing-container:has(.results-view) {
+  height: auto;
+  min-height: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding-bottom: 4rem;
+}
+
+.typing-canvas:has(.typing) .letter {
+  transition: none !important;
+}
+
+.typing-canvas:has(.typing) .caret {
+  transition: none !important;
+  animation-play-state: paused !important;
+}
+
+.typing-container::-webkit-scrollbar {
+  display: none;
+}

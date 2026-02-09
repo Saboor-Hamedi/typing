@@ -47,7 +47,7 @@ const MAX_HISTORY = 15
 /**
  * Generate a list of base words (without dynamic modifiers)
  */
-export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty = 'intermediate') => {
+export const generateBaseWords = async (count = 50, isSentenceMode = false, difficulty = 'intermediate') => {
   const result = []
   let currentWordCount = 0
 
@@ -60,7 +60,25 @@ export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty
   }
 
   // Helper to get a random sentence while avoiding history
-  const getRandomSentence = (targetLength = null) => {
+  const getRandomSentence = async (targetLength = null) => {
+    // 1. Strictly use SQLite DB if available
+    if (window.api?.db) {
+      try {
+        const dbDifficulty = 
+          difficulty === 'beginner' ? 'easy' : 
+          difficulty === 'advanced' ? 'hard' : 'medium'
+          
+        const dbSentence = await window.api.db.getRandomSentence(dbDifficulty)
+        if (dbSentence) return dbSentence
+        // If DB exists but is empty/fails, we still fall back to local for robustness 
+        // unless explicitly told otherwise, but we'll log it.
+        console.warn('DB Sentence fetch returned null, using local fallback.')
+      } catch (e) {
+        console.warn('DB Fetch failed:', e)
+      }
+    }
+
+    // 2. Fallback to Local Pool
     if (!SENTENCES || SENTENCES.length === 0) return 'The quick brown fox jumps over the lazy dog.'
 
     // If a target length is provided, try to find a sentence close to it
@@ -68,13 +86,11 @@ export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty
     if (pool.length === 0) pool = SENTENCES
 
     if (targetLength) {
-      // Find a sentence that doesn't exceed targetLength by too much, or is just the best fit
       const sortedPool = [...pool].sort((a, b) => {
         const lenA = (a || '').split(/\s+/).length
         const lenB = (b || '').split(/\s+/).length
         return Math.abs(lenA - targetLength) - Math.abs(lenB - targetLength)
       })
-      // Take one of the top 3 best fits for variety
       const bestFits = sortedPool.slice(0, 3)
       const picked = bestFits[Math.floor(Math.random() * bestFits.length)] || pool[0]
       
@@ -94,8 +110,8 @@ export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty
 
   if (isSentenceMode) {
     // MODIFIED: Fill roughly to count but prefer full sentences
-    while (currentWordCount < count * 0.9) { // Give some wiggle room
-      const sentence = getRandomSentence(count - currentWordCount)
+    while (currentWordCount < count * 0.9) {
+      const sentence = await getRandomSentence(count - currentWordCount)
       if (!sentence) break
 
       const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
@@ -111,7 +127,6 @@ export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty
         currentWordCount++
       }
       
-      // If we are already very close to the count, don't start a new sentence
       if (currentWordCount >= count - 3) break
     }
     return result
@@ -119,12 +134,11 @@ export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty
 
   // Standard Mode Logic
   while (currentWordCount < count) {
-    // Occasional sentence injection - only if it fits well and we haven't done one yet
     const canInject = count - currentWordCount > 12
     const alreadyHasQuote = result.some(item => item.type === 'quote')
 
     if (!alreadyHasQuote && canInject && Math.random() < useSentenceChance) {
-      const sentence = getRandomSentence(Math.min(25, count - currentWordCount))
+      const sentence = await getRandomSentence(Math.min(25, count - currentWordCount))
       if (sentence) {
         const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
         
@@ -143,7 +157,6 @@ export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty
       }
     }
 
-    // Random Words from the active pool
     const pool = activeWordPool && activeWordPool.length > 0 ? activeWordPool : beginnerWords
     let word = pool[Math.floor(Math.random() * pool.length)] || 'typing'
     result.push({ text: word, type: 'word' })
@@ -249,12 +262,12 @@ export const applyModifiers = (baseWords, settings) => {
   return result
 }
 
-export const generateWords = (count, settings = {}) => {
+export const generateWords = async (count, settings = {}) => {
   // If count is not provided, fallback to settings.testLimit, then default 25
   const limit = count || settings.testLimit || 25
 
   // 1. Generate the base words (raw text)
-  const base = generateBaseWords(limit, settings.isSentenceMode, settings.difficulty)
+  const base = await generateBaseWords(limit, settings.isSentenceMode, settings.difficulty)
 
   // 2. Apply modifiers (and trim result if modifiers add extra items)
   const modified = applyModifiers(base, settings)

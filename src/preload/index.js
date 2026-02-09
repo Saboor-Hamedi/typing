@@ -32,6 +32,12 @@ const api = {
     get: (key) => ipcRenderer.invoke('content-get', key),
     set: (key, val) => ipcRenderer.invoke('content-set', key, val)
   },
+  db: {
+    getRandomSentence: (difficulty) => ipcRenderer.invoke('db-get-random-sentence', difficulty),
+    getSentences: (difficulty, limit) => ipcRenderer.invoke('db-get-sentences', difficulty, limit),
+    addSentence: (text, difficulty, category) => ipcRenderer.invoke('db-add-sentence', text, difficulty, category),
+    searchSentences: (query, limit) => ipcRenderer.invoke('db-search-sentences', query, limit)
+  },
   getVersion: () => ipcRenderer.invoke('get-version'),
   openExternal: (url) => ipcRenderer.send('open-external', url),
   window: {

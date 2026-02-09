@@ -13,7 +13,8 @@ import {
   Sparkles,
   Zap,
   Quote,
-  Palette
+  Palette,
+  Plus
 } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -23,7 +24,7 @@ import './ConfigBar.css'
 /**
  * ConfigBar Component (Now transformed into a beautiful Menu)
  */
-const ConfigBar = memo(({ openThemeModal, resetGame }) => {
+const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef(null)
 
@@ -160,6 +161,48 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
                   <div className="status-dot" />
                 </button>
               </div>
+
+              {/* Subtle Add Action for Sentences (Phase 2) */}
+              <AnimatePresence>
+                {isSentenceMode && (
+                  <motion.div
+                    className="config-sub-action"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <button
+                      className="menu-action-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setIsOpen(false)
+                        openSentenceModal?.()
+                      }}
+                      style={{
+                        width: '100%',
+                        marginTop: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '10px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px dashed rgba(255, 255, 255, 0.15)',
+                        borderRadius: '8px',
+                        color: 'var(--sub-color)',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <Plus size={14} />
+                      <span>Add Custom Quote</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Section: Dictionary Difficulty */}

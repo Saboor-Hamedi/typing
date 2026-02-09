@@ -15,6 +15,7 @@ const Header = memo(
     onNavigateDashboard,
     liveWpm,
     openThemeModal,
+    openSentenceModal,
     resetGame
   }) => {
     const { isZenMode } = useSettings()
@@ -39,7 +40,13 @@ const Header = memo(
           </div>
 
           <div className="header-right">
-            {!testStarted && <ConfigBar openThemeModal={openThemeModal} resetGame={resetGame} />}
+            {!testStarted && (
+              <ConfigBar 
+                openThemeModal={openThemeModal} 
+                openSentenceModal={openSentenceModal} 
+                resetGame={resetGame} 
+              />
+            )}
           </div>
         </div>
       </header>

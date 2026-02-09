@@ -10,7 +10,9 @@
   right: 0;
   height: var(--nav-item-size);
   z-index: 1000;
-  background: var(--bg-color);
+  background: rgba(var(--bg-color-rgb), 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--sub-alt-color);
   width: 100%;
 }

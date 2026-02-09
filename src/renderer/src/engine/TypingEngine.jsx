@@ -317,13 +317,14 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
           </div>
         )}
 
+      <BurstGauge wpm={liveWpm} pb={pb} isEnabled={startTime && !isFinished} />
+
       <div
         className={`typing-container ${testMode === 'time' ? 'time-mode' : 'words-mode'}`}
         ref={wordContainerRef}
       >
         {!isFinished ? (
           <>
-            <BurstGauge wpm={liveWpm} pb={pb} isEnabled={startTime && !isFinished} />
 
             {isGhostEnabled && startTime && !isFinished && (
               <div

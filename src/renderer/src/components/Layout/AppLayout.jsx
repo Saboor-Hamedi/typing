@@ -28,6 +28,7 @@ import TypingEngine from '../../engine/TypingEngine'
 import ThemeModal from '../Modals/ThemeModal'
 import LoginModal from '../Modals/LoginModal'
 import ConfirmationModal from '../Modals/ConfirmationModal'
+import SentenceModal from '../Modals/SentenceModal'
 import { useEngine } from '../../engine/useEngine'
 import { useAccountManager } from '../../hooks/useAccountManager'
 import { useChameleonFlow } from '../../hooks/useChameleonFlow'
@@ -139,6 +140,7 @@ const AppLayout = ({ addToast }) => {
   const [isCapsLockOn, setIsCapsLockOn] = useState(false)
   const [paletteInitialQuery, setPaletteInitialQuery] = useState('')
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isSentenceModalOpen, setIsSentenceModalOpen] = useState(false)
 
   // Engine hook
   const engine = useEngine(testMode, testLimit, activeTab)
@@ -315,7 +317,8 @@ const AppLayout = ({ addToast }) => {
     isLogoutModalOpen ||
     isClearDataModalOpen ||
     isShortcutsModalOpen ||
-    isCommandPaletteOpen
+    isCommandPaletteOpen ||
+    isSentenceModalOpen
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -341,6 +344,7 @@ const AppLayout = ({ addToast }) => {
           if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
           if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
           if (isProfileMenuOpen) setIsProfileMenuOpen(false)
+          if (isSentenceModalOpen) setIsSentenceModalOpen(false)
           return
         }
 
@@ -387,11 +391,19 @@ const AppLayout = ({ addToast }) => {
         return
       }
 
-      // Ctrl/Cmd + P: Open Command Palette
+      // Ctrl/Cmd + Shift + P: Open Command Palette in COMMAND MODE
+      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault()
+        setPaletteInitialQuery('>')
+        setIsCommandPaletteOpen(true)
+        return
+      }
+
+      // Ctrl/Cmd + P: Open Command Palette in SEARCH MODE
       if (ctrlKey && e.key.toLowerCase() === 'p' && !e.shiftKey) {
         e.preventDefault()
         setPaletteInitialQuery('')
-        setIsCommandPaletteOpen((prev) => !prev)
+        setIsCommandPaletteOpen(true)
         return
       }
 
@@ -797,6 +809,7 @@ const AppLayout = ({ addToast }) => {
             onNavigateDashboard={() => setActiveTab('dashboard')}
             liveWpm={liveWpm}
             openThemeModal={() => toggleThemeModal(true)}
+            openSentenceModal={() => setIsSentenceModalOpen(true)}
             resetGame={engine.resetGame}
           />
         )}
@@ -993,6 +1006,13 @@ const AppLayout = ({ addToast }) => {
         actions={commandPaletteActions}
         theme={theme}
         initialQuery={paletteInitialQuery}
+        engine={engine}
+      />
+
+      <SentenceModal
+        isOpen={isSentenceModalOpen}
+        onClose={() => setIsSentenceModalOpen(false)}
+        addToast={addToast}
       />
     </div>
   )

@@ -408,20 +408,26 @@ export function useEngine(testMode, testLimit, activeTab) {
     // Time mode needs many more words than the default 25/40.
     const wordCount = s.testMode === 'words' ? s.testLimit : 30
 
-    const newWords =
-      s.words ||
-      generateWords(wordCount, {
-        testLimit: wordCount, // Pass limit explicitely for fallback
-        hasPunctuation: s.hasPunctuation,
-        hasNumbers: s.hasNumbers,
-        hasCaps: s.hasCaps,
-        isSentenceMode: s.isSentenceMode,
-        difficulty: s.difficulty
-      })
+    let ignore = false
 
-    // COMPLETE REPLACEMENT
-    setWords([...newWords])
-    setWordSetId(Date.now())
+    const fetchWords = async () => {
+      const newWords =
+        s.words ||
+        (await generateWords(wordCount, {
+          testLimit: wordCount,
+          hasPunctuation: s.hasPunctuation,
+          hasNumbers: s.hasNumbers,
+          hasCaps: s.hasCaps,
+          isSentenceMode: s.isSentenceMode,
+          difficulty: s.difficulty
+        }))
+
+      if (!ignore) {
+        setWords([...newWords])
+        setWordSetId(Date.now())
+        setIsLoading(false)
+      }
+    }
 
     setUserInput('')
     setStartTime(null)
@@ -452,10 +458,12 @@ export function useEngine(testMode, testLimit, activeTab) {
     })
 
     setIsLoading(true)
-    const loaderTimer = setTimeout(() => setIsLoading(false), 200)
+    fetchWords()
 
     resetOverridesRef.current = null
-    return () => clearTimeout(loaderTimer)
+    return () => {
+      ignore = true
+    }
   }, [resetSignal, isSettingsLoaded])
 
   useEffect(() => {

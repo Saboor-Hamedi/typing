@@ -10,19 +10,38 @@ import {
   Settings,
   LogOut,
   Play,
-  Command
+  Command,
+  Quote,
+  Zap,
+  BookOpen,
+  ChevronRight
 } from 'lucide-react'
 import './CommandPalette.css'
 
-const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) => {
+const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '', engine }) => {
   const [query, setQuery] = useState('')
+  const [mode, setMode] = useState('search') // 'search' or 'command'
+  const [dbResults, setDbResults] = useState([])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef(null)
   const listRef = useRef(null)
 
-  const isCommandMode = query.trim().startsWith('>')
-  const effectiveQuery = isCommandMode ? query.slice(1).trim() : query.trim()
+  // Handle initialization of mode and query
+  useEffect(() => {
+    if (isOpen) {
+      if (initialQuery.startsWith('>')) {
+        setMode('command')
+        setQuery(initialQuery.slice(1))
+      } else {
+        setMode('search')
+        setQuery(initialQuery)
+      }
+      setSelectedIndex(0)
+      setTimeout(() => inputRef.current?.focus(), 50)
+    }
+  }, [isOpen, initialQuery])
 
+  // Filter local actions (Commands/Navigation)
   const uniqueActions = useMemo(() => {
     const seen = new Set()
     return actions.filter((a) => {
@@ -33,71 +52,109 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
     })
   }, [actions])
 
-  const filteredActions = uniqueActions.filter((action) => {
-    if (isCommandMode) {
-      if (action.type !== 'command') return false
+  const filteredLocalActions = useMemo(() => {
+    if (mode === 'command') {
+      return uniqueActions.filter(a => a.type === 'command').filter(a => 
+        !query || a.label.toLowerCase().includes(query.toLowerCase())
+      )
     }
-    if (!effectiveQuery) return true
-    return (
-      action.label.toLowerCase().includes(effectiveQuery.toLowerCase()) ||
-      (action.id && action.id.toLowerCase().includes(effectiveQuery.toLowerCase()))
-    )
-  })
+    // Search mode: Strictly ONLY show database sentences
+    return []
+  }, [uniqueActions, mode, query])
 
-  // Scroll active item into view - Boundary-safe scroller
-  useEffect(() => {
-    if (listRef.current) {
-      const selectedElement = listRef.current.querySelector('.command-item.selected')
-      if (selectedElement) {
-        const container = listRef.current
-        const containerRect = container.getBoundingClientRect()
-        const selectedRect = selectedElement.getBoundingClientRect()
+  const handleSentenceSelect = useCallback((text) => {
+    if (engine && engine.resetGame) {
+      engine.resetGame({ 
+        words: text.split(' '),
+        isSentenceMode: true
+      })
+      onClose()
+    }
+  }, [engine, onClose])
 
-        // Check if item is above the viewport
-        if (selectedRect.top < containerRect.top) {
-          container.scrollTop -= containerRect.top - selectedRect.top + 10
-        }
-        // Check if item is below the viewport
-        else if (selectedRect.bottom > containerRect.bottom) {
-          container.scrollTop += selectedRect.bottom - containerRect.bottom + 10
-        }
+  // Fetch Database results if in search mode
+  const fetchDbResults = useCallback(async (q) => {
+    if (mode === 'command' || !isOpen) {
+      setDbResults([])
+      return
+    }
+
+    if (window.api?.db) {
+      const trimmed = q.trim()
+      if (!trimmed) {
+        const initial = await window.api.db.getSentences('medium', 5)
+        setDbResults(initial.map(text => ({ 
+          id: `db-${text}`,
+          label: text,
+          type: 'sentence',
+          category: 'Sentence Library',
+          icon: <Quote size={18} />,
+          text: text,
+          onSelect: () => handleSentenceSelect(text)
+        })))
+      } else {
+        const searchResults = await window.api.db.searchSentences(trimmed, 15)
+        setDbResults(searchResults.map(res => ({
+          id: `db-${res.id}`,
+          label: res.text,
+          type: 'sentence',
+          category: 'Search Results',
+          icon: <Quote size={18} />,
+          text: res.text,
+          difficulty: res.difficulty,
+          onSelect: () => handleSentenceSelect(res.text)
+        })))
       }
     }
-  }, [selectedIndex, filteredActions])
+  }, [mode, isOpen, handleSentenceSelect])
+
+  const lastQueryRef = useRef('')
 
   useEffect(() => {
-    if (isOpen) {
-      setQuery(initialQuery)
-      setSelectedIndex(0)
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus()
-          inputRef.current.setSelectionRange(initialQuery.length, initialQuery.length)
-        }
-      }, 10)
-    }
-  }, [isOpen, initialQuery])
+    if (!isOpen) return
 
-  // Reset selection index when filtering changes
+    // Immediately fetch if query is empty to avoid delay on clearing
+    if (!query.trim()) {
+      fetchDbResults('')
+      lastQueryRef.current = ''
+      return
+    }
+
+    const handler = setTimeout(() => {
+      // Corrected: If query hasn't changed, don't re-fetch (even if results were 0)
+      if (query === lastQueryRef.current) return
+      lastQueryRef.current = query
+      fetchDbResults(query)
+    }, 50)
+    return () => clearTimeout(handler)
+  }, [query, fetchDbResults, isOpen])
+
+  const allResults = useMemo(() => {
+    return [...filteredLocalActions, ...dbResults]
+  }, [filteredLocalActions, dbResults])
+
   useEffect(() => {
     setSelectedIndex(0)
-  }, [query])
+  }, [query, mode])
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedIndex((prev) => (prev + 1) % filteredActions.length)
+      setSelectedIndex((prev) => (prev + 1) % allResults.length)
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setSelectedIndex((prev) => (prev - 1 + filteredActions.length) % filteredActions.length)
+      setSelectedIndex((prev) => (prev - 1 + allResults.length) % allResults.length)
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      if (filteredActions[selectedIndex]) {
-        filteredActions[selectedIndex].onSelect()
+      if (allResults[selectedIndex]) {
+        allResults[selectedIndex].onSelect()
         onClose()
       }
     } else if (e.key === 'Escape') {
       onClose()
+    } else if (e.key === 'Backspace' && query === '' && mode === 'command') {
+      // If query is empty and we hit backspace in command mode, go back to search mode
+      setMode('search')
     }
   }
 
@@ -115,32 +172,44 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
           >
             <div className="command-palette-search">
               <div className="search-icon-wrap">
-                {isCommandMode ? (
-                  <Command size={18} className="search-icon" />
+                {mode === 'command' ? (
+                  <ChevronRight size={18} className="search-icon mode-command" />
                 ) : (
-                  <Search size={18} className="search-icon" />
+                  <Search size={18} className="search-icon mode-search" />
                 )}
               </div>
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder={
-                  isCommandMode ? 'Type a command...' : 'Search commands, modes, settings...'
-                }
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                spellCheck={false}
-              />
+              
+              <div className="search-input-wrapper">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder={
+                    mode === 'command' ? 'Type a command...' : 'Search sentences, navigation...'
+                  }
+                  value={query}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (mode === 'search' && val === '>') {
+                      setMode('command')
+                      setQuery('')
+                    } else {
+                      setQuery(val)
+                    }
+                  }}
+                  onKeyDown={handleKeyDown}
+                  spellCheck={false}
+                />
+              </div>
+
               <div className="esc-hint">ESC</div>
             </div>
 
             <div className="command-palette-list" ref={listRef}>
-              {filteredActions.length > 0 ? (
-                filteredActions.map((action, index) => {
+              {allResults.length > 0 ? (
+                allResults.map((action, index) => {
                   const isSelected = index === selectedIndex
                   const showCategory =
-                    index === 0 || filteredActions[index - 1].category !== action.category
+                    index === 0 || allResults[index - 1].category !== action.category
 
                   return (
                     <div key={action.id || action.label}>
@@ -148,7 +217,7 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
                         <div className="command-palette-category">{action.category}</div>
                       )}
                       <motion.div
-                        className={`command-item ${isSelected ? 'selected' : ''}`}
+                        className={`command-item ${isSelected ? 'selected' : ''} type-${action.type || 'default'}`}
                         onMouseEnter={() => setSelectedIndex(index)}
                         onClick={() => {
                           action.onSelect()
@@ -159,9 +228,14 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
                         <div className="item-icon">{action.icon}</div>
                         <div className="item-info">
                           <div className="item-label">{action.label}</div>
-                          {action.shortcut && (
-                            <div className="item-shortcut">{action.shortcut}</div>
-                          )}
+                          <div className="item-meta">
+                            {action.shortcut && (
+                              <div className="item-shortcut">{action.shortcut}</div>
+                            )}
+                            {action.difficulty && (
+                              <span className={`diff-badge ${action.difficulty}`}>{action.difficulty}</span>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     </div>
@@ -170,7 +244,7 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
               ) : (
                 <div className="no-results">
                   <Search size={32} style={{ opacity: 0.2, marginBottom: '10px' }} />
-                  <span>No results found for "{effectiveQuery}"</span>
+                  <span>No results found for "{query}"</span>
                 </div>
               )}
             </div>
@@ -183,7 +257,7 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '' }) 
                 <kbd>Enter</kbd> <span>Select</span>
               </div>
               <div className="footer-hint">
-                <kbd>ESC</kbd> <span>Close</span>
+                <kbd>{mode === 'command' ? 'BS' : '>'}</kbd> <span>{mode === 'command' ? 'Back to search' : 'Switch to Command Mode'}</span>
               </div>
             </div>
           </motion.div>

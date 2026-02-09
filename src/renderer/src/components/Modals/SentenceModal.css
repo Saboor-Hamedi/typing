@@ -1,0 +1,233 @@
+.sentence-modal {
+  width: 100%;
+  max-width: 540px;
+  background: var(--bg-color);
+  border: 1px solid var(--sub-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Window Header Style */
+.window-header {
+  height: 32px;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--sub-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 0 12px;
+  user-select: none;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  color: var(--main-color);
+  opacity: 0.8;
+}
+
+.window-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--sub-color);
+  letter-spacing: 0.5px;
+}
+
+.header-controls {
+  display: flex;
+  height: 100%;
+}
+
+.control-btn {
+  width: 46px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--sub-color);
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+}
+
+.control-btn.close:hover {
+  background: #e81123;
+  color: white;
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.input-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sub-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sentence-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1.5px solid var(--sub-color);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.sentence-textarea:focus {
+  outline: none;
+  border-color: var(--main-color);
+}
+
+.char-count {
+  align-self: flex-end;
+  font-size: 0.7rem;
+  color: var(--sub-color);
+  margin-top: -4px;
+}
+
+/* Difficulty Toggle Group */
+.difficulty-toggle-group {
+  display: flex;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--sub-color);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.toggle-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--sub-color);
+  padding: 8px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-btn.active {
+  background: var(--main-color);
+  color: var(--bg-color);
+  font-weight: 600;
+}
+
+/* Input with Icon */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--sub-color);
+}
+
+.category-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1.5px solid var(--sub-color);
+  border-radius: 8px;
+  padding: 10px 12px 10px 36px;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+.category-input:focus {
+  outline: none;
+  border-color: var(--main-color);
+}
+
+/* Modal Footer */
+.modal-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.footer-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.footer-btn.primary {
+  background: var(--main-color);
+  color: var(--bg-color);
+  border: none;
+}
+
+.footer-btn.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.footer-btn.secondary {
+  background: transparent;
+  color: var(--sub-color);
+  border: 1px solid var(--sub-color);
+}
+
+.footer-btn.secondary:hover:not(:disabled) {
+  border-color: var(--text-color);
+  color: var(--text-color);
+}
+
+.footer-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}

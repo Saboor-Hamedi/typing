@@ -1,6 +1,6 @@
 .burst-gauge-container {
   position: absolute;
-  top: -120px;
+  top: 60px; /* Fixed anchor below the header */
   left: 50%;
   transform: translateX(-50%);
   width: 180px;
@@ -10,7 +10,8 @@
   align-items: center;
   justify-content: flex-end;
   pointer-events: none;
-  z-index: 5;
+  z-index: 1000; /* Above masks */
+  opacity: 0.95;
 }
 
 .gauge-outer {

@@ -129,7 +129,7 @@ const ResultsView = ({
               <BarChart3 size={14} />
               <span>Performance Graph</span>
             </div>
-            <TelemetryGraph data={telemetry} width={800} height={120} />
+            <TelemetryGraph data={telemetry} width={800} height={100} />
           </motion.div>
         </div>
 

@@ -1,0 +1,11 @@
+
+.menu-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--main-color) !important;
+  color: var(--text-color) !important;
+  transform: translateY(-1px);
+}
+
+.menu-action-btn:active {
+  transform: translateY(0);
+}

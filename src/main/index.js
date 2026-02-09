@@ -16,6 +16,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../resources/icon.png?asset'
+import { initDatabase, getRandomSentence, getSentences, addSentence, searchSentences } from './db'
 
 let mainWindow = null
 let pendingDeepLink = null
@@ -178,6 +179,9 @@ app.whenReady().then(() => {
   }
   migrateLegacy()
 
+  // Initialize SQLite Database
+  initDatabase()
+
   // Settings Handlers
   ipcMain.handle('settings-get', (event, key) => settingsStore.get(key))
   ipcMain.handle('settings-set', (event, key, val) => settingsStore.set(key, val))
@@ -214,6 +218,12 @@ app.whenReady().then(() => {
   ipcMain.on('open-external', (event, url) => {
     shell.openExternal(url)
   })
+
+  // SQLite DB Handlers
+  ipcMain.handle('db-get-random-sentence', (event, difficulty) => getRandomSentence(difficulty))
+  ipcMain.handle('db-get-sentences', (event, difficulty, limit) => getSentences(difficulty, limit))
+  ipcMain.handle('db-add-sentence', (event, text, difficulty, category) => addSentence(text, difficulty, category))
+  ipcMain.handle('db-search-sentences', (event, query, limit) => searchSentences(query, limit))
 
   // Window Controls Handlers
   ipcMain.on('window-minimize', () => {
