@@ -197,7 +197,7 @@ export const SettingsProvider = ({ children }) => {
   useEffect(() => {
     if (!isSettingsLoaded) return
 
-    // Save to localStorage
+    // Save to localStorage (immediate, no debounce needed - it's fast)
     localStorage.setItem(STORAGE_KEYS.TEST_MODE, testMode)
     localStorage.setItem(STORAGE_KEYS.TEST_LIMIT, testLimit)
     localStorage.setItem(STORAGE_KEYS.CHAMELEON_ENABLED, isChameleonEnabled)
@@ -219,28 +219,32 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('isSentenceMode', isSentenceMode)
     localStorage.setItem('difficulty', difficulty)
 
-    // Save to electron-store
+    // Debounce electron-store writes (reduces I/O)
     if (window.api?.settings) {
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.TEST_MODE, testMode)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.TEST_LIMIT, testLimit)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.CHAMELEON, isChameleonEnabled)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.KINETIC, isKineticEnabled)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.SMOOTH_CARET, isSmoothCaret)
-      window.api.settings.set('isGhostEnabled', isGhostEnabled)
-      window.api.settings.set('ghostSpeed', ghostSpeed)
-      window.api.settings.set('caretStyle', caretStyle)
-      window.api.settings.set('isFireCaretEnabled', isFireCaretEnabled)
-      window.api.settings.set('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
-      window.api.settings.set('isErrorUnderlineEnabled', isErrorUnderlineEnabled)
-      window.api.settings.set('isSoundEnabled', isSoundEnabled)
-      window.api.settings.set('isHallEffect', isHallEffect)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.SOUND_PROFILE, soundProfile)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.CENTERED_SCROLLING, isCenteredScrolling)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION, hasPunctuation)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_NUMBERS, hasNumbers)
-      window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
-      window.api.settings.set('isSentenceMode', isSentenceMode)
-      window.api.settings.set('difficulty', difficulty)
+      const timer = setTimeout(() => {
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.TEST_MODE, testMode)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.TEST_LIMIT, testLimit)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.CHAMELEON, isChameleonEnabled)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.KINETIC, isKineticEnabled)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.SMOOTH_CARET, isSmoothCaret)
+        window.api.settings.set('isGhostEnabled', isGhostEnabled)
+        window.api.settings.set('ghostSpeed', ghostSpeed)
+        window.api.settings.set('caretStyle', caretStyle)
+        window.api.settings.set('isFireCaretEnabled', isFireCaretEnabled)
+        window.api.settings.set('isErrorFeedbackEnabled', isErrorFeedbackEnabled)
+        window.api.settings.set('isErrorUnderlineEnabled', isErrorUnderlineEnabled)
+        window.api.settings.set('isSoundEnabled', isSoundEnabled)
+        window.api.settings.set('isHallEffect', isHallEffect)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.SOUND_PROFILE, soundProfile)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.CENTERED_SCROLLING, isCenteredScrolling)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION, hasPunctuation)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_NUMBERS, hasNumbers)
+        window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
+        window.api.settings.set('isSentenceMode', isSentenceMode)
+        window.api.settings.set('difficulty', difficulty)
+      }, 500) // 500ms debounce
+
+      return () => clearTimeout(timer)
     }
   }, [
     testMode,

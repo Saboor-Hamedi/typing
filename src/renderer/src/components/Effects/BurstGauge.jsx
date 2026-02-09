@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import './BurstGauge.css'
 
 const BurstGauge = ({ wpm, pb, isEnabled }) => {
-  const normalizedWpm = Math.min(wpm, 250) // Increased limit for visual headroom
-  const maxScale = 180 // Reference scale for the gauge arch
+  const normalizedWpm = Math.min(wpm, 300) 
+  const maxScale = 250 
   
   // Calculate current rotation (from -90deg to 90deg)
   const rotation = (normalizedWpm / maxScale) * 180 - 90

@@ -484,6 +484,30 @@ export function useEngine(testMode, testLimit, activeTab) {
     resetGame()
   }, [testMode, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, difficulty])
 
+  // PRE-CALCULATED WORD MAP (Optimization for Burst Typing)
+  const wordMap = useMemo(() => {
+    const cleanWords = words.map((w) => w.replace(/[\r\n]/g, ''))
+    const targetText = cleanWords.join(' ')
+    const wordsArrayTokenized = targetText.split(' ')
+    
+    const map = {} // Use object instead of array to avoid Infinity length issue
+    let currentPos = 0
+    for (let i = 0; i < wordsArrayTokenized.length; i++) {
+      const w = wordsArrayTokenized[i]
+      const start = currentPos
+      const end = start + w.length
+      const nextWordStart = i < wordsArrayTokenized.length - 1 ? end + 1 : end + 1 // Use end+1 instead of Infinity
+      
+      const info = { index: i, start, end, word: w }
+      // Fill map for every character position in this word's range
+      for (let p = start; p < nextWordStart; p++) {
+        map[p] = info
+      }
+      currentPos = nextWordStart
+    }
+    return { map, targetText, wordsArray: wordsArrayTokenized }
+  }, [words])
+
   const handleInput = useCallback(
     (e) => {
       const value = e.target.value
@@ -544,25 +568,9 @@ export function useEngine(testMode, testLimit, activeTab) {
         value.length < userInput.length
       const lastChar = value[value.length - 1]
 
-      // Enhanced Word Index Mapping
-      const cleanWords = words.map((w) => w.replace(/[\r\n]/g, ''))
-      const targetText = cleanWords.join(' ')
-      const wordsArray = targetText.split(' ')
-
-      const getWordInfo = (pos) => {
-        let charCount = 0
-        for (let i = 0; i < wordsArray.length; i++) {
-          const start = charCount
-          const word = wordsArray[i]
-          const end = start + word.length
-          const nextWordStart = i < wordsArray.length - 1 ? end + 1 : Infinity
-          if (pos >= start && pos < nextWordStart) {
-            return { index: i, start, end, word }
-          }
-          charCount = nextWordStart
-        }
-        return null
-      }
+      const getWordInfo = (pos) => wordMap.map[pos] || null
+      const targetText = wordMap.targetText
+      const wordsArray = wordMap.wordsArray
 
       // 1. BACKSPACE JUMP BACK LOGIC (Req 3, 5 & Caret Precision)
       if (isBackspace) {
@@ -797,14 +805,7 @@ export function useEngine(testMode, testLimit, activeTab) {
         const roundedH = Math.round(h) + 2
 
         setCaretPos({ left: roundedLeft, top: finalizedTop, height: roundedH, width: caretWidth })
-
-        if (caret) {
-          caret.style.transform = `translate3d(${roundedLeft}px, ${finalizedTop}px, 0)`
-          caret.style.height = `${roundedH}px`
-          caret.style.width = `${caretWidth}px`
-          // Caret is now in position, ensure it's visible (opacity handled in component)
-        }
-
+        
         // Use a much larger buffer and rounded values to prevent line-jitter
         if (Math.abs(roundedTop - activeLineTop) > 20) {
           setActiveLineTop(roundedTop)
@@ -831,11 +832,7 @@ export function useEngine(testMode, testLimit, activeTab) {
     // Run IMMEDIATELY to avoid the (0,0) jump
     updateCaret()
 
-    // Also run in a frame to catch flexbox settling
-    const frame = requestAnimationFrame(updateCaret)
-
     return () => {
-      cancelAnimationFrame(frame)
       clearTimeout(retryTimer)
     }
   }, [userInput, isFinished, words, caretStyle, isFireCaretEnabled, isCenteredScrolling])

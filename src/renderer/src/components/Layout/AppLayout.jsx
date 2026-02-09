@@ -700,7 +700,10 @@ const AppLayout = ({ addToast }) => {
       shortcut: 'Ctrl+Shift+R',
       type: 'command',
       category: 'System',
-      onSelect: () => window.location.reload()
+      onSelect: () => {
+        // Close palette first, then reload after a brief delay
+        setTimeout(() => window.location.reload(), 100)
+      }
     },
     {
       id: 'emergency-logout',

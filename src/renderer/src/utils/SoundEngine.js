@@ -12,6 +12,8 @@ class SoundEngine {
     this.plateNode = null
     this.limiter = null
     this.noiseBuffer = null // Pre-generated common noise
+    this.lastPlayTime = 0 // Throttle protection
+    this.minInterval = 0.01 // 10ms minimum between sounds (100 sounds/sec max)
   }
 
   /**
@@ -147,80 +149,53 @@ class SoundEngine {
     if (!this.audioCtx) return
 
     const now = this.audioCtx.currentTime
+    
+    // Ultra-fast throttling: Skip if called too rapidly (prevents audio glitches at extreme speeds)
+    if (now - this.lastPlayTime < this.minInterval) return
+    this.lastPlayTime = now
+
     const s = this.getProfileSettings()
 
-    const pitch = 1 + (Math.random() - 0.5) * 0.06
-    const velocity = 0.95 + Math.random() * 0.05
-    const panVal = (Math.random() - 0.5) * 0.45
+    // Minimal randomization for performance
+    const pitch = 1 + (Math.random() - 0.5) * 0.04
+    const velocity = 0.97 + Math.random() * 0.03
 
-    const panner = this.audioCtx.createStereoPanner()
-    panner.pan.setValueAtTime(panVal, now)
-    panner.connect(this.masterGain)
-    panner.connect(this.plateNode)
-    if (this.hallEffect) panner.connect(this.reverbNode)
-
+    // Simplified routing - direct to master (skip panning/reverb during bursts for speed)
     const voiceGain = this.audioCtx.createGain()
-    voiceGain.gain.setValueAtTime(velocity, now)
-    voiceGain.connect(panner)
+    voiceGain.gain.setValueAtTime(velocity * 0.8, now)
+    voiceGain.connect(this.masterGain)
 
     const bodyFreqMod = type === 'space' ? 0.6 : type === 'backspace' ? 1.2 : 1.0
-    const volumeMod = type === 'space' ? 1.5 : type === 'backspace' ? 0.9 : 1.0
+    const volumeMod = type === 'space' ? 1.3 : type === 'backspace' ? 0.9 : 1.0
 
-    // --- LAYER 1: The "Body" ---
+    // --- LAYER 1: The "Body" (Simplified) ---
     const body = this.audioCtx.createOscillator()
     const bGain = this.audioCtx.createGain()
     body.type = s.bodyType
     body.frequency.setValueAtTime(s.bodyFreq * bodyFreqMod * pitch, now)
-    body.frequency.exponentialRampToValueAtTime(s.bodyFreq * 0.6, now + s.bodyDecay)
+    body.frequency.exponentialRampToValueAtTime(s.bodyFreq * 0.7, now + s.bodyDecay * 0.8)
     bGain.gain.setValueAtTime(s.bodyGain * volumeMod, now)
-    bGain.gain.exponentialRampToValueAtTime(0.001, now + s.bodyDecay)
+    bGain.gain.exponentialRampToValueAtTime(0.001, now + s.bodyDecay * 0.8)
     body.connect(bGain)
     bGain.connect(voiceGain)
 
-    // --- LAYER 2: The "Impact" (Optimized with reused buffer) ---
+    // --- LAYER 2: The "Impact" (Optimized) ---
     const { source: noise, offset } = this.getNoiseSource()
     const nFilter = this.audioCtx.createBiquadFilter()
     const nGain = this.audioCtx.createGain()
     nFilter.type = s.noiseFilter
     nFilter.frequency.setValueAtTime(s.noiseFreq, now)
-    nGain.gain.setValueAtTime(s.noiseGain * volumeMod, now)
-    nGain.gain.exponentialRampToValueAtTime(0.001, now + s.noiseDecay)
+    nGain.gain.setValueAtTime(s.noiseGain * volumeMod * 0.7, now)
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + s.noiseDecay * 0.7)
     noise.connect(nFilter)
     nFilter.connect(nGain)
     nGain.connect(voiceGain)
 
-    // --- LAYER 3: Stabilizer ---
-    if (type === 'space') {
-      const stab = this.audioCtx.createOscillator()
-      const sGain = this.audioCtx.createGain()
-      stab.type = 'triangle'
-      stab.frequency.setValueAtTime(2400 * pitch, now)
-      sGain.gain.setValueAtTime(0.04, now)
-      sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
-      stab.connect(sGain)
-      sGain.connect(voiceGain)
-      stab.start(now)
-      stab.stop(now + 0.05)
-    }
-
-    // --- LAYER 4: Switch Click ---
-    if (s.clickGain > 0) {
-      const click = this.audioCtx.createOscillator()
-      const cGain = this.audioCtx.createGain()
-      click.type = 'square'
-      click.frequency.setValueAtTime(s.clickFreq * pitch, now)
-      cGain.gain.setValueAtTime(s.clickGain, now)
-      cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.015)
-      click.connect(cGain)
-      cGain.connect(voiceGain)
-      click.start(now)
-      click.stop(now + 0.02)
-    }
-
+    // Aggressive scheduling - start immediately with zero lookahead
     body.start(now)
     noise.start(now, offset)
-    body.stop(now + s.bodyDecay + 0.1)
-    noise.stop(now + s.noiseDecay + 0.1)
+    body.stop(now + s.bodyDecay * 0.8 + 0.05)
+    noise.stop(now + s.noiseDecay * 0.7 + 0.05)
   }
 
   getProfileSettings() {

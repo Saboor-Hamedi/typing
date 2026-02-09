@@ -386,7 +386,7 @@ const TypingEngine = ({
                 height: engine.caretPos?.height || '1.2em',
                 transform: `translate3d(${engine.caretPos?.left || 0}px, ${engine.caretPos?.top || 0}px, 0)${isTyping && smoothCaretEnabled ? ' scaleX(1.1)' : ''}`,
                 transition: smoothCaretEnabled
-                  ? 'transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), height 0.1s ease, width 0.1s ease'
+                  ? 'transform 0.06s cubic-bezier(0.165, 0.84, 0.44, 1), height 0.06s ease, width 0.06s ease'
                   : 'none',
                 opacity: !engine.caretPos || isLoading ? 0 : 1
               }}
