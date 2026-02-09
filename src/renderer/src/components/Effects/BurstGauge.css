@@ -1,36 +1,45 @@
 .burst-gauge-container {
   position: absolute;
-  top: 60px; /* Fixed anchor below the header */
+  top: 75px; /* Move slightly down for more presence */
   left: 50%;
   transform: translateX(-50%);
-  width: 180px;
-  height: 100px;
+  width: 220px; /* Wider for better gauge scale */
+  height: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   pointer-events: none;
-  z-index: 1000; /* Above masks */
-  opacity: 0.95;
+  z-index: 1000;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .gauge-outer {
   position: relative;
   width: 100%;
   height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  background: rgba(var(--bg-color-rgb), 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 110px 110px 15px 15px;
+  border: 1px solid var(--sub-alt-color);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2), 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .gauge-svg {
   width: 100%;
   height: 100%;
+  filter: drop-shadow(0 0 8px rgba(var(--main-color-rgb), 0.1));
 }
 
 .gauge-needle-wrapper {
   position: absolute;
-  bottom: 5px;
+  bottom: 25px; /* Centered in the arch base */
   left: 50%;
-  width: 2px;
-  height: 40px;
+  width: 3px;
+  height: 55px;
   transform-origin: bottom center;
 }
 
@@ -38,70 +47,117 @@
   width: 100%;
   height: 100%;
   background: var(--main-color);
-  border-radius: 2px;
-  box-shadow: 0 0 8px var(--main-color);
+  border-radius: 4px 4px 2px 2px;
+  box-shadow: 0 0 12px var(--main-color);
   transform-origin: bottom center;
+  position: relative;
+}
+
+.gauge-needle::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background: var(--main-color);
+  border-radius: 50%;
+  border: 2px solid var(--bg-color);
+}
+
+.pb-marker {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  width: 1.5px;
+  height: 55px;
+  background: var(--sub-color);
+  opacity: 0.3;
+  transform-origin: bottom center;
+  z-index: 1;
+}
+
+.pb-marker::before {
+  content: 'PB';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.5rem;
+  font-weight: 800;
+  color: var(--sub-color);
+  opacity: 0.5;
 }
 
 .gauge-center {
   position: absolute;
-  bottom: -5px;
+  bottom: 5px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1;
+  line-height: 0.9;
 }
 
 .wpm-value {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   color: var(--main-color);
+  letter-spacing: -1px;
 }
 
 .wpm-label {
-  font-size: 0.6rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 800;
   text-transform: uppercase;
   color: var(--sub-color);
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  opacity: 0.7;
 }
 
 .speed-warning {
   position: absolute;
-  top: -20px;
-  font-size: 0.6rem;
+  top: -30px;
+  font-size: 0.7rem;
   font-weight: 900;
   color: var(--error-color);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  background: rgba(var(--error-color-rgb), 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  letter-spacing: 2.5px;
+  background: var(--bg-color);
+  padding: 4px 12px;
+  border-radius: 6px;
   border: 1px solid var(--error-color);
-  animation: glow 1s infinite alternate;
+  box-shadow: 0 0 20px rgba(var(--error-color-rgb), 0.3);
+  z-index: 1001;
 }
 
 .lag-warning {
   position: absolute;
-  top: -20px;
-  font-size: 0.6rem;
+  top: -30px;
+  font-size: 0.7rem;
   font-weight: 900;
   color: #00d2ff;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  background: rgba(0, 210, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  letter-spacing: 2.5px;
+  background: var(--bg-color);
+  padding: 4px 12px;
+  border-radius: 6px;
   border: 1px solid #00d2ff;
-  animation: frost-glow 1.5s infinite alternate;
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+  z-index: 1001;
   white-space: nowrap;
 }
 
-.burst-gauge-container.is-losing .gauge-needle {
-  box-shadow: 0 0 12px #00d2ff;
+.redlining {
+  animation: jitter 0.05s infinite alternate;
+}
+
+@keyframes jitter {
+  from { transform: rotate(-0.5deg) translateX(-0.5px); }
+  to { transform: rotate(0.5deg) translateX(0.5px); }
 }
 
 @keyframes glow {
