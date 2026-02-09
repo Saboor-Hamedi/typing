@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import './BurstGauge.css'
 
 const BurstGauge = ({ wpm, pb, isEnabled }) => {
-  const normalizedWpm = Math.min(wpm, 300) 
-  const maxScale = 250 
-  
+  const normalizedWpm = Math.min(wpm, 300)
+  const maxScale = 250
+
   // Calculate current rotation (from -90deg to 90deg)
   const rotation = (normalizedWpm / maxScale) * 180 - 90
-  
+
   // Calculate PB rotation for the ghost marker
   const pbRotation = pb > 0 ? (Math.min(pb, maxScale) / maxScale) * 180 - 90 : null
 
@@ -39,7 +39,7 @@ const BurstGauge = ({ wpm, pb, isEnabled }) => {
   const isRedlining = wpm > pb && pb > 0
 
   return (
-    <div 
+    <div
       className={`burst-gauge-container ${isLosing ? 'is-losing' : ''}`}
       style={{
         transform: `translateX(-50%) scale(${1 + heat * 0.15})` // Kinetic Swell
@@ -48,7 +48,7 @@ const BurstGauge = ({ wpm, pb, isEnabled }) => {
       <div className="gauge-outer">
         {/* PB Ghost Marker */}
         {pbRotation !== null && (
-          <div 
+          <div
             className="pb-marker"
             style={{ transform: `translateX(-50%) rotate(${pbRotation}deg)` }}
           />
@@ -86,15 +86,17 @@ const BurstGauge = ({ wpm, pb, isEnabled }) => {
             className={`gauge-needle ${isRedlining ? 'redlining' : ''}`}
             animate={{
               rotate: rotation,
-              backgroundColor: isLosing 
-                ? 'rgba(0, 200, 255, 1)' 
-                : heat > 0.85 ? 'var(--error-color)' : 'var(--main-color)'
+              backgroundColor: isLosing
+                ? 'rgba(0, 200, 255, 1)'
+                : heat > 0.85
+                  ? 'var(--error-color)'
+                  : 'var(--main-color)'
             }}
             transition={{ type: 'spring', stiffness: 70, damping: 10 }}
           >
             {/* Speed Glow */}
             {heat > 0.5 && (
-              <div 
+              <div
                 className="needle-glow"
                 style={{
                   opacity: (heat - 0.5) * 2,
@@ -113,7 +115,7 @@ const BurstGauge = ({ wpm, pb, isEnabled }) => {
                 ? 'rgba(0, 210, 255, 1)'
                 : heat > 0.85
                   ? 'var(--error-color)'
-                  : 'var(--main-color)',
+                  : 'var(--main-color)'
             }}
           >
             {wpm}

@@ -285,12 +285,16 @@ const DatabaseView = ({ addToast }) => {
               </div>
             ) : sentences.length === 0 ? (
               <div className="db-empty-state">
-                <BookOpen size={48} strokeWidth={1.5} style={{ opacity: 0.3, marginBottom: '16px' }} />
+                <BookOpen
+                  size={48}
+                  strokeWidth={1.5}
+                  style={{ opacity: 0.3, marginBottom: '16px' }}
+                />
                 <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: 'var(--text-color)' }}>
                   {search ? 'No matching sentences found' : 'Loading sentences...'}
                 </h3>
                 <p style={{ margin: 0, color: 'var(--sub-color)', fontSize: '0.9rem' }}>
-                  {search 
+                  {search
                     ? 'Try a different search term or add a new custom sentence'
                     : 'The database is being initialized with default sentences'}
                 </p>

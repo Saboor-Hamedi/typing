@@ -53,7 +53,8 @@ const ResultsView = ({
     const text = `TypingZone Result: ${results.wpm} WPM | ${results.accuracy}% Accuracy | ${testMode} ${testLimit}`
     navigator.clipboard.writeText(text)
     setIsCopying(true)
-    if (addToast) addToast({ title: 'Success', message: 'Result copied to clipboard!', type: 'success' })
+    if (addToast)
+      addToast({ title: 'Success', message: 'Result copied to clipboard!', type: 'success' })
     setTimeout(() => setIsCopying(false), 2000)
   }
 
@@ -66,15 +67,9 @@ const ResultsView = ({
               <div className="label-with-icon">
                 <TrendingUp size={16} />
                 <span className="label">wpm</span>
-                {results.isNewPb && (
-                  <span className="pb-badge">
-                    New PB!
-                  </span>
-                )}
+                {results.isNewPb && <span className="pb-badge">New PB!</span>}
               </div>
-              <span className="value-large">
-                {results.wpm}
-              </span>
+              <span className="value-large">{results.wpm}</span>
             </div>
 
             <div className="metric-card main-stat accent">
@@ -82,9 +77,7 @@ const ResultsView = ({
                 <Target size={16} />
                 <span className="label">accuracy</span>
               </div>
-              <span className="value-large">
-                {results.accuracy}%
-              </span>
+              <span className="value-large">{results.accuracy}%</span>
             </div>
           </div>
 
@@ -110,7 +103,12 @@ const ResultsView = ({
               isError: true,
               icon: <AlertCircle size={12} />
             },
-            { label: 'consistency', val: `${stats.consistency}%`, icon: <Target size={12} />, hide: !stats.consistency }
+            {
+              label: 'consistency',
+              val: `${stats.consistency}%`,
+              icon: <Target size={12} />,
+              hide: !stats.consistency
+            }
           ].map(
             (item, idx) =>
               !item.hide && (

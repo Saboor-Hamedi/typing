@@ -149,7 +149,7 @@ class SoundEngine {
     if (!this.audioCtx) return
 
     const now = this.audioCtx.currentTime
-    
+
     // Ultra-fast throttling: Skip if called too rapidly (prevents audio glitches at extreme speeds)
     if (now - this.lastPlayTime < this.minInterval) return
     this.lastPlayTime = now

@@ -7,7 +7,7 @@
   --db-spacing-md: 1rem;
   --db-spacing-lg: 1.5rem;
   --db-spacing-xl: 2rem;
-  
+
   display: flex;
   height: 100%; /* Respect parent padding (header/status bar) */
   width: 100%;
@@ -81,7 +81,12 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.04) 50%, transparent 100%);
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    transparent 100%
+  );
   transform: translateX(-100%);
   transition: transform 0.8s ease;
   pointer-events: none;
@@ -142,7 +147,12 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 50%, transparent 100%);
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
   transform: translateX(-100%);
   transition: transform 0.7s ease;
   pointer-events: none;
@@ -573,11 +583,11 @@
   .database-view {
     --db-sidebar-width: 280px;
   }
-  
+
   .db-stats-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-  
+
   .db-table-header,
   .db-row {
     grid-template-columns: 60px 1fr 100px 100px 90px;
@@ -588,7 +598,7 @@
   .database-view {
     flex-direction: column;
   }
-  
+
   .db-sidebar {
     width: 100%;
     border-right: none;
@@ -596,15 +606,15 @@
     max-height: 320px;
     padding: var(--db-spacing-md);
   }
-  
+
   .db-stats-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-  
+
   .db-import-export-section {
     flex-direction: row;
   }
-  
+
   .import-export-card {
     min-width: 150px;
   }
@@ -615,30 +625,30 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .db-search {
     min-width: auto;
   }
-  
+
   .db-table-header,
   .db-row {
     grid-template-columns: 60px 1fr 90px;
   }
-  
+
   .db-col:nth-child(3),
   .db-col:nth-child(4) {
     display: none;
   }
-  
+
   .db-col.actions {
     justify-content: flex-end;
   }
-  
+
   .db-pagination {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .page-info {
     min-width: auto;
   }
@@ -649,44 +659,44 @@
     padding: var(--db-spacing-sm);
     max-height: 280px;
   }
-  
+
   .db-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .db-table-header,
   .db-row {
     grid-template-columns: 1fr 80px;
     padding: 12px var(--db-spacing-sm);
   }
-  
+
   .db-col.id,
   .db-col.text {
     display: none;
   }
-  
+
   .db-col:nth-child(3) {
     display: flex !important;
     grid-column: span 2;
   }
-  
+
   .db-col.actions {
     grid-column: span 2;
     padding-top: 8px;
     justify-content: flex-start;
     gap: 10px;
   }
-  
+
   .db-badge {
     padding: 2px 8px;
     font-size: 0.68rem;
     min-width: 60px;
   }
-  
+
   .db-title h1 {
     font-size: 1.4rem;
   }
-  
+
   .db-title p {
     font-size: 0.8rem;
   }
@@ -735,16 +745,16 @@
   .db-col.actions {
     display: none !important;
   }
-  
+
   .database-view {
     display: block;
   }
-  
+
   .db-table-container {
     border-radius: 0;
     box-shadow: none;
   }
-  
+
   .db-row:hover {
     transform: none;
     background: transparent;

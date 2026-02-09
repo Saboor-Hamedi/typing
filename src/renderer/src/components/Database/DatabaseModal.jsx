@@ -6,17 +6,11 @@ import './DatabaseModal.css'
 
 /**
  * DatabaseModal
- * 
+ *
  * A standalone modal for adding or editing database sentences.
  * Integrated with the char limit system based on difficulty.
  */
-const DatabaseModal = ({ 
-  isOpen, 
-  onClose, 
-  onSave, 
-  editingItem = null,
-  addToast 
-}) => {
+const DatabaseModal = ({ isOpen, onClose, onSave, editingItem = null, addToast }) => {
   const [formData, setFormData] = useState({
     text: '',
     difficulty: 'medium',
@@ -118,7 +112,10 @@ const DatabaseModal = ({
                 <div className="db-input-group">
                   <label className="db-label">Content Text</label>
                   <div className="db-field-container textarea">
-                    <Quote size={14} style={{ marginTop: '4px', alignSelf: 'flex-start', opacity: 0.4 }} />
+                    <Quote
+                      size={14}
+                      style={{ marginTop: '4px', alignSelf: 'flex-start', opacity: 0.4 }}
+                    />
                     <textarea
                       className="db-textarea"
                       value={formData.text}
@@ -134,7 +131,14 @@ const DatabaseModal = ({
                 </div>
 
                 {/* Difficulty & Category - Perfectly Aligned Row */}
-                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', marginBottom: '24px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '16px',
+                    alignItems: 'flex-end',
+                    marginBottom: '24px'
+                  }}
+                >
                   <div className="db-input-group no-margin" style={{ flex: 1 }}>
                     <label className="db-label">Difficulty Tier</label>
                     <div className="db-segmented">
@@ -168,17 +172,10 @@ const DatabaseModal = ({
 
                 {/* Action Buttons */}
                 <div className="db-footer">
-                  <button
-                    type="button"
-                    className="db-btn secondary"
-                    onClick={onClose}
-                  >
+                  <button type="button" className="db-btn secondary" onClick={onClose}>
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="db-btn primary"
-                  >
+                  <button type="submit" className="db-btn primary">
                     {editingItem ? 'Save Changes' : 'Save Content'}
                   </button>
                 </div>

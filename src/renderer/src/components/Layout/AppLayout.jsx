@@ -1020,7 +1020,6 @@ const AppLayout = ({ addToast }) => {
         initialQuery={paletteInitialQuery}
         engine={engine}
       />
-
     </div>
   )
 }

@@ -85,7 +85,7 @@ export const generateBaseWords = async (
 
     // 2. Fallback to Local Pool (FIXED: Use tier-specific pool instead of mixed ALL_SENTENCES)
     const pool = SENTENCES_BY_DIFF[dbDifficulty] || SENTENCES_BY_DIFF.medium
-    
+
     if (!pool || pool.length === 0) return 'The quick brown fox jumps over the lazy dog.'
 
     // If a target length is provided, try to find a sentence close to it
@@ -119,7 +119,7 @@ export const generateBaseWords = async (
     const usedInThisBatch = new Set()
 
     // NEW LOGIC: Fetch exactly ONE sentence from the database/pool.
-    // This allows the specific character limits of each difficulty (100/130/150) 
+    // This allows the specific character limits of each difficulty (100/130/150)
     // to naturally define the length of the test.
     const maxSentences = 1
     let sentenceCount = 0
@@ -159,7 +159,7 @@ export const generateBaseWords = async (
       }
 
       sentenceCount++
-      // If we've already satisfied a reasonable length for the requested count, 
+      // If we've already satisfied a reasonable length for the requested count,
       // AND we have at least one sentence, we can stop for Easy.
       if (difficulty === 'beginner' && sentenceCount >= 1) break
     }

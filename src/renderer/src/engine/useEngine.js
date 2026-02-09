@@ -489,7 +489,7 @@ export function useEngine(testMode, testLimit, activeTab) {
     const cleanWords = words.map((w) => w.replace(/[\r\n]/g, ''))
     const targetText = cleanWords.join(' ')
     const wordsArrayTokenized = targetText.split(' ')
-    
+
     const map = {} // Use object instead of array to avoid Infinity length issue
     let currentPos = 0
     for (let i = 0; i < wordsArrayTokenized.length; i++) {
@@ -497,7 +497,7 @@ export function useEngine(testMode, testLimit, activeTab) {
       const start = currentPos
       const end = start + w.length
       const nextWordStart = i < wordsArrayTokenized.length - 1 ? end + 1 : end + 1 // Use end+1 instead of Infinity
-      
+
       const info = { index: i, start, end, word: w }
       // Fill map for every character position in this word's range
       for (let p = start; p < nextWordStart; p++) {
@@ -805,7 +805,7 @@ export function useEngine(testMode, testLimit, activeTab) {
         const roundedH = Math.round(h) + 2
 
         setCaretPos({ left: roundedLeft, top: finalizedTop, height: roundedH, width: caretWidth })
-        
+
         // Use a much larger buffer and rounded values to prevent line-jitter
         if (Math.abs(roundedTop - activeLineTop) > 20) {
           setActiveLineTop(roundedTop)

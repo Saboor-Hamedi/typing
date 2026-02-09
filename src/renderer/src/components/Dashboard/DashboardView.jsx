@@ -91,7 +91,11 @@ const DashboardView = ({
                 <User size={18} />
               </button>
             )}
-            <button className="hero-btn" onClick={() => setIsAddContentOpen(true)} title="Add Content">
+            <button
+              className="hero-btn"
+              onClick={() => setIsAddContentOpen(true)}
+              title="Add Content"
+            >
               <Plus size={18} />
             </button>
             <button className="hero-btn" onClick={onSettings} title="Settings">
