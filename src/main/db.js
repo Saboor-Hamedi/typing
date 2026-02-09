@@ -297,3 +297,75 @@ export function searchSentences(query, limit = 20) {
     return []
   }
 }
+
+/**
+ * Get paginated sentences for management view
+ */
+export function getPaginatedSentences(page = 1, limit = 50, search = '') {
+  try {
+    if (!db) return { data: [], total: 0 }
+    
+    const offset = (page - 1) * limit
+    const terms = search ? search.trim().split(/\s+/) : []
+    
+    let query = 'SELECT * FROM sentences'
+    let countQuery = 'SELECT COUNT(*) as count FROM sentences'
+    let params = []
+
+    if (terms.length > 0) {
+      const conditions = terms.map(() => '(text LIKE ? OR category LIKE ? OR difficulty LIKE ?)').join(' AND ')
+      query += ` WHERE ${conditions}`
+      countQuery += ` WHERE ${conditions}`
+      
+      terms.forEach(term => {
+        const likeTerm = `%${term}%`
+        params.push(likeTerm, likeTerm, likeTerm)
+      })
+    }
+
+    query += ' ORDER BY id DESC LIMIT ? OFFSET ?'
+    const finalParams = [...params, limit, offset]
+
+    const data = db.prepare(query).all(...finalParams)
+    const total = db.prepare(countQuery).get(...params).count
+
+    return { data, total }
+  } catch (error) {
+    console.error('Failed to get paginated sentences:', error)
+    return { data: [], total: 0 }
+  }
+}
+
+/**
+ * Update an existing sentence
+ */
+export function updateSentence(id, text, difficulty, category) {
+  try {
+    if (!db) return false
+    const stmt = db.prepare(`
+      UPDATE sentences 
+      SET text = ?, difficulty = ?, category = ?
+      WHERE id = ?
+    `)
+    const info = stmt.run(text, difficulty, category, id)
+    return info.changes > 0
+  } catch (error) {
+    console.error('Failed to update sentence:', error)
+    return false
+  }
+}
+
+/**
+ * Delete a sentence
+ */
+export function deleteSentence(id) {
+  try {
+    if (!db) return false
+    const stmt = db.prepare('DELETE FROM sentences WHERE id = ?')
+    const info = stmt.run(id)
+    return info.changes > 0
+  } catch (error) {
+    console.error('Failed to delete sentence:', error)
+    return false
+  }
+}

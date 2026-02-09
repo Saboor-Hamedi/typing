@@ -1,7 +1,9 @@
+import { createPortal } from 'react-dom'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Terminal, Scale, BookOpen } from 'lucide-react'
-import './SentenceModal.css'
+import { X, Terminal, BookOpen, Quote } from 'lucide-react'
+import '../Modals/LoginModal.css'
+import '../Database/DatabaseView.css'
 
 const SentenceModal = ({ isOpen, onClose, addToast }) => {
   const [text, setText] = useState('')
@@ -9,6 +11,21 @@ const SentenceModal = ({ isOpen, onClose, addToast }) => {
   const [category, setCategory] = useState('general')
   const [isSaving, setIsSaving] = useState(false)
   const textareaRef = useRef(null)
+
+  // Helper to get character limit based on difficulty
+  const getCharLimit = (difficulty) => {
+    if (difficulty === 'easy') return 100
+    if (difficulty === 'medium') return 130
+    return 150
+  }
+
+  // Truncate text if it exceeds new difficulty limit
+  useEffect(() => {
+    const limit = getCharLimit(difficulty)
+    if (text.length > limit) {
+      setText(text.slice(0, limit))
+    }
+  }, [difficulty])
 
   useEffect(() => {
     if (isOpen) {
@@ -47,104 +64,131 @@ const SentenceModal = ({ isOpen, onClose, addToast }) => {
     }
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="modal-overlay" onClick={onClose}>
           <motion.div
-            className="sentence-modal glass-panel"
+            className="modal-content login-modal glass-panel"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             onClick={(e) => e.stopPropagation()}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            style={{ width: '500px', maxWidth: '95vw' }}
           >
-            {/* Window Header */}
-            <div className="window-header">
-              <div className="header-left">
-                <Terminal size={14} className="header-icon" />
-                <span className="window-title">Add New Sentence</span>
+            {/* Header */}
+            <div className="modal-top-bar">
+              <div className="modal-header-title">
+                <Terminal size={14} className="modal-app-icon" />
+                <span>Add New Sentence</span>
               </div>
-              <div className="header-controls">
-                <button className="control-btn close" onClick={onClose}>
-                  <X size={14} />
-                </button>
-              </div>
+              <button className="close-btn" onClick={onClose} type="button">
+                <X size={14} />
+              </button>
             </div>
 
-            <form onSubmit={handleSave} className="modal-body">
-              <div className="form-group">
-                <label className="input-label">Sentence Content</label>
-                <textarea
-                  ref={textareaRef}
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Type or paste your professional quote here..."
-                  className="sentence-textarea"
-                  maxLength={500}
-                />
-                <div className="char-count">{text.length}/500</div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group flex-1">
-                  <label className="input-label">Difficulty</label>
-                  <div className="difficulty-toggle-group">
-                    {['easy', 'medium', 'hard'].map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        className={`toggle-btn ${difficulty === d ? 'active' : ''}`}
-                        onClick={() => setDifficulty(d)}
-                      >
-                        {d.charAt(0).toUpperCase() + d.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="form-group flex-1">
-                  <label className="input-label">Category</label>
-                  <div className="input-with-icon">
-                    <BookOpen size={14} className="field-icon" />
-                    <input
-                      type="text"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      placeholder="e.g. tech, philosophy"
-                      className="category-input"
+            <div className="modal-inner-content">
+              <form onSubmit={handleSave} className="auth-form">
+                <div className="input-group">
+                  <label>Sentence Content</label>
+                  <div className="input-container" style={{ height: 'auto', padding: '10px' }}>
+                    <Quote size={16} style={{ marginTop: '4px', alignSelf: 'flex-start' }} />
+                    <textarea
+                      ref={textareaRef}
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      required
+                      placeholder="Type or paste sentence..."
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        color: 'var(--text-color)',
+                        fontFamily: 'inherit',
+                        fontSize: '0.95rem',
+                        resize: 'none',
+                        minHeight: '80px'
+                      }}
+                      maxLength={getCharLimit(difficulty)}
                     />
                   </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--sub-color)', textAlign: 'right' }}>
+                    {text.length}/{getCharLimit(difficulty)}
+                  </div>
                 </div>
-              </div>
 
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="footer-btn secondary" 
-                  onClick={onClose}
-                  disabled={isSaving}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="footer-btn primary" 
-                  disabled={!text.trim() || isSaving}
-                >
-                  {isSaving ? 'Saving...' : (
-                    <>
-                      <Plus size={16} />
-                      <span>Add to Database</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <div className="input-group" style={{ flex: 1 }}>
+                    <label>Difficulty</label>
+                    <div className="segmented-control">
+                      {['easy', 'medium', 'hard'].map(d => (
+                        <button
+                          key={d}
+                          type="button"
+                          className={`segmented-btn ${difficulty === d ? 'active' : ''}`}
+                          onClick={() => setDifficulty(d)}
+                        >
+                          {d.charAt(0).toUpperCase() + d.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="input-group" style={{ flex: 1 }}>
+                    <label>Category</label>
+                    <div className="input-container">
+                      <BookOpen size={16} />
+                      <input
+                        type="text"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        placeholder="e.g. tech"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+                  <button
+                    type="button"
+                    className="submit-btn secondary no-glow"
+                    onClick={onClose}
+                    disabled={isSaving}
+                    style={{
+                      flex: 1,
+                      margin: 0,
+                      background: 'transparent',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: 'var(--sub-color)',
+                      fontSize: '0.9rem',
+                      height: '48px'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="submit-btn no-glow"
+                    disabled={!text.trim() || isSaving}
+                    style={{
+                      flex: 1,
+                      margin: 0,
+                      fontSize: '0.9rem',
+                      height: '48px'
+                    }}
+                  >
+                    {isSaving ? 'Saving...' : 'Add to Database'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
 

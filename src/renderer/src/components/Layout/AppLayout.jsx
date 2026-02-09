@@ -78,6 +78,7 @@ const LeaderboardView = lazy(() => import('../Leaderboard/LeaderboardView'))
 const HistoryView = lazy(() => import('../History/HistoryView'))
 const AchievementsView = lazy(() => import('../Achievements/AchievementsView'))
 const DocumentationView = lazy(() => import('../Documentation/DocumentationView'))
+const DatabaseView = lazy(() => import('../Database/DatabaseView'))
 const NotFound = lazy(() => import('../Views/NotFound'))
 
 /**
@@ -870,6 +871,8 @@ const AppLayout = ({ addToast }) => {
                   <LeaderboardView currentUser={username} />
                 ) : activeTab === 'achievements' ? (
                   <AchievementsView currentLevel={currentLevel} unlockedAvatars={unlockedAvatars} />
+                ) : activeTab === 'database' ? (
+                  <DatabaseView addToast={addToast} />
                 ) : (
                   <NotFound activeTab={activeTab} onBackHome={() => setActiveTab('typing')} />
                 )}

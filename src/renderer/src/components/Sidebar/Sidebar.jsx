@@ -7,7 +7,8 @@ import {
   Globe,
   ArrowUpCircle,
   RefreshCw,
-  BookOpen
+  BookOpen,
+  Database
 } from 'lucide-react'
 import { useState, useEffect, memo } from 'react'
 import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
@@ -93,7 +94,8 @@ const Sidebar = memo(
       { id: 'leaderboard', icon: <Globe size={20} />, label: 'Global' },
       { id: 'history', icon: <History size={20} />, label: 'History' },
       { id: 'achievements', icon: <Trophy size={20} />, label: 'Awards' },
-      { id: 'docs', icon: <BookOpen size={20} />, label: 'Knowledge' }
+      { id: 'docs', icon: <BookOpen size={20} />, label: 'Knowledge' },
+      { id: 'database', icon: <Database size={20} />, label: 'Content' }
     ]
 
     return (

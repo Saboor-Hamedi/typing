@@ -36,7 +36,10 @@ const api = {
     getRandomSentence: (difficulty) => ipcRenderer.invoke('db-get-random-sentence', difficulty),
     getSentences: (difficulty, limit) => ipcRenderer.invoke('db-get-sentences', difficulty, limit),
     addSentence: (text, difficulty, category) => ipcRenderer.invoke('db-add-sentence', text, difficulty, category),
-    searchSentences: (query, limit) => ipcRenderer.invoke('db-search-sentences', query, limit)
+    searchSentences: (query, limit) => ipcRenderer.invoke('db-search-sentences', query, limit),
+    getPaginated: (page, limit, search) => ipcRenderer.invoke('db-get-paginated', page, limit, search),
+    updateSentence: (id, text, difficulty, category) => ipcRenderer.invoke('db-update-sentence', id, text, difficulty, category),
+    deleteSentence: (id) => ipcRenderer.invoke('db-delete-sentence', id)
   },
   getVersion: () => ipcRenderer.invoke('get-version'),
   openExternal: (url) => ipcRenderer.send('open-external', url),
