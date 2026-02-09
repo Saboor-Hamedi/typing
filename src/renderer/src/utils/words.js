@@ -109,10 +109,28 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
   const useSentenceChance = 0.12
 
   if (isSentenceMode) {
+    const usedInThisBatch = new Set()
+
     // MODIFIED: Fill roughly to count but prefer full sentences
     while (currentWordCount < count * 0.9) {
-      const sentence = await getRandomSentence(count - currentWordCount)
-      if (!sentence) break
+      let sentence = null
+      
+      // Try up to 3 times to get a unique sentence
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const candidate = await getRandomSentence(count - currentWordCount)
+        if (candidate && !usedInThisBatch.has(candidate)) {
+          sentence = candidate
+          break
+        }
+      }
+      
+      // If we failed to find a unique one, just take whatever (or break if null)
+      if (!sentence) {
+        sentence = await getRandomSentence(count - currentWordCount)
+        if (!sentence) break
+      }
+
+      usedInThisBatch.add(sentence)
 
       const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
       if (wordsInSentence.length === 0) break

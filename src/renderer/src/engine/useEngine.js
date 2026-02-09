@@ -405,8 +405,9 @@ export function useEngine(testMode, testLimit, activeTab) {
     }
 
     // POLISH: Generate adequate words for the mode.
-    // Time mode needs many more words than the default 25/40.
-    const wordCount = s.testMode === 'words' ? s.testLimit : 30
+    // Time mode needs many more words. Sentence mode also needs a buffer.
+    let wordCount = s.testMode === 'words' ? s.testLimit : 100
+    if (s.isSentenceMode && wordCount < 50) wordCount = 50
 
     let ignore = false
 

@@ -144,26 +144,13 @@ function seedInitialData() {
 export function getRandomSentence(difficulty = 'medium') {
   try {
     if (!db) return null
-    // Phase 3: Optimized Selection
-    const stats = db.prepare(`
-      SELECT COUNT(*) as count, MIN(id) as minId, MAX(id) as maxId 
-      FROM sentences 
-      WHERE difficulty = ?
-    `).get(difficulty)
-
-    if (!stats || stats.count === 0) return null
-
-    // Pick a random spot in the ID range
-    const targetId = Math.floor(Math.random() * (stats.maxId - stats.minId + 1)) + stats.minId
     
-    // Find first available record >= targetId
+    // SQLite ORDER BY RANDOM() is unbiased and fast enough for our dataset size
     const result = db.prepare(`
       SELECT text FROM sentences 
-      WHERE difficulty = ? AND id >= ? 
-      ORDER BY id ASC LIMIT 1
-    `).get(difficulty, targetId) || db.prepare(`
-      SELECT text FROM sentences 
-      WHERE difficulty = ? LIMIT 1
+      WHERE difficulty = ? 
+      ORDER BY RANDOM() 
+      LIMIT 1
     `).get(difficulty)
 
     return result ? result.text : null

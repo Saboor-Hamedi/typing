@@ -82,28 +82,37 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '', en
     if (window.api?.db) {
       const trimmed = q.trim()
       if (!trimmed) {
-        const initial = await window.api.db.getSentences('medium', 5)
+          const difficulties = ['easy', 'medium', 'hard']
+        const randomDiff = difficulties[Math.floor(Math.random() * difficulties.length)]
+        const initial = await window.api.db.getSentences(randomDiff, 5)
+        
+        const diffLabel = randomDiff === 'easy' ? 'Beginner' : randomDiff === 'hard' ? 'Advanced' : 'Intermediate'
+
         setDbResults(initial.map(text => ({ 
           id: `db-${text}`,
           label: text,
           type: 'sentence',
-          category: 'Sentence Library',
+          category: `Suggested (${diffLabel})`,
           icon: <Quote size={18} />,
           text: text,
+          difficulty: diffLabel,
           onSelect: () => handleSentenceSelect(text)
         })))
       } else {
         const searchResults = await window.api.db.searchSentences(trimmed, 15)
-        setDbResults(searchResults.map(res => ({
-          id: `db-${res.id}`,
-          label: res.text,
-          type: 'sentence',
-          category: 'Search Results',
-          icon: <Quote size={18} />,
-          text: res.text,
-          difficulty: res.difficulty,
-          onSelect: () => handleSentenceSelect(res.text)
-        })))
+        setDbResults(searchResults.map(res => {
+          const diffLabel = res.difficulty === 'easy' ? 'Beginner' : (res.difficulty === 'hard' ? 'Advanced' : 'Intermediate')
+          return {
+            id: `db-${res.id}`,
+            label: res.text,
+            type: 'sentence',
+            category: 'Search Results',
+            icon: <Quote size={18} />,
+            text: res.text,
+            difficulty: diffLabel,
+            onSelect: () => handleSentenceSelect(res.text)
+          }
+        }))
       }
     }
   }, [mode, isOpen, handleSentenceSelect])
@@ -233,7 +242,7 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '', en
                               <div className="item-shortcut">{action.shortcut}</div>
                             )}
                             {action.difficulty && (
-                              <span className={`diff-badge ${action.difficulty}`}>{action.difficulty}</span>
+                              <span className={`diff-badge ${action.difficulty.toLowerCase()}`}>{action.difficulty}</span>
                             )}
                           </div>
                         </div>

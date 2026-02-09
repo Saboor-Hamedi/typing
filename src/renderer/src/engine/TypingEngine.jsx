@@ -157,7 +157,8 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     isFireCaretEnabled,
     isErrorFeedbackEnabled,
     isErrorUnderlineEnabled,
-    isKineticEnabled
+    isKineticEnabled,
+    difficulty
   } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   const [isCopying, setIsCopying] = useState(false)
@@ -307,15 +308,17 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         )}
       </AnimatePresence>
 
-      {(testMode === 'words' || testMode === 'time') &&
-        engine.wordProgress &&
-        !isFinished &&
-        !isReplaying && (
-          <div className={`live-progress-counter ${lag > 5 ? 'is-losing' : ''}`}>
-            <span>{engine.wordProgress.typed}</span>
-            <span className="remaining">/{engine.wordProgress.total}</span>
+          <div className="live-status-area">
+            {(engine.wordProgress && (testMode === 'words' || testMode === 'time')) && (
+               <div className={`live-progress-counter ${lag > 5 ? 'is-losing' : ''}`}>
+                 <span>{engine.wordProgress.typed}</span>
+                 <span className="remaining">/{engine.wordProgress.total}</span>
+               </div>
+            )}
+            <div className={`diff-badge-display ${difficulty}`}>
+              {difficulty === 'beginner' ? 'Beginner' : difficulty === 'advanced' ? 'Advanced' : 'Intermediate'}
+            </div>
           </div>
-        )}
 
       <BurstGauge wpm={liveWpm} pb={pb} isEnabled={startTime && !isFinished} />
 

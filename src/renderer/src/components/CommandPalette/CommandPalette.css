@@ -44,22 +44,22 @@
 .command-palette-search {
   display: flex;
   align-items: center;
-  padding: 20px 24px;
+  padding: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  gap: 20px;
+  gap: 0;
   background: rgba(0, 0, 0, 0.25);
-  min-height: 80px;
+  height: 52px;
+  min-height: 52px;
 }
 
 .search-icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   flex-shrink: 0;
 }
 
@@ -84,6 +84,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 0 16px;
+  height: 100%;
 }
 
 .command-palette-search input {
@@ -98,7 +100,7 @@
   cursor: text;
   padding: 8px 0;
   caret-color: var(--main-color);
-  line-height: 1;
+  line-height: 1.5;
 }
 
 .command-palette-search input::placeholder {
@@ -107,17 +109,22 @@
 }
 
 .esc-hint {
-  font-size: 0.65rem;
-  font-weight: 800;
+  font-size: 0.6rem;
+  font-weight: 700;
   color: var(--sub-color);
-  padding: 4px 10px;
+  padding: 0 6px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
-  margin-left: 10px;
+  margin-right: 16px; /* Stick to right edge */
+  opacity: 0.5;
 }
 
 .command-palette-list {
@@ -272,17 +279,17 @@
   letter-spacing: 0.5px;
 }
 
-.diff-badge.beginner {
+.diff-badge.easy, .diff-badge.beginner {
   background: rgba(0, 255, 170, 0.1);
   color: #00ffaa;
 }
 
-.diff-badge.intermediate {
+.diff-badge.medium, .diff-badge.intermediate {
   background: rgba(255, 215, 0, 0.1);
   color: #ffd700;
 }
 
-.diff-badge.advanced, .diff-badge.expert {
+.diff-badge.hard, .diff-badge.advanced, .diff-badge.expert {
   background: rgba(255, 69, 0, 0.1);
   color: #ff4500;
 }

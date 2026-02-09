@@ -42,25 +42,46 @@
 }
 
 /* Robust Background Counter - Moved to avoid overlap */
-.live-progress-counter {
+/* Robust Background Counter - Moved to avoid overlap */
+.live-status-area {
   position: absolute;
   bottom: 10%;
   right: 5%;
   z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+  user-select: none;
+}
+
+.live-progress-counter {
   font-size: clamp(3rem, 10vw, 8rem);
   font-weight: 900;
   color: var(--main-color);
   opacity: 0.08; /* Even more subtle */
-  user-select: none;
-  pointer-events: none;
   text-shadow: 0 0 30px rgba(var(--main-color-rgb), 0.15);
-  line-height: 1;
+  line-height: 0.9;
   white-space: nowrap;
   text-align: right;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;
   transition: all 0.5s ease;
 }
+
+.diff-badge-display {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  opacity: 0.3;
+  margin-right: 4px;
+  transition: color 0.3s ease;
+}
+
+.diff-badge-display.beginner { color: #00ffaa; text-shadow: 0 0 10px rgba(0, 255, 170, 0.4); }
+.diff-badge-display.intermediate { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+.diff-badge-display.advanced { color: #ff4500; text-shadow: 0 0 10px rgba(255, 69, 0, 0.4); }
 
 .live-progress-counter.is-losing {
   color: #00d2ff;
