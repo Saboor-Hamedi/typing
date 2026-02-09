@@ -85,7 +85,7 @@ Handles the content generation. It supports:
 
 - **Complexity Modifiers**: Can inject punctuation, numbers, or capitalization into any word set.
 - **Dictionaries**: Segregated by difficulty (Beginner/Intermediate/Advanced).
-- **Mode Logic**: Handles `generateWords` vs `generateBaseWords`, distinguishing between "Sentence Mode" (coherent quotes) and "Word Mode" (random tokens).
+- **Mode Logic**: Handles `generateWords` vs `generateBaseWords`, distinguishing between "Sentence Mode" (coherent quotes) and "Word Mode" (random tokens). Now includes a **Tiered Difficulty** system (Easy, Mid, Hard) that filters the dictionary based on user settings.
 
 ### **Sound Engine (`src/renderer/src/utils/SoundEngine.js`)**
 

@@ -116,6 +116,10 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : false
   })
 
+  const [difficulty, setDifficulty] = useState(() => {
+    return localStorage.getItem('difficulty') || 'intermediate'
+  })
+
   // UI state
   const [isZenMode, setIsZenMode] = useState(false)
 
@@ -142,7 +146,8 @@ export const SettingsProvider = ({ children }) => {
           savedPunctuation,
           savedNumbers,
           savedCaps,
-          savedSentenceMode
+          savedSentenceMode,
+          savedDifficulty
         ] = await Promise.all([
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_MODE),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.TEST_LIMIT),
@@ -160,7 +165,8 @@ export const SettingsProvider = ({ children }) => {
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_PUNCTUATION),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_NUMBERS),
           window.api.settings.get(STORAGE_KEYS.SETTINGS.HAS_CAPS),
-          window.api.settings.get('isSentenceMode')
+          window.api.settings.get('isSentenceMode'),
+          window.api.settings.get('difficulty')
         ])
 
         if (savedMode) setTestMode(savedMode)
@@ -180,6 +186,7 @@ export const SettingsProvider = ({ children }) => {
         if (savedNumbers !== undefined) setHasNumbers(savedNumbers)
         if (savedCaps !== undefined) setHasCaps(savedCaps)
         if (savedSentenceMode !== undefined) setIsSentenceMode(savedSentenceMode)
+        if (savedDifficulty) setDifficulty(savedDifficulty)
       }
       setIsSettingsLoaded(true)
     }
@@ -210,6 +217,7 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEYS.HAS_NUMBERS, hasNumbers)
     localStorage.setItem(STORAGE_KEYS.HAS_CAPS, hasCaps)
     localStorage.setItem('isSentenceMode', isSentenceMode)
+    localStorage.setItem('difficulty', difficulty)
 
     // Save to electron-store
     if (window.api?.settings) {
@@ -232,6 +240,7 @@ export const SettingsProvider = ({ children }) => {
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_NUMBERS, hasNumbers)
       window.api.settings.set(STORAGE_KEYS.SETTINGS.HAS_CAPS, hasCaps)
       window.api.settings.set('isSentenceMode', isSentenceMode)
+      window.api.settings.set('difficulty', difficulty)
     }
   }, [
     testMode,
@@ -325,6 +334,8 @@ export const SettingsProvider = ({ children }) => {
       setHasCaps,
       isSentenceMode,
       setIsSentenceMode,
+      difficulty,
+      setDifficulty,
       isFireCaretEnabled,
       setIsFireCaretEnabled,
 
@@ -357,6 +368,7 @@ export const SettingsProvider = ({ children }) => {
       hasNumbers,
       hasCaps,
       isSentenceMode,
+      difficulty,
       isZenMode,
       isSettingsLoaded
     ]

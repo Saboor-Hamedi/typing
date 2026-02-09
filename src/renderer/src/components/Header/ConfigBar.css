@@ -86,6 +86,10 @@
   gap: 6px;
 }
 
+.config-options-grid.three-col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .menu-item-btn {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.04);

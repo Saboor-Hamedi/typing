@@ -39,7 +39,9 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
     hasCaps,
     setHasCaps,
     isSentenceMode,
-    setIsSentenceMode
+    setIsSentenceMode,
+    difficulty,
+    setDifficulty
   } = useSettings()
 
   // Close menu on outside click
@@ -159,6 +161,36 @@ const ConfigBar = memo(({ openThemeModal, resetGame }) => {
                 </button>
               </div>
             </div>
+
+            {/* Section: Dictionary Difficulty */}
+            {!isSentenceMode && (
+              <div className="config-section">
+                <span className="config-section-label">Dictionary</span>
+                <div className="config-options-grid three-col">
+                  <button
+                    className={`menu-item-btn ${difficulty === 'beginner' ? 'active' : ''}`}
+                    onClick={() => setModeValue(setDifficulty, 'beginner', 'difficulty')}
+                  >
+                    <span>Easy</span>
+                    <div className="status-dot" />
+                  </button>
+                  <button
+                    className={`menu-item-btn ${difficulty === 'intermediate' ? 'active' : ''}`}
+                    onClick={() => setModeValue(setDifficulty, 'intermediate', 'difficulty')}
+                  >
+                    <span>Mid</span>
+                    <div className="status-dot" />
+                  </button>
+                  <button
+                    className={`menu-item-btn ${difficulty === 'advanced' ? 'active' : ''}`}
+                    onClick={() => setModeValue(setDifficulty, 'advanced', 'difficulty')}
+                  >
+                    <span>Hard</span>
+                    <div className="status-dot" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Section: Modifiers */}
             <div className="config-section">

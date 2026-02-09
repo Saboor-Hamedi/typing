@@ -83,6 +83,8 @@ export function useEngine(testMode, testLimit, activeTab) {
     hasNumbers,
     hasCaps,
     isSentenceMode,
+    difficulty,
+    setDifficulty,
     caretStyle,
     setCaretStyle,
     isFireCaretEnabled,
@@ -116,7 +118,8 @@ export function useEngine(testMode, testLimit, activeTab) {
     hasPunctuation,
     hasNumbers,
     hasCaps,
-    isSentenceMode
+    isSentenceMode,
+    difficulty
   })
 
   // 3. INTERNAL UTILITY HOOKS
@@ -397,6 +400,7 @@ export function useEngine(testMode, testLimit, activeTab) {
       hasNumbers,
       hasCaps,
       isSentenceMode,
+      difficulty,
       ...(overrides || {})
     }
 
@@ -411,7 +415,8 @@ export function useEngine(testMode, testLimit, activeTab) {
         hasPunctuation: s.hasPunctuation,
         hasNumbers: s.hasNumbers,
         hasCaps: s.hasCaps,
-        isSentenceMode: s.isSentenceMode
+        isSentenceMode: s.isSentenceMode,
+        difficulty: s.difficulty
       })
 
     // COMPLETE REPLACEMENT
@@ -465,7 +470,7 @@ export function useEngine(testMode, testLimit, activeTab) {
     if (isFinished || isReplaying) return
 
     resetGame()
-  }, [testMode, hasPunctuation, hasNumbers, hasCaps, isSentenceMode])
+  }, [testMode, hasPunctuation, hasNumbers, hasCaps, isSentenceMode, difficulty])
 
   const handleInput = useCallback(
     (e) => {

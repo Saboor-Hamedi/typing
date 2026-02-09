@@ -41,6 +41,12 @@ This document tracks fulfilled features and architectural improvements made to T
 - **Logic**: Precise caret-positioning engine that remembers typos even after skipping.
 - **Impact**: Allows immediate correction of past errors with a single backspace, landing the user exactly at the point of failure.
 
+### ✅ **7. Robust Sentence Engine (V2)**
+
+- **Status**: Fully Implemented.
+- **Logic**: Replaced random word injection with a context-aware quote selection system. If a test reaches the "Sentence Injection" trigger, it now finds a complete, coherent quote from a professional corpus.
+- **Impact**: Eliminates "hybrid" sentences that start as technical jargon and end as random nouns. Provides a premium, Monkeytype-like flow.
+
 ---
 
 ## 🔬 Core Logic Breakdown: Smart Jump-Back & Space Skip

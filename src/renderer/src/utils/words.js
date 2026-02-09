@@ -47,36 +47,61 @@ const MAX_HISTORY = 15
 /**
  * Generate a list of base words (without dynamic modifiers)
  */
-export const generateBaseWords = (count = 50, isSentenceMode = false) => {
+export const generateBaseWords = (count = 50, isSentenceMode = false, difficulty = 'intermediate') => {
   const result = []
   let currentWordCount = 0
 
-  // Helper to get a random sentence while avoiding history
-  const getRandomSentence = () => {
-    const available = SENTENCES.filter((s) => !quoteHistory.includes(s))
-    // If we've used everything in short order, reset history
-    const targetPool = available.length > 0 ? available : SENTENCES
-    const picked = targetPool[Math.floor(Math.random() * targetPool.length)]
+  // Select word pool based on difficulty
+  let activeWordPool = intermediateWords
+  if (difficulty === 'beginner') {
+    activeWordPool = beginnerWords
+  } else if (difficulty === 'advanced') {
+    activeWordPool = [...advancedWords, ...technicalWords]
+  }
 
-    // Update history
+  // Helper to get a random sentence while avoiding history
+  const getRandomSentence = (targetLength = null) => {
+    if (!SENTENCES || SENTENCES.length === 0) return 'The quick brown fox jumps over the lazy dog.'
+
+    // If a target length is provided, try to find a sentence close to it
+    let pool = SENTENCES.filter((s) => s && !quoteHistory.includes(s))
+    if (pool.length === 0) pool = SENTENCES
+
+    if (targetLength) {
+      // Find a sentence that doesn't exceed targetLength by too much, or is just the best fit
+      const sortedPool = [...pool].sort((a, b) => {
+        const lenA = (a || '').split(/\s+/).length
+        const lenB = (b || '').split(/\s+/).length
+        return Math.abs(lenA - targetLength) - Math.abs(lenB - targetLength)
+      })
+      // Take one of the top 3 best fits for variety
+      const bestFits = sortedPool.slice(0, 3)
+      const picked = bestFits[Math.floor(Math.random() * bestFits.length)] || pool[0]
+      
+      quoteHistory.push(picked)
+      if (quoteHistory.length > MAX_HISTORY) quoteHistory.shift()
+      return picked
+    }
+
+    const picked = pool[Math.floor(Math.random() * pool.length)] || SENTENCES[0]
     quoteHistory.push(picked)
     if (quoteHistory.length > MAX_HISTORY) quoteHistory.shift()
-
     return picked
   }
+
   // Reduced sentence frequency for more standard flow
-  const useSentenceChance = 0.15
+  const useSentenceChance = 0.12
 
-  while (currentWordCount < count) {
-    if (isSentenceMode) {
-      // Sentence Mode: Pick quotes and try to fill the requested count
-      const sentence = getRandomSentence()
+  if (isSentenceMode) {
+    // MODIFIED: Fill roughly to count but prefer full sentences
+    while (currentWordCount < count * 0.9) { // Give some wiggle room
+      const sentence = getRandomSentence(count - currentWordCount)
+      if (!sentence) break
+
       const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
-
+      if (wordsInSentence.length === 0) break
+      
       for (let i = 0; i < wordsInSentence.length; i++) {
-        // Strict enforcement: Stop exactly at count to respect user limits
-        if (currentWordCount >= count) break
-
         result.push({
           text: wordsInSentence[i],
           type: 'quote',
@@ -85,31 +110,42 @@ export const generateBaseWords = (count = 50, isSentenceMode = false) => {
         })
         currentWordCount++
       }
-      continue
+      
+      // If we are already very close to the count, don't start a new sentence
+      if (currentWordCount >= count - 3) break
     }
+    return result
+  }
 
-    // Standard Mode
-    // Occasional sentence injection - only if it fits or we are far from the end
-    if (Math.random() < useSentenceChance && count - currentWordCount > 10) {
-      const sentence = getRandomSentence()
-      const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
-      for (let i = 0; i < wordsInSentence.length; i++) {
-        if (currentWordCount >= count) break // Strict count enforcement
-        const w = wordsInSentence[i]
-        const cleanW = w.replace(/[",]/g, '')
-        result.push({
-          text: cleanW,
-          type: 'quote',
-          isStart: i === 0,
-          isEnd: i === wordsInSentence.length - 1
-        })
-        currentWordCount++
+  // Standard Mode Logic
+  while (currentWordCount < count) {
+    // Occasional sentence injection - only if it fits well and we haven't done one yet
+    const canInject = count - currentWordCount > 12
+    const alreadyHasQuote = result.some(item => item.type === 'quote')
+
+    if (!alreadyHasQuote && canInject && Math.random() < useSentenceChance) {
+      const sentence = getRandomSentence(Math.min(25, count - currentWordCount))
+      if (sentence) {
+        const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
+        
+        for (let i = 0; i < wordsInSentence.length; i++) {
+          const w = wordsInSentence[i]
+          const cleanW = w.replace(/[",]/g, '')
+          result.push({
+            text: cleanW,
+            type: 'quote',
+            isStart: i === 0,
+            isEnd: i === wordsInSentence.length - 1
+          })
+          currentWordCount++
+        }
+        continue
       }
-      continue
     }
 
-    // Random Words
-    let word = ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)]
+    // Random Words from the active pool
+    const pool = activeWordPool && activeWordPool.length > 0 ? activeWordPool : beginnerWords
+    let word = pool[Math.floor(Math.random() * pool.length)] || 'typing'
     result.push({ text: word, type: 'word' })
     currentWordCount++
   }
@@ -123,85 +159,69 @@ export const applyModifiers = (baseWords, settings) => {
   const {
     hasPunctuation = false,
     hasNumbers = false,
-    hasCaps = false,
-    isSentenceMode = false
+    hasCaps = false
   } = settings
 
   const result = []
 
   // Helper to inject numbers
   const tryAddNumber = () => {
-    // Increased frequency for numbers (15% -> 25%)
-    if (hasNumbers && Math.random() > 0.75) {
-      if (result.length >= baseWords.length) return // Stop if we hit the limit
+    if (hasNumbers && Math.random() > 0.8) {
+      if (result.length >= baseWords.length) return
 
-      const len = Math.floor(Math.random() * 3) + 1
+      const len = Math.floor(Math.random() * 2) + 1
       let numStr = ''
       for (let i = 0; i < len; i++) {
-        const rand = Math.floor(Math.random() * NUMBERS.length)
-        numStr += NUMBERS[rand] // Fixed: accessed correct array index
+        numStr += NUMBERS[Math.floor(Math.random() * NUMBERS.length)]
       }
       result.push(numStr)
     }
   }
 
-  // State for caps flow
-  let sentenceStart = true
+  let isNextWordStartOfSentence = true
 
-  // Iterate exactly to limit, accounting for injections
   for (let i = 0; i < baseWords.length; i++) {
-    if (result.length >= baseWords.length) break // HARD STOP AT THE LIMIT
+    if (result.length >= baseWords.length) break
 
     const item = baseWords[i]
     let word = item.text
     const isQuote = item.type === 'quote'
 
-    // 1. Handling Quote Words (Sentence Mode or Injected)
     if (isQuote) {
-      // If Quote start, handle capitalization
-      if (hasCaps && item.isStart) {
-        word = word.charAt(0).toUpperCase() + word.slice(1)
-      } else if (!hasCaps) {
+      // 1. Handle Capitalization
+      if (hasCaps) {
+        // Preserve original case if it's a quote, but ensure sentence start is capped
+        if (item.isStart || isNextWordStartOfSentence) {
+          word = word.charAt(0).toUpperCase() + word.slice(1)
+        }
+      } else {
         word = word.toLowerCase()
       }
 
-      // Handle punctuation
+      // 2. Handle Punctuation
       if (!hasPunctuation) {
-        // Force strip everything if punc is OFF
-        word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '').replace(/\s{2,}/g, ' ')
-      } else if (item.isEnd) {
-        // If punc is ON and it's the end of a sentence, ensure a period exists
-        const lastChar = word.slice(-1)
-        if (!['.', '!', '?', ';', ':'].includes(lastChar)) {
-          word = word + '.'
-        }
+        word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"'?]/g, '')
       }
 
       result.push(word)
-
-      // Handle number injection
       tryAddNumber()
 
-      // Update sentence state for next word
+      // Determine if next word should be capped (if it's a quote and we hit a terminator)
       const lastChar = word.slice(-1)
-      sentenceStart = ['.', '!', '?'].includes(lastChar)
+      isNextWordStartOfSentence = ['.', '!', '?'].includes(lastChar)
       continue
     }
 
-    // 2. Handling Standard Random Words
-
-    // Numbers injection
+    // Standard Random Word Logic
     tryAddNumber()
 
-    // Caps Logic
+    // Caps Logic for random words
     let shouldCap = false
     if (hasCaps) {
       if (hasPunctuation) {
-        // Strict Flow
-        shouldCap = sentenceStart
+        shouldCap = isNextWordStartOfSentence
       } else {
-        // Random Caps
-        shouldCap = Math.random() > 0.8 || i === 0
+        shouldCap = Math.random() > 0.92 || i === 0
       }
     }
 
@@ -211,19 +231,16 @@ export const applyModifiers = (baseWords, settings) => {
       word = word.toLowerCase()
     }
 
-    // Punctuation Logic
-    // Increased frequency (15% -> 30%)
-    if (hasPunctuation && Math.random() > 0.7) {
+    // Punctuation Logic for random words
+    if (hasPunctuation && Math.random() > 0.85) {
       const punc = ATTACHABLE_PUNCTUATION[Math.floor(Math.random() * ATTACHABLE_PUNCTUATION.length)]
-      word = word + punc
-
-      if (['.', '!', '?'].includes(punc)) {
-        sentenceStart = true
-      } else {
-        sentenceStart = false
+      // Avoid double punctuation if the word somehow has it
+      if (!/[.,!?;:]/.test(word.slice(-1))) {
+        word = word + punc
       }
+      isNextWordStartOfSentence = ['.', '!', '?'].includes(punc)
     } else {
-      sentenceStart = false
+      isNextWordStartOfSentence = false
     }
 
     result.push(word)
@@ -237,7 +254,7 @@ export const generateWords = (count, settings = {}) => {
   const limit = count || settings.testLimit || 25
 
   // 1. Generate the base words (raw text)
-  const base = generateBaseWords(limit, settings.isSentenceMode)
+  const base = generateBaseWords(limit, settings.isSentenceMode, settings.difficulty)
 
   // 2. Apply modifiers (and trim result if modifiers add extra items)
   const modified = applyModifiers(base, settings)
