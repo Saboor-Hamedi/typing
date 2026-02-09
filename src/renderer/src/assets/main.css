@@ -380,7 +380,6 @@ main {
   z-index: 10001; /* Above almost everything but titles */
 }
 
-
 .status-bar-left,
 .status-bar-right {
   display: flex;
@@ -424,7 +423,6 @@ main {
   color: var(--bg-color);
   opacity: 1;
 }
-
 
 .status-label {
   color: var(--sub-color);

@@ -177,36 +177,39 @@ export function useEngine(testMode, testLimit, activeTab) {
     pauseStartTimeRef.current = null
   }, [])
 
-  const pauseGame = useCallback((manual = false) => {
-    if (!startTimeRef.current || isFinished || isPaused) {
-      if (manual && !isFinished) setIsManuallyPaused(true)
-      return
-    }
-    
-    setIsPaused(true)
-    if (manual) setIsManuallyPaused(true)
-    pauseStartTimeRef.current = performance.now()
-    
-    if (countdownTimerRef.current) countdownTimerRef.current.pause()
-    if (elapsedTimerRef.current) elapsedTimerRef.current.pause()
-  }, [isFinished, isPaused])
+  const pauseGame = useCallback(
+    (manual = false) => {
+      if (!startTimeRef.current || isFinished || isPaused) {
+        if (manual && !isFinished) setIsManuallyPaused(true)
+        return
+      }
+
+      setIsPaused(true)
+      if (manual) setIsManuallyPaused(true)
+      pauseStartTimeRef.current = performance.now()
+
+      if (countdownTimerRef.current) countdownTimerRef.current.pause()
+      if (elapsedTimerRef.current) elapsedTimerRef.current.pause()
+    },
+    [isFinished, isPaused]
+  )
 
   const resumeGame = useCallback(() => {
     if (!isPaused || !pauseStartTimeRef.current) {
       setIsManuallyPaused(false)
       return
     }
-    
+
     const pauseDuration = performance.now() - pauseStartTimeRef.current
-    
+
     // Shift the start times forward by the pause duration
     if (startTimeRef.current) startTimeRef.current += pauseDuration
-    setStartTime(prev => prev ? prev + pauseDuration : prev)
-    
+    setStartTime((prev) => (prev ? prev + pauseDuration : prev))
+
     setIsPaused(false)
     setIsManuallyPaused(false)
     pauseStartTimeRef.current = null
-    
+
     if (countdownTimerRef.current) countdownTimerRef.current.resume()
     if (elapsedTimerRef.current) elapsedTimerRef.current.resume()
   }, [isPaused])
@@ -838,7 +841,8 @@ export function useEngine(testMode, testLimit, activeTab) {
   }, [userInput, isFinished, words, caretStyle, isFireCaretEnabled, isCenteredScrolling])
   const liveWpm = useMemo(() => {
     if (!startTime || isFinished || isReplaying) return results.wpm
-    const now = (isPaused && pauseStartTimeRef.current) ? pauseStartTimeRef.current : performance.now()
+    const now =
+      isPaused && pauseStartTimeRef.current ? pauseStartTimeRef.current : performance.now()
     const diff = (now - startTime) / 60000
     // Don't show WPM for the first 0.5s to avoid erratic jumps
     if (diff < 0.008) return 0

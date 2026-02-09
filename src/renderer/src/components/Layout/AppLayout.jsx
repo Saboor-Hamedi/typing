@@ -458,10 +458,9 @@ const AppLayout = ({ addToast }) => {
     },
     {
       id: 'pause-test',
-      label: !startTime || isFinished 
-        ? 'Game Start' 
-        : (isManuallyPaused ? 'Game Resume' : 'Game Stop'),
-      icon: (!startTime || isFinished || isManuallyPaused) ? <Play size={18} /> : <Pause size={18} />,
+      label:
+        !startTime || isFinished ? 'Game Start' : isManuallyPaused ? 'Game Resume' : 'Game Stop',
+      icon: !startTime || isFinished || isManuallyPaused ? <Play size={18} /> : <Pause size={18} />,
       shortcut: 'Ctrl+Shift+Enter',
       type: 'command',
       category: 'Game',
@@ -914,21 +913,31 @@ const AppLayout = ({ addToast }) => {
                   })()}
                 </span>
                 {!!startTime && !isFinished && !isReplaying && (
-                  <div 
-                    className="status-item clickable pause-status-item" 
+                  <div
+                    className="status-item clickable pause-status-item"
                     onClick={(e) => {
                       e.stopPropagation()
                       togglePause()
                     }}
-                    title={isPaused || isManuallyPaused ? "Resume Test" : "Pause Test (Esc or Ctrl+Shift+Enter)"}
+                    title={
+                      isPaused || isManuallyPaused
+                        ? 'Resume Test'
+                        : 'Pause Test (Esc or Ctrl+Shift+Enter)'
+                    }
                   >
-                    <kbd style={{ 
-                      width: '24px', 
-                      display: 'flex', 
-                      justifyContent: 'center', 
-                      padding: '2px 0' 
-                    }}>
-                      {isPaused || isManuallyPaused ? <Play size={10} fill="currentColor" /> : <Pause size={10} fill="currentColor" />}
+                    <kbd
+                      style={{
+                        width: '24px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        padding: '2px 0'
+                      }}
+                    >
+                      {isPaused || isManuallyPaused ? (
+                        <Play size={10} fill="currentColor" />
+                      ) : (
+                        <Pause size={10} fill="currentColor" />
+                      )}
                     </kbd>
                   </div>
                 )}

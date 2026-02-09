@@ -3,7 +3,15 @@
  *
  * Interactive typing surface that renders words/letters, caret(s), captures input, and shows results.
  */
-import React, { memo, useEffect, useMemo, useRef, useState, useLayoutEffect, useCallback } from 'react'
+import React, {
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useLayoutEffect,
+  useCallback
+} from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../contexts/SettingsContext'
 import { UI } from '../constants'
@@ -150,7 +158,14 @@ const Word = memo(
 )
 Word.displayName = 'Word'
 
-const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayActive, addToast }) => {
+const TypingEngine = ({
+  engine,
+  testMode,
+  testLimit,
+  isSmoothCaret,
+  isOverlayActive,
+  addToast
+}) => {
   const {
     isSmoothCaret: ctxSmoothCaret,
     caretStyle,
@@ -194,15 +209,18 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
   const handleDoubleClick = useCallback(() => {
     if (words.length === 0 || isCopying) return
     const textToCopy = words.join(' ')
-    
+
     setIsCopying(true)
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      setTimeout(() => setIsCopying(false), 800)
-    }).catch(err => {
-      console.error('Failed to copy: ', err)
-      addToast?.('Failed to copy sentences', 'error')
-      setIsCopying(false)
-    })
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => {
+        setTimeout(() => setIsCopying(false), 800)
+      })
+      .catch((err) => {
+        console.error('Failed to copy: ', err)
+        addToast?.('Failed to copy sentences', 'error')
+        setIsCopying(false)
+      })
   }, [words, addToast, isCopying])
 
   // Focus management
@@ -294,31 +312,37 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         }}
       />
 
-
       <AnimatePresence>
-        {startTime && !isFinished && (!isInputFocused || isPaused || isManuallyPaused) && !isOverlayActive && (
-          <FocusOverlay 
-            isVisible={true} 
-            isManual={isManuallyPaused}
-            onFocusRequest={() => {
-              resumeGame()
-              inputRef.current?.focus()
-            }} 
-          />
-        )}
+        {startTime &&
+          !isFinished &&
+          (!isInputFocused || isPaused || isManuallyPaused) &&
+          !isOverlayActive && (
+            <FocusOverlay
+              isVisible={true}
+              isManual={isManuallyPaused}
+              onFocusRequest={() => {
+                resumeGame()
+                inputRef.current?.focus()
+              }}
+            />
+          )}
       </AnimatePresence>
 
-          <div className="live-status-area">
-            {(engine.wordProgress && (testMode === 'words' || testMode === 'time')) && (
-               <div className={`live-progress-counter ${lag > 5 ? 'is-losing' : ''}`}>
-                 <span>{engine.wordProgress.typed}</span>
-                 <span className="remaining">/{engine.wordProgress.total}</span>
-               </div>
-            )}
-            <div className={`diff-badge-display ${difficulty}`}>
-              {difficulty === 'beginner' ? 'Beginner' : difficulty === 'advanced' ? 'Advanced' : 'Intermediate'}
-            </div>
+      <div className="live-status-area">
+        {engine.wordProgress && (testMode === 'words' || testMode === 'time') && (
+          <div className={`live-progress-counter ${lag > 5 ? 'is-losing' : ''}`}>
+            <span>{engine.wordProgress.typed}</span>
+            <span className="remaining">/{engine.wordProgress.total}</span>
           </div>
+        )}
+        <div className={`diff-badge-display ${difficulty}`}>
+          {difficulty === 'beginner'
+            ? 'Beginner'
+            : difficulty === 'advanced'
+              ? 'Advanced'
+              : 'Intermediate'}
+        </div>
+      </div>
 
       <BurstGauge wpm={liveWpm} pb={pb} isEnabled={startTime && !isFinished} />
 
@@ -328,7 +352,6 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
       >
         {!isFinished ? (
           <>
-
             {isGhostEnabled && startTime && !isFinished && (
               <div
                 className="caret ghost"

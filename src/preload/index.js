@@ -35,11 +35,19 @@ const api = {
   db: {
     getRandomSentence: (difficulty) => ipcRenderer.invoke('db-get-random-sentence', difficulty),
     getSentences: (difficulty, limit) => ipcRenderer.invoke('db-get-sentences', difficulty, limit),
-    addSentence: (text, difficulty, category) => ipcRenderer.invoke('db-add-sentence', text, difficulty, category),
+    addSentence: (text, difficulty, category) =>
+      ipcRenderer.invoke('db-add-sentence', text, difficulty, category),
     searchSentences: (query, limit) => ipcRenderer.invoke('db-search-sentences', query, limit),
-    getPaginated: (page, limit, search) => ipcRenderer.invoke('db-get-paginated', page, limit, search),
-    updateSentence: (id, text, difficulty, category) => ipcRenderer.invoke('db-update-sentence', id, text, difficulty, category),
-    deleteSentence: (id) => ipcRenderer.invoke('db-delete-sentence', id)
+    getPaginated: (page, limit, search) =>
+      ipcRenderer.invoke('db-get-paginated', page, limit, search),
+    updateSentence: (id, text, difficulty, category) =>
+      ipcRenderer.invoke('db-update-sentence', id, text, difficulty, category),
+    deleteSentence: (id) => ipcRenderer.invoke('db-delete-sentence', id),
+    reseedFromJSON: () => ipcRenderer.invoke('db-reseed-from-json'),
+    bulkImport: (sentences, skipDuplicates) =>
+      ipcRenderer.invoke('db-bulk-import', sentences, skipDuplicates),
+    export: () => ipcRenderer.invoke('db-export'),
+    deleteAll: () => ipcRenderer.invoke('db-delete-all')
   },
   getVersion: () => ipcRenderer.invoke('get-version'),
   openExternal: (url) => ipcRenderer.send('open-external', url),

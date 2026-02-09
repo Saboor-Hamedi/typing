@@ -16,7 +16,20 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../resources/icon.png?asset'
-import { initDatabase, getRandomSentence, getSentences, addSentence, searchSentences, getPaginatedSentences, updateSentence, deleteSentence } from './db'
+import {
+  initDatabase,
+  getRandomSentence,
+  getSentences,
+  addSentence,
+  searchSentences,
+  getPaginatedSentences,
+  updateSentence,
+  deleteSentence,
+  reseedFromJSON,
+  bulkImportSentences,
+  exportSentences,
+  deleteAllSentences
+} from './db'
 
 let mainWindow = null
 let pendingDeepLink = null
@@ -222,11 +235,23 @@ app.whenReady().then(() => {
   // SQLite DB Handlers
   ipcMain.handle('db-get-random-sentence', (event, difficulty) => getRandomSentence(difficulty))
   ipcMain.handle('db-get-sentences', (event, difficulty, limit) => getSentences(difficulty, limit))
-  ipcMain.handle('db-add-sentence', (event, text, difficulty, category) => addSentence(text, difficulty, category))
+  ipcMain.handle('db-add-sentence', (event, text, difficulty, category) =>
+    addSentence(text, difficulty, category)
+  )
   ipcMain.handle('db-search-sentences', (event, query, limit) => searchSentences(query, limit))
-  ipcMain.handle('db-get-paginated', (event, page, limit, search) => getPaginatedSentences(page, limit, search))
-  ipcMain.handle('db-update-sentence', (event, id, text, difficulty, category) => updateSentence(id, text, difficulty, category))
+  ipcMain.handle('db-get-paginated', (event, page, limit, search) =>
+    getPaginatedSentences(page, limit, search)
+  )
+  ipcMain.handle('db-update-sentence', (event, id, text, difficulty, category) =>
+    updateSentence(id, text, difficulty, category)
+  )
   ipcMain.handle('db-delete-sentence', (event, id) => deleteSentence(id))
+  ipcMain.handle('db-reseed-from-json', () => reseedFromJSON())
+  ipcMain.handle('db-bulk-import', (event, sentences, skipDuplicates) =>
+    bulkImportSentences(sentences, skipDuplicates)
+  )
+  ipcMain.handle('db-export', () => exportSentences())
+  ipcMain.handle('db-delete-all', () => deleteAllSentences())
 
   // Window Controls Handlers
   ipcMain.on('window-minimize', () => {

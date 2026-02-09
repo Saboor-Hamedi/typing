@@ -114,7 +114,9 @@ const SentenceModal = ({ isOpen, onClose, addToast }) => {
                       maxLength={getCharLimit(difficulty)}
                     />
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--sub-color)', textAlign: 'right' }}>
+                  <div
+                    style={{ fontSize: '0.75rem', color: 'var(--sub-color)', textAlign: 'right' }}
+                  >
                     {text.length}/{getCharLimit(difficulty)}
                   </div>
                 </div>
@@ -123,7 +125,7 @@ const SentenceModal = ({ isOpen, onClose, addToast }) => {
                   <div className="input-group" style={{ flex: 1 }}>
                     <label>Difficulty</label>
                     <div className="segmented-control">
-                      {['easy', 'medium', 'hard'].map(d => (
+                      {['easy', 'medium', 'hard'].map((d) => (
                         <button
                           key={d}
                           type="button"

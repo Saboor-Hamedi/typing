@@ -279,17 +279,21 @@
   letter-spacing: 0.5px;
 }
 
-.diff-badge.easy, .diff-badge.beginner {
+.diff-badge.easy,
+.diff-badge.beginner {
   background: rgba(0, 255, 170, 0.1);
   color: #00ffaa;
 }
 
-.diff-badge.medium, .diff-badge.intermediate {
+.diff-badge.medium,
+.diff-badge.intermediate {
   background: rgba(255, 215, 0, 0.1);
   color: #ffd700;
 }
 
-.diff-badge.hard, .diff-badge.advanced, .diff-badge.expert {
+.diff-badge.hard,
+.diff-badge.advanced,
+.diff-badge.expert {
   background: rgba(255, 69, 0, 0.1);
   color: #ff4500;
 }

@@ -54,68 +54,84 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '', en
 
   const filteredLocalActions = useMemo(() => {
     if (mode === 'command') {
-      return uniqueActions.filter(a => a.type === 'command').filter(a => 
-        !query || a.label.toLowerCase().includes(query.toLowerCase())
-      )
+      return uniqueActions
+        .filter((a) => a.type === 'command')
+        .filter((a) => !query || a.label.toLowerCase().includes(query.toLowerCase()))
     }
     // Search mode: Strictly ONLY show database sentences
     return []
   }, [uniqueActions, mode, query])
 
-  const handleSentenceSelect = useCallback((text) => {
-    if (engine && engine.resetGame) {
-      engine.resetGame({ 
-        words: text.split(' '),
-        isSentenceMode: true
-      })
-      onClose()
-    }
-  }, [engine, onClose])
+  const handleSentenceSelect = useCallback(
+    (text) => {
+      if (engine && engine.resetGame) {
+        engine.resetGame({
+          words: text.split(' '),
+          isSentenceMode: true
+        })
+        onClose()
+      }
+    },
+    [engine, onClose]
+  )
 
   // Fetch Database results if in search mode
-  const fetchDbResults = useCallback(async (q) => {
-    if (mode === 'command' || !isOpen) {
-      setDbResults([])
-      return
-    }
-
-    if (window.api?.db) {
-      const trimmed = q.trim()
-      if (!trimmed) {
-          const difficulties = ['easy', 'medium', 'hard']
-        const randomDiff = difficulties[Math.floor(Math.random() * difficulties.length)]
-        const initial = await window.api.db.getSentences(randomDiff, 5)
-        
-        const diffLabel = randomDiff === 'easy' ? 'Beginner' : randomDiff === 'hard' ? 'Advanced' : 'Intermediate'
-
-        setDbResults(initial.map(text => ({ 
-          id: `db-${text}`,
-          label: text,
-          type: 'sentence',
-          category: `Suggested (${diffLabel})`,
-          icon: <Quote size={18} />,
-          text: text,
-          difficulty: diffLabel,
-          onSelect: () => handleSentenceSelect(text)
-        })))
-      } else {
-        const searchResults = await window.api.db.searchSentences(trimmed, 15)
-        setDbResults(searchResults.map(res => {
-          const diffLabel = res.difficulty === 'easy' ? 'Beginner' : (res.difficulty === 'hard' ? 'Advanced' : 'Intermediate')
-          return {
-            id: `db-${res.id}`,
-            label: res.text,
-            type: 'sentence',
-            category: 'Search Results',
-            icon: <Quote size={18} />,
-            text: res.text,
-            difficulty: diffLabel,
-            onSelect: () => handleSentenceSelect(res.text)
-          }
-        }))
+  const fetchDbResults = useCallback(
+    async (q) => {
+      if (mode === 'command' || !isOpen) {
+        setDbResults([])
+        return
       }
-    }
-  }, [mode, isOpen, handleSentenceSelect])
+
+      if (window.api?.db) {
+        const trimmed = q.trim()
+        if (!trimmed) {
+          const difficulties = ['easy', 'medium', 'hard']
+          const randomDiff = difficulties[Math.floor(Math.random() * difficulties.length)]
+          const initial = await window.api.db.getSentences(randomDiff, 5)
+
+          const diffLabel =
+            randomDiff === 'easy' ? 'Beginner' : randomDiff === 'hard' ? 'Advanced' : 'Intermediate'
+
+          setDbResults(
+            initial.map((text) => ({
+              id: `db-${text}`,
+              label: text,
+              type: 'sentence',
+              category: `Suggested (${diffLabel})`,
+              icon: <Quote size={18} />,
+              text: text,
+              difficulty: diffLabel,
+              onSelect: () => handleSentenceSelect(text)
+            }))
+          )
+        } else {
+          const searchResults = await window.api.db.searchSentences(trimmed, 15)
+          setDbResults(
+            searchResults.map((res) => {
+              const diffLabel =
+                res.difficulty === 'easy'
+                  ? 'Beginner'
+                  : res.difficulty === 'hard'
+                    ? 'Advanced'
+                    : 'Intermediate'
+              return {
+                id: `db-${res.id}`,
+                label: res.text,
+                type: 'sentence',
+                category: 'Search Results',
+                icon: <Quote size={18} />,
+                text: res.text,
+                difficulty: diffLabel,
+                onSelect: () => handleSentenceSelect(res.text)
+              }
+            })
+          )
+        }
+      }
+    },
+    [mode, isOpen, handleSentenceSelect]
+  )
 
   const lastQueryRef = useRef('')
 
@@ -187,7 +203,7 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '', en
                   <Search size={18} className="search-icon mode-search" />
                 )}
               </div>
-              
+
               <div className="search-input-wrapper">
                 <input
                   ref={inputRef}
@@ -242,7 +258,9 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '', en
                               <div className="item-shortcut">{action.shortcut}</div>
                             )}
                             {action.difficulty && (
-                              <span className={`diff-badge ${action.difficulty.toLowerCase()}`}>{action.difficulty}</span>
+                              <span className={`diff-badge ${action.difficulty.toLowerCase()}`}>
+                                {action.difficulty}
+                              </span>
                             )}
                           </div>
                         </div>
@@ -266,7 +284,8 @@ const CommandPalette = ({ isOpen, onClose, actions, theme, initialQuery = '', en
                 <kbd>Enter</kbd> <span>Select</span>
               </div>
               <div className="footer-hint">
-                <kbd>{mode === 'command' ? 'BS' : '>'}</kbd> <span>{mode === 'command' ? 'Back to search' : 'Switch to Command Mode'}</span>
+                <kbd>{mode === 'command' ? 'BS' : '>'}</kbd>{' '}
+                <span>{mode === 'command' ? 'Back to search' : 'Switch to Command Mode'}</span>
               </div>
             </div>
           </motion.div>

@@ -47,7 +47,11 @@ const MAX_HISTORY = 15
 /**
  * Generate a list of base words (without dynamic modifiers)
  */
-export const generateBaseWords = async (count = 50, isSentenceMode = false, difficulty = 'intermediate') => {
+export const generateBaseWords = async (
+  count = 50,
+  isSentenceMode = false,
+  difficulty = 'intermediate'
+) => {
   const result = []
   let currentWordCount = 0
 
@@ -64,13 +68,12 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
     // 1. Strictly use SQLite DB if available
     if (window.api?.db) {
       try {
-        const dbDifficulty = 
-          difficulty === 'beginner' ? 'easy' : 
-          difficulty === 'advanced' ? 'hard' : 'medium'
-          
+        const dbDifficulty =
+          difficulty === 'beginner' ? 'easy' : difficulty === 'advanced' ? 'hard' : 'medium'
+
         const dbSentence = await window.api.db.getRandomSentence(dbDifficulty)
         if (dbSentence) return dbSentence
-        // If DB exists but is empty/fails, we still fall back to local for robustness 
+        // If DB exists but is empty/fails, we still fall back to local for robustness
         // unless explicitly told otherwise, but we'll log it.
         console.warn('DB Sentence fetch returned null, using local fallback.')
       } catch (e) {
@@ -93,7 +96,7 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
       })
       const bestFits = sortedPool.slice(0, 3)
       const picked = bestFits[Math.floor(Math.random() * bestFits.length)] || pool[0]
-      
+
       quoteHistory.push(picked)
       if (quoteHistory.length > MAX_HISTORY) quoteHistory.shift()
       return picked
@@ -114,7 +117,7 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
     // MODIFIED: Fill roughly to count but prefer full sentences
     while (currentWordCount < count * 0.9) {
       let sentence = null
-      
+
       // Try up to 3 times to get a unique sentence
       for (let attempt = 0; attempt < 3; attempt++) {
         const candidate = await getRandomSentence(count - currentWordCount)
@@ -123,7 +126,7 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
           break
         }
       }
-      
+
       // If we failed to find a unique one, just take whatever (or break if null)
       if (!sentence) {
         sentence = await getRandomSentence(count - currentWordCount)
@@ -134,7 +137,7 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
 
       const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
       if (wordsInSentence.length === 0) break
-      
+
       for (let i = 0; i < wordsInSentence.length; i++) {
         result.push({
           text: wordsInSentence[i],
@@ -144,7 +147,7 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
         })
         currentWordCount++
       }
-      
+
       if (currentWordCount >= count - 3) break
     }
     return result
@@ -153,13 +156,13 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
   // Standard Mode Logic
   while (currentWordCount < count) {
     const canInject = count - currentWordCount > 12
-    const alreadyHasQuote = result.some(item => item.type === 'quote')
+    const alreadyHasQuote = result.some((item) => item.type === 'quote')
 
     if (!alreadyHasQuote && canInject && Math.random() < useSentenceChance) {
       const sentence = await getRandomSentence(Math.min(25, count - currentWordCount))
       if (sentence) {
         const wordsInSentence = sentence.split(/\s+/).filter(Boolean)
-        
+
         for (let i = 0; i < wordsInSentence.length; i++) {
           const w = wordsInSentence[i]
           const cleanW = w.replace(/[",]/g, '')
@@ -187,11 +190,7 @@ export const generateBaseWords = async (count = 50, isSentenceMode = false, diff
  * Apply modifiers (Punc, Caps, Numbers) to base words
  */
 export const applyModifiers = (baseWords, settings) => {
-  const {
-    hasPunctuation = false,
-    hasNumbers = false,
-    hasCaps = false
-  } = settings
+  const { hasPunctuation = false, hasNumbers = false, hasCaps = false } = settings
 
   const result = []
 

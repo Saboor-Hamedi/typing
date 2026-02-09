@@ -41,10 +41,10 @@ const Header = memo(
 
           <div className="header-right">
             {!testStarted && (
-              <ConfigBar 
-                openThemeModal={openThemeModal} 
-                openSentenceModal={openSentenceModal} 
-                resetGame={resetGame} 
+              <ConfigBar
+                openThemeModal={openThemeModal}
+                openSentenceModal={openSentenceModal}
+                resetGame={resetGame}
               />
             )}
           </div>

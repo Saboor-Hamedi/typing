@@ -14,7 +14,7 @@ const FocusOverlay = ({ isVisible, onFocusRequest, isManual = false }) => {
       exit={{ opacity: 0 }}
       onClick={onFocusRequest}
     >
-      <motion.div 
+      <motion.div
         className="focus-content"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

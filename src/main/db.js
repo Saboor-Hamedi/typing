@@ -12,7 +12,7 @@ export function initDatabase() {
   try {
     const dbPath = join(app.getPath('userData'), 'typingzone.db')
     console.log('Initializing database at:', dbPath)
-    
+
     db = new Database(dbPath)
 
     // 1. Create Sentences Table
@@ -55,7 +55,9 @@ export function initDatabase() {
       seedInitialData()
     } else if (countQuery.count !== ftsCountQuery.count) {
       // Automatic Re-indexing if out of sync
-      console.log(`[DB] FTS Sync Issue detected (${countQuery.count} vs ${ftsCountQuery.count}). Rebuilding index...`)
+      console.log(
+        `[DB] FTS Sync Issue detected (${countQuery.count} vs ${ftsCountQuery.count}). Rebuilding index...`
+      )
       db.exec(`
         DELETE FROM sentences_fts;
         INSERT INTO sentences_fts(rowid, text) SELECT id, text FROM sentences;
@@ -79,17 +81,17 @@ function seedInitialData() {
     // During dev, it's in src/renderer/src/assets/words.json
     // But since this is Main Process, we can define a robust way to find it
     // For now, we'll try to resolve it relative to the executable or source
-    
+
     let wordsData
     // Enhanced path resolution for both dev and production
     const searchPaths = [
       join(app.getAppPath(), 'src/renderer/src/assets/words.json'), // Source dev
-      join(app.getAppPath(), 'out/renderer/assets/words.json'),     // Build output
+      join(app.getAppPath(), 'out/renderer/assets/words.json'), // Build output
       join(process.resourcesPath, 'app.asar.unpacked/src/renderer/src/assets/words.json'), // Unpacked asar
       join(process.resourcesPath, 'src/renderer/src/assets/words.json') // Resources folder
     ]
-    
-    let finalPath = searchPaths.find(p => fs.existsSync(p))
+
+    let finalPath = searchPaths.find((p) => fs.existsSync(p))
 
     if (!finalPath) {
       console.warn('Could not find words.json for seeding. Searching in:', searchPaths)
@@ -116,12 +118,12 @@ function seedInitialData() {
     })
 
     const payload = []
-    
+
     // Process easy, medium, hard
     const difficulties = ['easy', 'medium', 'hard']
-    difficulties.forEach(diff => {
+    difficulties.forEach((diff) => {
       if (wordsData.sentences && wordsData.sentences[diff]) {
-        wordsData.sentences[diff].forEach(text => {
+        wordsData.sentences[diff].forEach((text) => {
           payload.push({ text, difficulty: diff, category: 'general' })
         })
       }
@@ -137,6 +139,27 @@ function seedInitialData() {
 }
 
 /**
+ * Re-seed database from words.json (clears existing data)
+ */
+export function reseedFromJSON() {
+  try {
+    if (!db) return false
+
+    // Clear existing sentences
+    db.exec('DELETE FROM sentences')
+    console.log('[DB] Cleared existing sentences')
+
+    // Re-seed
+    seedInitialData()
+
+    return true
+  } catch (error) {
+    console.error('Re-seeding failed:', error)
+    return false
+  }
+}
+
+/**
  * Get a random sentence from the database
  * Optimized for millions of rows (Phase 3)
  * @param {string} difficulty - 'easy', 'medium' or 'hard'
@@ -144,14 +167,18 @@ function seedInitialData() {
 export function getRandomSentence(difficulty = 'medium') {
   try {
     if (!db) return null
-    
+
     // SQLite ORDER BY RANDOM() is unbiased and fast enough for our dataset size
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       SELECT text FROM sentences 
       WHERE difficulty = ? 
       ORDER BY RANDOM() 
       LIMIT 1
-    `).get(difficulty)
+    `
+      )
+      .get(difficulty)
 
     return result ? result.text : null
   } catch (error) {
@@ -185,7 +212,9 @@ export function getSentences(difficulty = 'medium', limit = 10) {
   try {
     if (!db) return []
     // We'll use a slightly different "Skip" approach for variety at scale
-    const stats = db.prepare('SELECT COUNT(*) as count FROM sentences WHERE difficulty = ?').get(difficulty)
+    const stats = db
+      .prepare('SELECT COUNT(*) as count FROM sentences WHERE difficulty = ?')
+      .get(difficulty)
     if (!stats || stats.count === 0) return []
 
     const maxOffset = Math.max(0, stats.count - limit)
@@ -196,7 +225,7 @@ export function getSentences(difficulty = 'medium', limit = 10) {
       WHERE difficulty = ? 
       LIMIT ? OFFSET ?
     `)
-    return stmt.all(difficulty, limit, randomOffset).map(r => r.text)
+    return stmt.all(difficulty, limit, randomOffset).map((r) => r.text)
   } catch (error) {
     console.error('Failed to get sentences:', error)
     return []
@@ -231,43 +260,56 @@ export function searchSentences(query, limit = 20) {
       `)
       const count = db.prepare('SELECT COUNT(*) as count FROM sentences').get().count
       console.log(`[DB] Rebuild complete. Total sentences: ${count}`)
-      return [{ 
-        text: `Search Index Reset! Found ${count} sentences in total.`, 
-        id: -1, 
-        category: 'System Recovery',
-        onSelect: () => {}
-      }]
+      return [
+        {
+          text: `Search Index Reset! Found ${count} sentences in total.`,
+          id: -1,
+          category: 'System Recovery',
+          onSelect: () => {}
+        }
+      ]
     }
 
     // Secret Diagnostics: !!test (Verification)
     if (trimmed === '!!test') {
-        const testText = "DIAGNOSTIC_TEST_" + Date.now()
-        db.prepare('INSERT INTO sentences (text, difficulty) VALUES (?, ?)').run(testText, 'easy')
-        const searchRes = db.prepare('SELECT rowid FROM sentences_fts WHERE sentences_fts MATCH ?').all(testText)
-        return [{ 
-          text: `Sync Test: DB Insert OK. FTS Find: ${searchRes.length > 0 ? 'SUCCESS' : 'FAILED'}`, 
-          id: -2, 
+      const testText = 'DIAGNOSTIC_TEST_' + Date.now()
+      db.prepare('INSERT INTO sentences (text, difficulty) VALUES (?, ?)').run(testText, 'easy')
+      const searchRes = db
+        .prepare('SELECT rowid FROM sentences_fts WHERE sentences_fts MATCH ?')
+        .all(testText)
+      return [
+        {
+          text: `Sync Test: DB Insert OK. FTS Find: ${searchRes.length > 0 ? 'SUCCESS' : 'FAILED'}`,
+          id: -2,
           category: 'System Diagnostics',
           onSelect: () => {}
-        }]
+        }
+      ]
     }
 
-    const tokens = trimmed.toLowerCase().split(/\s+/).filter(t => t.length > 0)
+    const tokens = trimmed
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 0)
     if (tokens.length === 0) return []
 
     // 1. TIER 1: High-Performance FTS5
-    const ftsQuery = tokens.map(t => `${t}*`).join(' OR ')
+    const ftsQuery = tokens.map((t) => `${t}*`).join(' OR ')
     console.log(`[DB] FTS Query: "${ftsQuery}"`)
 
     try {
-      const results = db.prepare(`
+      const results = db
+        .prepare(
+          `
         SELECT s.text, s.difficulty, s.category, s.id
         FROM sentences s
         INNER JOIN sentences_fts f ON s.id = f.rowid
         WHERE sentences_fts MATCH ?
         ORDER BY rank
         LIMIT ?
-      `).all(ftsQuery, limit)
+      `
+        )
+        .all(ftsQuery, limit)
 
       if (results.length > 0) {
         console.log(`[DB] FTS Success: ${results.length} matches.`)
@@ -279,16 +321,20 @@ export function searchSentences(query, limit = 20) {
 
     // 2. TIER 2: Guaranteed Fallback (Multi-word LIKE scan)
     console.log(`[DB] TIER 1 returned 0. Using Deep Scan Fallback...`)
-    const patterns = tokens.map(t => `%${t}%`)
+    const patterns = tokens.map((t) => `%${t}%`)
     const conditions = tokens.map(() => 'text LIKE ?').join(' AND ')
-    
-    const results = db.prepare(`
+
+    const results = db
+      .prepare(
+        `
         SELECT text, difficulty, category, id
         FROM sentences
         WHERE ${conditions}
         ORDER BY id DESC
         LIMIT ?
-    `).all(...patterns, limit)
+    `
+      )
+      .all(...patterns, limit)
 
     console.log(`[DB] Deep Scan Found: ${results.length} results.`)
     return results
@@ -304,20 +350,22 @@ export function searchSentences(query, limit = 20) {
 export function getPaginatedSentences(page = 1, limit = 50, search = '') {
   try {
     if (!db) return { data: [], total: 0 }
-    
+
     const offset = (page - 1) * limit
     const terms = search ? search.trim().split(/\s+/) : []
-    
+
     let query = 'SELECT * FROM sentences'
     let countQuery = 'SELECT COUNT(*) as count FROM sentences'
     let params = []
 
     if (terms.length > 0) {
-      const conditions = terms.map(() => '(text LIKE ? OR category LIKE ? OR difficulty LIKE ?)').join(' AND ')
+      const conditions = terms
+        .map(() => '(text LIKE ? OR category LIKE ? OR difficulty LIKE ?)')
+        .join(' AND ')
       query += ` WHERE ${conditions}`
       countQuery += ` WHERE ${conditions}`
-      
-      terms.forEach(term => {
+
+      terms.forEach((term) => {
         const likeTerm = `%${term}%`
         params.push(likeTerm, likeTerm, likeTerm)
       })
@@ -366,6 +414,107 @@ export function deleteSentence(id) {
     return info.changes > 0
   } catch (error) {
     console.error('Failed to delete sentence:', error)
+    return false
+  }
+}
+
+/**
+ * Bulk import sentences from JSON array
+ * @param {Array} sentences - Array of {text, difficulty, category}
+ * @param {boolean} skipDuplicates - Skip existing sentences
+ */
+export function bulkImportSentences(sentences, skipDuplicates = true) {
+  try {
+    if (!db) return { success: false, error: 'Database not initialized' }
+    if (!Array.isArray(sentences)) return { success: false, error: 'Invalid data format' }
+
+    let imported = 0
+    let skipped = 0
+    let errors = []
+
+    const insert = db.prepare(`
+      INSERT INTO sentences (text, difficulty, category) 
+      VALUES (@text, @difficulty, @category)
+    `)
+
+    const checkDuplicate = db.prepare('SELECT id FROM sentences WHERE text = ?')
+
+    const importTransaction = db.transaction((items) => {
+      for (const item of items) {
+        try {
+          // Validate
+          if (!item.text || typeof item.text !== 'string') {
+            errors.push(`Invalid text: ${JSON.stringify(item)}`)
+            continue
+          }
+
+          const text = item.text.trim()
+          const difficulty = item.difficulty || 'medium'
+          const category = item.category || 'general'
+
+          // Check duplicate
+          if (skipDuplicates && checkDuplicate.get(text)) {
+            skipped++
+            continue
+          }
+
+          insert.run({ text, difficulty, category })
+          imported++
+        } catch (err) {
+          errors.push(`Error importing: ${err.message}`)
+        }
+      }
+    })
+
+    importTransaction(sentences)
+
+    return {
+      success: true,
+      imported,
+      skipped,
+      errors: errors.length > 0 ? errors : null,
+      total: sentences.length
+    }
+  } catch (error) {
+    console.error('Bulk import failed:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Export all sentences to JSON format
+ */
+export function exportSentences() {
+  try {
+    if (!db) return null
+
+    const sentences = db
+      .prepare('SELECT text, difficulty, category FROM sentences ORDER BY id')
+      .all()
+
+    return {
+      exportDate: new Date().toISOString(),
+      version: '1.0',
+      count: sentences.length,
+      sentences
+    }
+  } catch (error) {
+    console.error('Export failed:', error)
+    return null
+  }
+}
+
+/**
+ * Delete all sentences from database
+ */
+export function deleteAllSentences() {
+  try {
+    if (!db) return false
+    db.exec('DELETE FROM sentences')
+    console.log('[DB] Deleted all sentences')
+    return true
+  } catch (error) {
+    console.error('Delete all failed:', error)
     return false
   }
 }
