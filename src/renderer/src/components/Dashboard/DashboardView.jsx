@@ -26,14 +26,16 @@ import {
   LogOut,
   Edit2,
   User,
-  ShieldAlert
+  ShieldAlert,
+  Plus
 } from 'lucide-react'
 import DangerZone from '../Common/DangerZone'
 import ProgressGraph from '../Analytics/ProgressGraph'
 import dashboardBg from '../../assets/dashboard_bg.png'
 import { calculateLevel } from '../../utils/Leveling'
 import { useState, useMemo } from 'react'
-import { Lock, Check } from 'lucide-react'
+import { Lock, Check, Database } from 'lucide-react'
+import DatabaseModal from '../Database/DatabaseModal'
 
 // Avatar Registry
 import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
@@ -53,8 +55,10 @@ const DashboardView = ({
   onDeleteAccount,
   onLogout,
   onSettings,
-  openLoginModal
+  openLoginModal,
+  addToast
 }) => {
+  const [isAddContentOpen, setIsAddContentOpen] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
   const [tempName, setTempName] = useState(username)
 
@@ -87,6 +91,9 @@ const DashboardView = ({
                 <User size={18} />
               </button>
             )}
+            <button className="hero-btn" onClick={() => setIsAddContentOpen(true)} title="Add Content">
+              <Plus size={18} />
+            </button>
             <button className="hero-btn" onClick={onSettings} title="Settings">
               <Settings size={18} />
             </button>
@@ -383,6 +390,12 @@ const DashboardView = ({
           )}
         </div>
       </div>
+      <DatabaseModal
+        isOpen={isAddContentOpen}
+        onClose={() => setIsAddContentOpen(false)}
+        onSave={() => setIsAddContentOpen(false)}
+        addToast={addToast}
+      />
     </div>
   )
 }

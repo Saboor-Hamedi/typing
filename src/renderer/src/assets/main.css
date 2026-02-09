@@ -227,11 +227,10 @@ body {
 .main-viewport {
   flex-grow: 1;
   margin-left: var(--sidebar-width);
-  padding: 64px 0 40px 0; /* Top padding for fixed header, bottom for status bar visibility */
+  padding: 82px 0 26px 0; /* Clear header (32+50) and status bar (26) */
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Solid scroll behavior */
-  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -284,6 +283,13 @@ body {
   justify-content: flex-start;
   max-width: 100%;
   padding: 1rem 1.5rem 2rem 1.5rem;
+}
+
+.content-area:has(.database-view) {
+  justify-content: flex-start;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {

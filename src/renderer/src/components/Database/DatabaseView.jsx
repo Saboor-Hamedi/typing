@@ -18,9 +18,9 @@ import {
   BarChart2
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import '../Modals/LoginModal.css' // Use LoginModal styles for consistency
 import './DatabaseView.css'
 import ConfirmationModal from '../Modals/ConfirmationModal'
+import DatabaseModal from './DatabaseModal'
 
 const DatabaseView = ({ addToast }) => {
   const [sentences, setSentences] = useState([])
@@ -35,28 +35,6 @@ const DatabaseView = ({ addToast }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false)
-
-  // Form State
-  const [formData, setFormData] = useState({
-    text: '',
-    difficulty: 'medium',
-    category: 'general'
-  })
-
-  // Helper to get character limit based on difficulty
-  const getCharLimit = (difficulty) => {
-    if (difficulty === 'easy') return 100
-    if (difficulty === 'medium') return 130
-    return 150
-  }
-
-  // Truncate text if it exceeds new difficulty limit
-  useEffect(() => {
-    const limit = getCharLimit(formData.difficulty)
-    if (formData.text.length > limit) {
-      setFormData((prev) => ({ ...prev, text: prev.text.slice(0, limit) }))
-    }
-  }, [formData.difficulty])
 
   // ... (keep existing loadData, cleanup, handlers)
   const loadData = useCallback(async () => {
@@ -101,61 +79,16 @@ const DatabaseView = ({ addToast }) => {
 
   const handleEdit = (item) => {
     setEditingItem(item)
-    setFormData({
-      text: item.text,
-      difficulty: item.difficulty,
-      category: item.category || 'general'
-    })
     setIsModalOpen(true)
   }
 
   const handleAdd = () => {
     setEditingItem(null)
-    setFormData({
-      text: '',
-      difficulty: 'medium',
-      category: 'general'
-    })
     setIsModalOpen(true)
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      if (editingItem) {
-        // Update
-        const success = await window.api.db.updateSentence(
-          editingItem.id,
-          formData.text,
-          formData.difficulty,
-          formData.category
-        )
-        if (success) {
-          addToast('Sentence updated', 'success')
-          setIsModalOpen(false)
-          loadData()
-        } else {
-          addToast('Failed to update', 'error')
-        }
-      } else {
-        // Add
-        const id = await window.api.db.addSentence(
-          formData.text,
-          formData.difficulty,
-          formData.category
-        )
-        if (id) {
-          addToast('Sentence added', 'success')
-          setIsModalOpen(false)
-          loadData()
-        } else {
-          addToast('Failed to add', 'error')
-        }
-      }
-    } catch (error) {
-      console.error(error)
-      addToast('Operation failed', 'error')
-    }
+  const handleModalSave = () => {
+    loadData()
   }
 
   const handleExport = async () => {
@@ -367,10 +300,10 @@ const DatabaseView = ({ addToast }) => {
                   <div className="db-col">{item.category}</div>
                   <div className="db-col actions">
                     <button className="action-btn" onClick={() => handleEdit(item)}>
-                      <Edit2 size={16} />
+                      <Edit2 size={14} />
                     </button>
                     <button className="action-btn delete" onClick={() => handleDelete(item.id)}>
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
@@ -400,135 +333,13 @@ const DatabaseView = ({ addToast }) => {
         </div>
       </div>
 
-      {createPortal(
-        <AnimatePresence>
-          {isModalOpen && (
-            <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-              <motion.div
-                className="modal-content login-modal glass-panel"
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                onClick={(e) => e.stopPropagation()}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                style={{ width: '500px', maxWidth: '95vw' }}
-              >
-                {/* Header */}
-                <div className="modal-top-bar">
-                  <div className="modal-header-title">
-                    <Terminal size={14} className="modal-app-icon" />
-                    <span>{editingItem ? 'Edit Sentence' : 'Add New Sentence'}</span>
-                  </div>
-                  <button className="close-btn" onClick={() => setIsModalOpen(false)}>
-                    <X size={14} />
-                  </button>
-                </div>
-
-                <div className="modal-inner-content">
-                  <form onSubmit={handleSubmit} className="auth-form">
-                    <div className="input-group">
-                      <label>Sentence Content</label>
-                      <div className="input-container" style={{ height: 'auto', padding: '10px' }}>
-                        <Quote size={16} style={{ marginTop: '4px', alignSelf: 'flex-start' }} />
-                        <textarea
-                          value={formData.text}
-                          onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                          required
-                          placeholder="Type or paste sentence..."
-                          style={{
-                            width: '100%',
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            color: 'var(--text-color)',
-                            fontFamily: 'inherit',
-                            fontSize: '0.95rem',
-                            resize: 'none',
-                            minHeight: '80px'
-                          }}
-                          maxLength={getCharLimit(formData.difficulty)}
-                        />
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--sub-color)',
-                          textAlign: 'right'
-                        }}
-                      >
-                        {formData.text.length}/{getCharLimit(formData.difficulty)}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '20px' }}>
-                      <div className="input-group" style={{ flex: 1 }}>
-                        <label>Difficulty</label>
-                        <div className="segmented-control">
-                          {['easy', 'medium', 'hard'].map((d) => (
-                            <button
-                              key={d}
-                              type="button"
-                              className={`segmented-btn ${formData.difficulty === d ? 'active' : ''}`}
-                              onClick={() => setFormData({ ...formData, difficulty: d })}
-                            >
-                              {d.charAt(0).toUpperCase() + d.slice(1)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="input-group" style={{ flex: 1 }}>
-                        <label>Category</label>
-                        <div className="input-container">
-                          <BookOpen size={16} />
-                          <input
-                            type="text"
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            placeholder="e.g. tech"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
-                      <button
-                        type="button"
-                        className="submit-btn secondary no-glow"
-                        onClick={() => setIsModalOpen(false)}
-                        style={{
-                          flex: 1,
-                          margin: 0,
-                          background: 'transparent',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
-                          color: 'var(--sub-color)',
-                          fontSize: '0.9rem',
-                          height: '48px'
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="submit-btn no-glow"
-                        style={{
-                          flex: 1,
-                          margin: 0,
-                          fontSize: '0.9rem',
-                          height: '48px'
-                        }}
-                      >
-                        {editingItem ? 'Update' : 'Add to Database'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+      <DatabaseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editingItem={editingItem}
+        onSave={handleModalSave}
+        addToast={addToast}
+      />
 
       {createPortal(
         <ConfirmationModal

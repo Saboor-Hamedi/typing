@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Settings, LogOut, LogIn } from 'lucide-react'
+import { Settings, LogOut, LogIn, Plus } from 'lucide-react'
 import UniversalAvatar from '../Common/UniversalAvatar'
 import { AVATAR_DEFS } from '../../assets/avatars'
 import './ProfileMenu.css'

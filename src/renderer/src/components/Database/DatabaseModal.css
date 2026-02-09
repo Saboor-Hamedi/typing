@@ -1,0 +1,461 @@
+/* DatabaseModal.css - Final Adjusted Version */
+
+.database-modal-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: fadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.database-modal-panel {
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 2px 10px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(0);
+  animation: slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0.96; 
+    transform: translateY(16px) scale(0.985);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header: Close button pinned to the very right */
+.db-modal-header {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 0 16px;
+  background: rgba(255, 255, 255, 0.025);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.db-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sub-color);
+  opacity: 0.85;
+  font-variant: small-caps;
+  /* Ensure title doesn't push close button */
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.db-modal-close {
+  width: 45px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--sub-color);
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.2, 0, 0.13, 1.5);
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.db-modal-close:hover {
+  background: rgba(232, 17, 35, 0.15);
+  color: #ff5f6d;
+  transform: scale(1.08);
+}
+
+.db-modal-close:active {
+  transform: scale(0.96);
+  background: rgba(232, 17, 35, 0.25);
+}
+
+.db-modal-close:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Body & Form Layout */
+.db-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(85vh - 44px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.db-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.db-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.db-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+.db-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.db-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.db-input-group.no-margin {
+  margin-bottom: 0;
+}
+
+.db-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--sub-color);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Field Containers */
+.db-field-container {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  transition: all 0.24s cubic-bezier(0.2, 0, 0.13, 1.5);
+  height: 42px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.db-field-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.db-field-container:focus-within {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.db-field-container:focus-within::before {
+  transform: translateX(100%);
+}
+
+.db-field-container.textarea {
+  height: auto;
+  min-height: 100px;
+  padding: 12px 14px;
+  align-items: flex-start;
+}
+
+.db-input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: var(--text-color) !important;
+  font-family: inherit !important;
+  font-size: 0.92rem !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.db-input::placeholder {
+  opacity: 0.4;
+  color: var(--sub-color);
+}
+
+.db-textarea {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.94rem;
+  width: 100%;
+  resize: none; /* ← Ensures textarea is NOT resizable */
+  min-height: 90px;
+  line-height: 1.5;
+  padding: 2px 0;
+}
+
+.db-textarea::placeholder {
+  opacity: 0.45;
+  color: var(--sub-color);
+}
+
+/* Segmented Control */
+.db-segmented {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  height: 42px;
+  box-sizing: border-box;
+  gap: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.db-seg-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--sub-color);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.2, 0, 0.13, 1.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.db-seg-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-color);
+}
+
+.db-seg-btn.active {
+  background: var(--main-color);
+  color: #0a0a0a;
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-0.5px);
+}
+
+.db-seg-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+/* Footer & Buttons */
+.db-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.db-btn {
+  flex: 1;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.2, 0, 0.13, 1.5);
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.db-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+
+.db-btn:hover::after {
+  transform: translateX(100%);
+}
+
+.db-btn.primary {
+  background: var(--main-color);
+  color: #000;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.db-btn.primary:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.db-btn.primary:active {
+  transform: translateY(1px);
+  filter: brightness(1.05);
+  box-shadow: 
+    0 1px 4px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.db-btn.secondary {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--sub-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.db-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-color);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.db-btn.secondary:active {
+  transform: translateY(1px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.db-btn:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+}
+
+.db-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Character Counter */
+.db-char-count {
+  font-size: 0.72rem;
+  color: var(--sub-color);
+  text-align: right;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  transition: color 0.2s;
+}
+
+.db-char-count.warning {
+  color: #ffc107;
+  opacity: 1;
+}
+
+.db-char-count.error {
+  color: #ff5f6d;
+  opacity: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+  .database-modal-wrapper {
+    padding: 1rem;
+  }
+  
+  .database-modal-panel {
+    max-width: 100%;
+    border-radius: 16px;
+  }
+  
+  .db-modal-header {
+    height: 48px;
+    padding: 0 14px;
+  }
+  
+  .db-modal-body {
+    padding: 20px;
+  }
+  
+  .db-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .db-btn {
+    height: 44px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Accessibility & Focus States */
+.db-field-container:focus-within .db-label,
+.db-input:focus + .db-label,
+.db-textarea:focus + .db-label {
+  color: var(--main-color);
+  opacity: 1;
+}
+
+/* Prevent layout shift on hover/focus */
+.db-modal-close,
+.db-seg-btn,
+.db-btn {
+  will-change: transform, background-color, box-shadow;
+}
+
+/* Smooth scrolling for body content */
+.database-modal-wrapper {
+  -webkit-overflow-scrolling: touch;
+}

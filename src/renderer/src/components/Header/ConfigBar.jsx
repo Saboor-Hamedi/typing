@@ -162,47 +162,7 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
                 </button>
               </div>
 
-              {/* Subtle Add Action for Sentences (Phase 2) */}
-              <AnimatePresence>
-                {isSentenceMode && (
-                  <motion.div
-                    className="config-sub-action"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    style={{ overflow: 'hidden' }}
-                  >
-                    <button
-                      className="menu-action-btn"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setIsOpen(false)
-                        openSentenceModal?.()
-                      }}
-                      style={{
-                        width: '100%',
-                        marginTop: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        padding: '10px',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px dashed rgba(255, 255, 255, 0.15)',
-                        borderRadius: '8px',
-                        color: 'var(--sub-color)',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <Plus size={14} />
-                      <span>Add Custom Quote</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Notice: Add Custom Quote removed for local dashboard management */}
             </div>
 
             {/* Section: Dictionary Difficulty */}

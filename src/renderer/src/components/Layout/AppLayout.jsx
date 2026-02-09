@@ -28,7 +28,6 @@ import TypingEngine from '../../engine/TypingEngine'
 import ThemeModal from '../Modals/ThemeModal'
 import LoginModal from '../Modals/LoginModal'
 import ConfirmationModal from '../Modals/ConfirmationModal'
-import SentenceModal from '../Modals/SentenceModal'
 import { useEngine } from '../../engine/useEngine'
 import { useAccountManager } from '../../hooks/useAccountManager'
 import { useChameleonFlow } from '../../hooks/useChameleonFlow'
@@ -141,7 +140,6 @@ const AppLayout = ({ addToast }) => {
   const [isCapsLockOn, setIsCapsLockOn] = useState(false)
   const [paletteInitialQuery, setPaletteInitialQuery] = useState('')
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
-  const [isSentenceModalOpen, setIsSentenceModalOpen] = useState(false)
 
   // Engine hook
   const engine = useEngine(testMode, testLimit, activeTab)
@@ -318,8 +316,7 @@ const AppLayout = ({ addToast }) => {
     isLogoutModalOpen ||
     isClearDataModalOpen ||
     isShortcutsModalOpen ||
-    isCommandPaletteOpen ||
-    isSentenceModalOpen
+    isCommandPaletteOpen
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -345,7 +342,6 @@ const AppLayout = ({ addToast }) => {
           if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
           if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
           if (isProfileMenuOpen) setIsProfileMenuOpen(false)
-          if (isSentenceModalOpen) setIsSentenceModalOpen(false)
           return
         }
 
@@ -780,12 +776,13 @@ const AppLayout = ({ addToast }) => {
             if (isLoggedIn) {
               setActiveTab('dashboard')
             } else {
+              addToast('Sign in to view dashboard', 'info')
               setIsLoginModalOpen(true)
             }
+          } else if (action === 'logout') {
+            toggleLogoutModal(true)
           } else if (action === 'settings') {
             setActiveTab('settings')
-          } else if (action === 'logout') {
-            setIsLogoutModalOpen(true)
           } else if (action === 'login') {
             setIsLoginModalOpen(true)
           }
@@ -809,7 +806,6 @@ const AppLayout = ({ addToast }) => {
             onNavigateDashboard={() => setActiveTab('dashboard')}
             liveWpm={liveWpm}
             openThemeModal={() => toggleThemeModal(true)}
-            openSentenceModal={() => setIsSentenceModalOpen(true)}
             resetGame={engine.resetGame}
           />
         )}
@@ -863,6 +859,7 @@ const AppLayout = ({ addToast }) => {
                     onLogout={() => toggleLogoutModal(true)}
                     onSettings={() => setActiveTab('settings')}
                     openLoginModal={() => toggleLoginModal(true)}
+                    addToast={addToast}
                   />
                 ) : activeTab === 'docs' ? (
                   <DocumentationView />
@@ -1021,11 +1018,6 @@ const AppLayout = ({ addToast }) => {
         engine={engine}
       />
 
-      <SentenceModal
-        isOpen={isSentenceModalOpen}
-        onClose={() => setIsSentenceModalOpen(false)}
-        addToast={addToast}
-      />
     </div>
   )
 }
