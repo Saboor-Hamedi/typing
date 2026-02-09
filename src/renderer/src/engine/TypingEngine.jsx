@@ -7,9 +7,9 @@ import React, { memo, useEffect, useMemo, useRef, useState, useLayoutEffect, use
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../contexts/SettingsContext'
 import { UI } from '../constants'
-import { FastForward, Edit2, Ghost as GhostIcon, Copy, Check } from 'lucide-react'
+import { FastForward, Edit2, Ghost as GhostIcon, Copy, Check, Pause } from 'lucide-react'
 import ResultsView from '../components/Results/ResultsView'
-import Loader from '../components/Common/Loader'
+import { Loader, FocusOverlay } from '../components/Common'
 import BurstGauge from '../components/Effects/BurstGauge'
 import './TypingEngine.css'
 
@@ -161,6 +161,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
   } = useSettings()
   const smoothCaretEnabled = typeof isSmoothCaret === 'boolean' ? isSmoothCaret : ctxSmoothCaret
   const [isCopying, setIsCopying] = useState(false)
+  const [isInputFocused, setIsInputFocused] = useState(true)
 
   const {
     words,
@@ -182,7 +183,11 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     startTime,
     isLoading,
     liveWpm,
-    pb
+    pb,
+    pauseGame,
+    resumeGame,
+    isPaused,
+    isManuallyPaused
   } = engine
 
   const handleDoubleClick = useCallback(() => {
@@ -204,7 +209,9 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
     if (isOverlayActive) return
 
     const focusTimer = setTimeout(() => {
-      inputRef.current?.focus()
+      if (!isManuallyPaused) {
+        inputRef.current?.focus()
+      }
     }, 100)
 
     const handleGlobalKeyDown = (e) => {
@@ -216,6 +223,11 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
           inputRef.current?.focus()
         }
       }
+
+      // Escape to manually pause
+      if (e.key === 'Escape' && startTime && !isFinished && !isPaused) {
+        pauseGame(true)
+      }
     }
 
     window.addEventListener('keydown', handleGlobalKeyDown)
@@ -223,7 +235,7 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
       clearTimeout(focusTimer)
       window.removeEventListener('keydown', handleGlobalKeyDown)
     }
-  }, [isOverlayActive, words])
+  }, [isOverlayActive, isManuallyPaused, words])
 
   // Track lag from CSS variable for visual feedback
   const [lag, setLag] = useState(0)
@@ -271,7 +283,29 @@ const TypingEngine = ({ engine, testMode, testLimit, isSmoothCaret, isOverlayAct
         onChange={handleInput}
         disabled={isReplaying || isLoading}
         autoFocus
+        onFocus={() => {
+          setIsInputFocused(true)
+          resumeGame()
+        }}
+        onBlur={() => {
+          setIsInputFocused(false)
+          pauseGame()
+        }}
       />
+
+
+      <AnimatePresence>
+        {startTime && !isFinished && (!isInputFocused || isPaused || isManuallyPaused) && !isOverlayActive && (
+          <FocusOverlay 
+            isVisible={true} 
+            isManual={isManuallyPaused}
+            onFocusRequest={() => {
+              resumeGame()
+              inputRef.current?.focus()
+            }} 
+          />
+        )}
+      </AnimatePresence>
 
       {(testMode === 'words' || testMode === 'time') &&
         engine.wordProgress &&

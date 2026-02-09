@@ -1,0 +1,55 @@
+.focus-overlay {
+  position: absolute;
+  inset: -1px; /* Slight overlap to ensure full coverage without gaps */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--bg-color-rgb), 0.5);
+  backdrop-filter: blur(8px);
+  border-radius: var(--round);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+}
+
+.focus-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.focus-icon-wrapper {
+  color: var(--main-color);
+  animation: focus-float 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px rgba(var(--main-color-rgb), 0.3));
+}
+
+.focus-text h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.focus-text p {
+  color: var(--sub-color);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+}
+
+@keyframes focus-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.1);
+    opacity: 1;
+  }
+}

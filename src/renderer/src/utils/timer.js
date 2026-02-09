@@ -52,7 +52,7 @@ export function createCountdownTimer(initialSeconds, onTick, onFinish) {
   }
 
   const start = () => {
-    if (isRunning) return
+    if (isRunning && !isPaused) return
 
     if (isPaused && pausedAt) {
       // Resume from pause
@@ -141,10 +141,12 @@ export function createElapsedTimer(onTick) {
   let startTime = null
   let animationFrameId = null
   let isRunning = false
+  let isPaused = false
+  let pausedTime = 0
   let lastSecond = 0
 
   const tick = () => {
-    if (!isRunning) return
+    if (!isRunning || isPaused) return
 
     const now = performance.now()
     const elapsed = Math.floor((now - startTime) / 1000)
@@ -161,37 +163,65 @@ export function createElapsedTimer(onTick) {
   }
 
   const start = () => {
-    if (isRunning) return
-    startTime = performance.now()
+    if (isRunning && !isPaused) return
+
+    if (isPaused) {
+      startTime = performance.now() - pausedTime
+      isPaused = false
+    } else {
+      startTime = performance.now()
+      lastSecond = -1
+    }
+
     isRunning = true
-    lastSecond = -1 // Force first tick (0s)
+    if (animationFrameId) cancelAnimationFrame(animationFrameId)
     animationFrameId = requestAnimationFrame(tick)
   }
 
-  const stop = () => {
-    isRunning = false
+  const pause = () => {
+    if (!isRunning || isPaused) return
+    isPaused = true
+    pausedTime = performance.now() - startTime
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
       animationFrameId = null
     }
   }
 
+  const resume = () => {
+    if (!isPaused) return
+    start()
+  }
+
+  const stop = () => {
+    isRunning = false
+    isPaused = false
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = null
+    }
+    startTime = null
+    pausedTime = 0
+  }
+
   const reset = () => {
     stop()
-    startTime = null
     lastSecond = 0
   }
 
   const getElapsed = () => {
     if (!startTime) return 0
+    if (isPaused) return Math.floor(pausedTime / 1000)
     return Math.floor((performance.now() - startTime) / 1000)
   }
 
   return {
     start,
+    pause,
+    resume,
     stop,
     reset,
     getElapsed,
-    isActive: () => isRunning
+    isActive: () => isRunning && !isPaused
   }
 }

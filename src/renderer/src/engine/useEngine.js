@@ -63,6 +63,8 @@ export function useEngine(testMode, testLimit, activeTab) {
   const [resetSignal, setResetSignal] = useState(0)
   const [wordSetId, setWordSetId] = useState(Date.now())
   const [isTimeUp, setIsTimeUp] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false)
 
   const {
     isGhostEnabled,
@@ -106,6 +108,7 @@ export function useEngine(testMode, testLimit, activeTab) {
   const lastLineTop = useRef(-1)
   const latestUserInputRef = useRef('')
   const wordsRef = useRef([])
+  const pauseStartTimeRef = useRef(null)
 
   const settingsRef = useRef({
     testMode,
@@ -166,7 +169,44 @@ export function useEngine(testMode, testLimit, activeTab) {
       elapsedTimerRef.current.stop()
       elapsedTimerRef.current = null
     }
+    setIsPaused(false)
+    setIsManuallyPaused(false)
+    pauseStartTimeRef.current = null
   }, [])
+
+  const pauseGame = useCallback((manual = false) => {
+    if (!startTimeRef.current || isFinished || isPaused) {
+      if (manual && !isFinished) setIsManuallyPaused(true)
+      return
+    }
+    
+    setIsPaused(true)
+    if (manual) setIsManuallyPaused(true)
+    pauseStartTimeRef.current = performance.now()
+    
+    if (countdownTimerRef.current) countdownTimerRef.current.pause()
+    if (elapsedTimerRef.current) elapsedTimerRef.current.pause()
+  }, [isFinished, isPaused])
+
+  const resumeGame = useCallback(() => {
+    if (!isPaused || !pauseStartTimeRef.current) {
+      setIsManuallyPaused(false)
+      return
+    }
+    
+    const pauseDuration = performance.now() - pauseStartTimeRef.current
+    
+    // Shift the start times forward by the pause duration
+    if (startTimeRef.current) startTimeRef.current += pauseDuration
+    setStartTime(prev => prev ? prev + pauseDuration : prev)
+    
+    setIsPaused(false)
+    setIsManuallyPaused(false)
+    pauseStartTimeRef.current = null
+    
+    if (countdownTimerRef.current) countdownTimerRef.current.resume()
+    if (elapsedTimerRef.current) elapsedTimerRef.current.resume()
+  }, [isPaused])
 
   const updateTelemetry = useCallback((sec, finalInput = null) => {
     if (sec < 0.1) return // Ignore extremely small durations to avoid spikes
@@ -432,7 +472,7 @@ export function useEngine(testMode, testLimit, activeTab) {
       const value = e.target.value
       latestUserInputRef.current = value
 
-      if (isFinished || isReplaying) return
+      if (isFinished || isReplaying || isPaused) return
 
       /* Time Mode Soft Finish Logic */
       if (isTimeUp) {
@@ -784,12 +824,12 @@ export function useEngine(testMode, testLimit, activeTab) {
   }, [userInput, isFinished, words, caretStyle, isFireCaretEnabled, isCenteredScrolling])
   const liveWpm = useMemo(() => {
     if (!startTime || isFinished || isReplaying) return results.wpm
-    const now = performance.now()
+    const now = (isPaused && pauseStartTimeRef.current) ? pauseStartTimeRef.current : performance.now()
     const diff = (now - startTime) / 60000
     // Don't show WPM for the first 0.5s to avoid erratic jumps
     if (diff < 0.008) return 0
     return Math.round(userInput.length / 5 / diff)
-  }, [userInput, startTime, isFinished, isReplaying, results.wpm])
+  }, [userInput, startTime, isFinished, isReplaying, isPaused, results.wpm])
 
   const wordProgress = useMemo(() => {
     // Both modes are now word-mode based
@@ -857,6 +897,10 @@ export function useEngine(testMode, testLimit, activeTab) {
       isLoading,
       activeLineTop,
       caretPos,
+      isPaused,
+      isManuallyPaused,
+      pauseGame,
+      resumeGame,
       wordSetId
     }),
     [
@@ -888,6 +932,10 @@ export function useEngine(testMode, testLimit, activeTab) {
       isLoading,
       activeLineTop,
       caretPos,
+      isPaused,
+      isManuallyPaused,
+      pauseGame,
+      resumeGame,
       wordSetId
     ]
   )

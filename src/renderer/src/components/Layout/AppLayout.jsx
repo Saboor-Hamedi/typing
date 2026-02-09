@@ -64,8 +64,8 @@ import {
   AlertCircle,
   BookOpen,
   Quote,
-  Edit,
-  LogIn
+  LogIn,
+  Pause
 } from 'lucide-react'
 import ProfileMenu from '../Sidebar/ProfileMenu'
 import './AppLayout.css'
@@ -145,6 +145,7 @@ const AppLayout = ({ addToast }) => {
   const {
     startTime,
     isFinished,
+    isReplaying,
     results,
     liveWpm,
     timeLeft,
@@ -161,7 +162,12 @@ const AppLayout = ({ addToast }) => {
     testHistory,
     clearAllData,
     ghostSpeed,
-    setGhostSpeed
+    setGhostSpeed,
+    isPaused,
+    isManuallyPaused,
+    pauseGame,
+    resumeGame,
+    resetGame
   } = engine
 
   // Derived state for immersive mode
@@ -219,8 +225,8 @@ const AppLayout = ({ addToast }) => {
 
   const handleReload = useCallback(() => {
     setActiveTab('typing')
-    engine.resetGame()
-  }, [engine])
+    resetGame()
+  }, [resetGame])
 
   // Persist activeTab active state
   useEffect(() => {
@@ -263,6 +269,17 @@ const AppLayout = ({ addToast }) => {
   const toggleClearModal = useCallback((isOpen) => setIsClearDataModalOpen(isOpen), [])
   const toggleDeleteAccountModal = useCallback((isOpen) => setIsDeleteAccountModalOpen(isOpen), [])
   const toggleProfileMenu = useCallback((isOpen) => setIsProfileMenuOpen(isOpen), [])
+
+  const togglePause = useCallback(() => {
+    if (isManuallyPaused) {
+      resumeGame()
+    } else if (startTime && !isFinished) {
+      pauseGame(true)
+    } else {
+      resetGame()
+      setActiveTab('typing')
+    }
+  }, [isManuallyPaused, resumeGame, pauseGame, startTime, isFinished, resetGame, setActiveTab])
 
   // Theme change handler
   const handleThemeChange = useCallback(
@@ -345,9 +362,7 @@ const AppLayout = ({ addToast }) => {
       // Ctrl/Cmd + R: Restart test
       if (ctrlKey && e.key === 'r' && !e.shiftKey) {
         e.preventDefault()
-        if (engine.resetGame) {
-          engine.resetGame()
-        }
+        resetGame()
         return
       }
 
@@ -380,6 +395,13 @@ const AppLayout = ({ addToast }) => {
         return
       }
 
+      // Ctrl/Cmd + Shift + Enter: Toggle Pause
+      if (ctrlKey && e.shiftKey && e.key === 'Enter') {
+        e.preventDefault()
+        togglePause()
+        return
+      }
+
       // Ctrl/Cmd + T: Open Themes
       if (ctrlKey && e.key === 't') {
         e.preventDefault()
@@ -398,7 +420,8 @@ const AppLayout = ({ addToast }) => {
     isClearDataModalOpen,
     isShortcutsModalOpen,
     isCommandPaletteOpen,
-    engine
+    engine,
+    togglePause
   ])
 
   // Display value for header (Now always WPM)
@@ -418,7 +441,18 @@ const AppLayout = ({ addToast }) => {
       shortcut: 'Tab',
       type: 'command',
       category: 'Game',
-      onSelect: () => engine.resetGame()
+      onSelect: () => resetGame()
+    },
+    {
+      id: 'pause-test',
+      label: !startTime || isFinished 
+        ? 'Game Start' 
+        : (isManuallyPaused ? 'Game Resume' : 'Game Stop'),
+      icon: (!startTime || isFinished || isManuallyPaused) ? <Play size={18} /> : <Pause size={18} />,
+      shortcut: 'Ctrl+Shift+Enter',
+      type: 'command',
+      category: 'Game',
+      onSelect: togglePause
     },
     {
       id: 'chameleon',
@@ -863,6 +897,25 @@ const AppLayout = ({ addToast }) => {
                     return '0s'
                   })()}
                 </span>
+                {!!startTime && !isFinished && !isReplaying && (
+                  <div 
+                    className="status-item clickable pause-status-item" 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      togglePause()
+                    }}
+                    title={isPaused || isManuallyPaused ? "Resume Test" : "Pause Test (Esc or Ctrl+Shift+Enter)"}
+                  >
+                    <kbd style={{ 
+                      width: '24px', 
+                      display: 'flex', 
+                      justifyContent: 'center', 
+                      padding: '2px 0' 
+                    }}>
+                      {isPaused || isManuallyPaused ? <Play size={10} fill="currentColor" /> : <Pause size={10} fill="currentColor" />}
+                    </kbd>
+                  </div>
+                )}
               </div>
             )}
           </div>
