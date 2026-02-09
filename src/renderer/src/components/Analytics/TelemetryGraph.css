@@ -18,78 +18,84 @@
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.6rem;
+  gap: 8px;
+  font-size: 0.65rem;
   color: var(--sub-color);
   text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  opacity: 0.6;
 }
 
 .legend-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px; /* Slightly squarer for professional look */
 }
 
 .legend-dot.net {
   background: var(--main-color);
-  box-shadow: 0 0 5px var(--main-color);
+  box-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.4);
 }
+
 .legend-dot.raw {
   background: var(--sub-color);
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .telemetry-svg-wrapper {
   position: relative;
+  margin-top: 1rem;
 }
 
 .telemetry-svg {
-  filter: drop-shadow(0 0 5px rgba(var(--main-color-rgb), 0.05));
+  filter: drop-shadow(0 0 15px rgba(var(--main-color-rgb), 0.05));
   overflow: visible;
 }
 
 .telemetry-tooltip {
-  background: var(--bg-color);
+  background: var(--sub-alt-color);
   border: 1px solid var(--sub-alt-color);
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
   pointer-events: none;
   z-index: 100;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  min-width: 90px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  min-width: 100px;
 }
 
 .tooltip-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .tooltip-row .label {
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   color: var(--sub-color);
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.5px;
 }
 
 .tooltip-row .val {
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 900;
   color: var(--main-color);
+  font-variant-numeric: tabular-nums;
 }
 
 .tooltip-row.secondary {
-  margin-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 4px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 6px;
 }
 
 .tooltip-row.secondary .val {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--sub-color);
+  opacity: 0.8;
 }
 
 .telemetry-placeholder {

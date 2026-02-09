@@ -89,21 +89,13 @@ const TelemetryGraph = ({ data = [], width = 500, height = 120 }) => {
               y1={height * v}
               x2={width}
               y2={height * v}
-              stroke="rgba(255,255,255,0.05)"
+              stroke="var(--sub-alt-color)"
               strokeDasharray="4 4"
             />
           ))}
 
-          {/* Area under Net WPM */}
-          <motion.path
-            d={areaData}
-            fill="url(#gradient-area-tele)"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          />
-
           {/* Raw Line (Subtle) */}
-          <motion.path
+          <path
             d={rawPath}
             fill="none"
             stroke="var(--sub-color)"
@@ -113,15 +105,12 @@ const TelemetryGraph = ({ data = [], width = 500, height = 120 }) => {
           />
 
           {/* Net WPM Line (Bold) */}
-          <motion.path
+          <path
             d={wpmPath}
             fill="none"
             stroke="var(--main-color)"
             strokeWidth="3"
             strokeLinecap="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
           />
 
           {/* Interaction Area */}

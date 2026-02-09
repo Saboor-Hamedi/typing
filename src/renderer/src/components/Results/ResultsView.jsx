@@ -13,28 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import TelemetryGraph from '../Analytics/TelemetryGraph'
 import './ResultsView.css'
 
-// Animated Counter Component for a "living" UI
-const AnimatedCounter = ({ value, duration = 1.5, suffix = '' }) => {
-  const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    let startTime
-    const animate = (now) => {
-      if (!startTime) startTime = now
-      const progress = Math.min((now - startTime) / (duration * 1000), 1)
-      setCount(Math.floor(progress * value))
-      if (progress < 1) requestAnimationFrame(animate)
-    }
-    requestAnimationFrame(animate)
-  }, [value, duration])
-
-  return (
-    <span>
-      {count}
-      {suffix}
-    </span>
-  )
-}
+// Simplified Results View without heavy animations or transparency
 
 const ResultsView = ({
   results,
@@ -43,9 +22,11 @@ const ResultsView = ({
   testLimit,
   onRestart,
   onRepeat,
-  onReplay
+  onReplay,
+  addToast
 }) => {
-  // Format duration
+  const [isCopying, setIsCopying] = useState(false)
+
   const formattedDuration = useMemo(() => {
     if (!results.duration) return '0s'
     const mins = Math.floor(results.duration / 60)
@@ -68,110 +49,94 @@ const ResultsView = ({
     return { consistency: cons, bestSecond: best, averageWpm: avg }
   }, [telemetry])
 
+  const handleCopyResult = () => {
+    const text = `TypingZone Result: ${results.wpm} WPM | ${results.accuracy}% Accuracy | ${testMode} ${testLimit}`
+    navigator.clipboard.writeText(text)
+    setIsCopying(true)
+    if (addToast) addToast({ title: 'Success', message: 'Result copied to clipboard!', type: 'success' })
+    setTimeout(() => setIsCopying(false), 2000)
+  }
+
   return (
-    <motion.div
-      className="results-container glass-panel"
-      initial={{ opacity: 0, scale: 0.95, y: 30 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div className="results-container">
       <div className="results-content">
         <div className="results-metrics-main">
           <div className="metric-group-large">
-            <motion.div
-              className="metric-card main-stat"
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
+            <div className="metric-card main-stat">
               <div className="label-with-icon">
-                <TrendingUp size={14} />
+                <TrendingUp size={16} />
                 <span className="label">wpm</span>
                 {results.isNewPb && (
-                  <motion.span
-                    className="pb-badge"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, rotate: [0, -10, 10, 0] }}
-                    transition={{ delay: 1, duration: 0.5 }}
-                  >
+                  <span className="pb-badge">
                     New PB!
-                  </motion.span>
+                  </span>
                 )}
               </div>
               <span className="value-large">
-                <AnimatedCounter value={results.wpm} />
+                {results.wpm}
               </span>
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="metric-card main-stat accent"
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
+            <div className="metric-card main-stat accent">
               <div className="label-with-icon">
-                <Target size={14} />
+                <Target size={16} />
                 <span className="label">accuracy</span>
               </div>
               <span className="value-large">
-                <AnimatedCounter value={results.accuracy} suffix="%" />
+                {results.accuracy}%
               </span>
-            </motion.div>
+            </div>
           </div>
 
-          <motion.div
-            className="results-graph-wrapper secondary-glass"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-          >
+          <div className="results-graph-wrapper secondary-glass">
             <div className="graph-header">
-              <BarChart3 size={14} />
-              <span>Performance Graph</span>
+              <BarChart3 size={16} />
+              <span>Session Performance Analytics</span>
             </div>
-            <TelemetryGraph data={telemetry} width={800} height={100} />
-          </motion.div>
+            <div style={{ flex: 1, minHeight: '180px' }}>
+              <TelemetryGraph data={telemetry} width={850} height={180} />
+            </div>
+          </div>
         </div>
 
-        <motion.div
-          className="results-stats-bar"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
+        <div className="results-stats-bar">
           {[
             { label: 'test type', val: `${testMode} ${testLimit}`, icon: <TrendingUp size={12} /> },
             { label: 'time', val: formattedDuration, icon: <Clock size={12} /> },
-            { label: 'raw wpm', val: results.rawWpm },
+            { label: 'raw wpm', val: results.rawWpm, icon: <BarChart3 size={12} /> },
             {
               label: 'errors',
               val: results.errors,
               isError: true,
               icon: <AlertCircle size={12} />
             },
-            { label: 'consistency', val: `${stats.consistency}%`, hide: !stats.consistency }
+            { label: 'consistency', val: `${stats.consistency}%`, icon: <Target size={12} />, hide: !stats.consistency }
           ].map(
             (item, idx) =>
               !item.hide && (
-                <motion.div
-                  key={idx}
-                  className="stat-pill-modern"
-                  whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                >
-                  <span className="label">{item.label}</span>
+                <div key={idx} className="stat-pill-modern">
+                  <div className="label-with-icon" style={{ opacity: 0.6, fontSize: '0.6rem' }}>
+                    {item.icon}
+                    <span className="label">{item.label}</span>
+                  </div>
                   <span className={`val ${item.isError ? 'error' : ''}`}>{item.val}</span>
-                </motion.div>
+                </div>
               )
           )}
-        </motion.div>
+        </div>
       </div>
 
-      <motion.div
-        className="results-actions"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
+      <div className="results-actions">
+        <button
+          className="action-btn-modern secondary"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleCopyResult()
+          }}
+        >
+          <TrendingUp size={18} />
+          <span>{isCopying ? 'Copied!' : 'Copy Results'}</span>
+        </button>
         <button
           className="action-btn-modern secondary"
           onClick={(e) => {
@@ -179,7 +144,7 @@ const ResultsView = ({
             onRepeat()
           }}
         >
-          <RefreshCw size={16} />
+          <RefreshCw size={18} />
           <span>Repeat Test</span>
         </button>
         <button
@@ -189,7 +154,7 @@ const ResultsView = ({
             onReplay()
           }}
         >
-          <Play size={16} />
+          <Play size={18} />
           <span>Watch Replay</span>
         </button>
         <button
@@ -199,11 +164,11 @@ const ResultsView = ({
             onRestart()
           }}
         >
-          <RotateCcw size={16} />
+          <RotateCcw size={18} />
           <span>Next Test</span>
         </button>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )
 }
 
