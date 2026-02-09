@@ -154,8 +154,8 @@
 .command-item {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  height: 54px; /* Fixed height is key to robustness */
+  padding: 10px 16px;
+  min-height: 54px; /* Flexible height but robust base */
   gap: 16px;
   cursor: pointer;
   border-radius: 8px;
@@ -179,8 +179,8 @@
   content: '';
   position: absolute;
   left: 0;
-  top: 25%;
-  bottom: 25%;
+  top: 15%;
+  bottom: 15%;
   width: 3px;
   background: var(--main-color);
   border-radius: 0 4px 4px 0;
@@ -207,6 +207,7 @@
   color: var(--sub-color);
   transition: all 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0; /* Important */
 }
 
 .command-item.selected .item-icon {
@@ -221,13 +222,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  min-width: 0; /* Critical for truncation */
 }
 
 .item-label {
   color: var(--text-color);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 500;
+  line-height: 1.4;
   transition: color 0.15s ease;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Show up to 2 lines before truncating */
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .command-item.selected .item-label {
@@ -242,6 +261,30 @@
   background: rgba(255, 255, 255, 0.05);
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+.diff-badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.diff-badge.beginner {
+  background: rgba(0, 255, 170, 0.1);
+  color: #00ffaa;
+}
+
+.diff-badge.intermediate {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+}
+
+.diff-badge.advanced, .diff-badge.expert {
+  background: rgba(255, 69, 0, 0.1);
+  color: #ff4500;
 }
 
 .no-results {
