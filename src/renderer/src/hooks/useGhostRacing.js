@@ -70,9 +70,10 @@ export const useGhostRacing = (
 
   const progressRef = useRef(0)
   const lastUpdateRef = useRef(0)
+  const lastRenderRef = useRef(0)
 
   /**
-   * Update ghost position
+   * Update ghost position (throttled to 60fps)
    */
   const updateGhostPosition = useCallback(() => {
     if (!isEnabled || !isActive || !startTime || !containerRef.current || isFinished) {
@@ -109,11 +110,14 @@ export const useGhostRacing = (
 
     const totalChars = words.join(' ').length
 
-    // Update Lead CSS Variable for visual effects
+    // Update Lead CSS Variable for visual effects (throttled)
     if (currentLead !== lastLeadRef.current) {
       document.documentElement.style.setProperty('--ghost-lead', currentLead.toString())
       lastLeadRef.current = currentLead
     }
+
+    // Schedule next frame FIRST to ensure continuous updates
+    rafIdRef.current = requestAnimationFrame(updateGhostPosition)
 
     if (index >= totalChars - 1) {
       const lastLetter = getElement(totalChars - 1)
@@ -121,18 +125,24 @@ export const useGhostRacing = (
         const container = containerRef.current
         const containerRect = container.getBoundingClientRect()
         const targetRect = lastLetter.getBoundingClientRect()
-        setGhostPos({
-          left: targetRect.right - containerRect.left + container.scrollLeft,
-          top:
-            targetRect.top -
-            containerRect.top +
-            container.scrollTop +
-            (targetRect.height - targetRect.height * 0.7) / 2,
-          width: 0,
-          height: targetRect.height * 0.7,
-          opacity: 1,
-          index: totalChars - 1
-        })
+        
+        // Throttle to 60fps
+        const timeSinceLastRender = now - lastRenderRef.current
+        if (timeSinceLastRender >= 16.67) {
+          setGhostPos({
+            left: targetRect.right - containerRect.left + container.scrollLeft,
+            top:
+              targetRect.top -
+              containerRect.top +
+              container.scrollTop +
+              (targetRect.height - targetRect.height * 0.7) / 2,
+            width: 0,
+            height: targetRect.height * 0.7,
+            opacity: 1,
+            index: totalChars - 1
+          })
+          lastRenderRef.current = now
+        }
       }
       return
     }
@@ -178,10 +188,13 @@ export const useGhostRacing = (
         }
       }
 
-      setGhostPos({ left, top, width: 2, height, opacity, index })
+      // Throttle state updates to 60fps (16.67ms)
+      const timeSinceLastRender = now - lastRenderRef.current
+      if (timeSinceLastRender >= 16.67) {
+        setGhostPos({ left, top, width: 2, height, opacity, index })
+        lastRenderRef.current = now
+      }
     }
-
-    rafIdRef.current = requestAnimationFrame(updateGhostPosition)
   }, [
     isEnabled,
     isActive,
@@ -190,7 +203,6 @@ export const useGhostRacing = (
     ghostSpeed,
     words,
     containerRef,
-    getElement,
     isFinished,
     userInputRef
   ])

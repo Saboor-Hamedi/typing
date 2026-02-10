@@ -363,7 +363,7 @@ const TypingEngine = ({
                   pointerEvents: 'none',
                   transform: `translate3d(${ghostPos.left}px, ${ghostPos.top}px, 0)`,
                   opacity: ghostPos.opacity ?? 1,
-                  transition: 'opacity 0.2s'
+                  transition: 'transform 0.05s linear, opacity 0.1s ease-out'
                 }}
               >
                 <div className="ghost-icon">

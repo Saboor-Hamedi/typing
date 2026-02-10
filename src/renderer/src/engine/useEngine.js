@@ -619,14 +619,19 @@ export function useEngine(testMode, testLimit, activeTab) {
         }
       }
 
-      // 2. SPACE SKIPS WRONG WORD LOGIC
+      // 2. SPACE SKIPS WRONG WORD LOGIC + WORD COMPLETE SOUND
       if (!isBackspace && lastChar === ' ') {
         const info = getWordInfo(userInput.length)
+        
         if (info) {
           const wordTyped = value.slice(info.start, userInput.length)
           const targetWord = info.word
 
-          if (wordTyped.length > 0 && wordTyped !== targetWord) {
+          // Check if word is correct (trim to exclude the space we just typed)
+          const isCorrect = wordTyped.trim() === targetWord
+
+          if (wordTyped.length > 0 && !isCorrect) {
+            // Word is wrong - pad and skip
             const nextWordStart = info.end + 1
             if (nextWordStart <= targetText.length) {
               const paddedContent = wordTyped
@@ -637,6 +642,9 @@ export function useEngine(testMode, testLimit, activeTab) {
                 inputRef.current.value = finalValue
               }
             }
+          } else if (isCorrect) {
+            // Word completed correctly!
+            soundEngine.playWordCompleteSound()
           }
         }
       }

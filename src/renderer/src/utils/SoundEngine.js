@@ -198,6 +198,42 @@ class SoundEngine {
     noise.stop(now + s.noiseDecay * 0.7 + 0.05)
   }
 
+  /**
+   * Play a pleasant "pop" sound when a word is completed correctly
+   */
+  playWordCompleteSound() {
+    this.init()
+    if (!this.audioCtx) return
+
+    const now = this.audioCtx.currentTime
+
+    // Create a soft "pop" sound using a frequency sweep
+    const popGain = this.audioCtx.createGain()
+    popGain.gain.setValueAtTime(0.12, now)
+    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15)
+
+    // Single oscillator with quick frequency sweep for "pop" effect
+    const osc = this.audioCtx.createOscillator()
+    osc.type = 'triangle'
+    osc.frequency.setValueAtTime(200, now)
+    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08)
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.15)
+
+    // Soft lowpass filter for warmth
+    const filter = this.audioCtx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.setValueAtTime(1200, now)
+    filter.Q.setValueAtTime(1, now)
+
+    // Route: osc -> filter -> gain -> master
+    osc.connect(filter)
+    filter.connect(popGain)
+    popGain.connect(this.masterGain)
+
+    osc.start(now)
+    osc.stop(now + 0.18)
+  }
+
   getProfileSettings() {
     const p = {
       thocky: {
