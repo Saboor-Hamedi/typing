@@ -58,6 +58,26 @@ const ResultsView = ({
     setTimeout(() => setIsCopying(false), 2000)
   }
 
+  //  Keyboard Shortcuts
+  useEffect(() => {
+    const isMac = navigator.platform.includes('Mac')
+    // Repeat Test
+    const handleKeyDown = (e) => {
+      const key = e.key.toLowerCase()
+      if (key === 'o' && e.shiftKey && (isMac ? e.metaKey : e.altKey)) {
+        e.preventDefault()
+        onReplay()
+      } else if (key === 'r' && e.ctrlKey && !e.shiftKey) {
+        e.preventDefault()
+        onRepeat()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [onReplay, onRepeat])
+
   return (
     <div className="results-container">
       <div className="results-content">
@@ -144,6 +164,7 @@ const ResultsView = ({
         >
           <RefreshCw size={18} />
           <span>Repeat Test</span>
+          <kbd className="shortcut-hint">Ctrl + R</kbd>
         </button>
         <button
           className="action-btn-modern secondary"
@@ -154,6 +175,7 @@ const ResultsView = ({
         >
           <Play size={18} />
           <span>Watch Replay</span>
+          <kbd className="shortcut-hint">Alt + Shift + O</kbd>
         </button>
         <button
           className="action-btn-modern primary"

@@ -125,7 +125,7 @@ export const useGhostRacing = (
         const container = containerRef.current
         const containerRect = container.getBoundingClientRect()
         const targetRect = lastLetter.getBoundingClientRect()
-        
+
         // Throttle to 60fps
         const timeSinceLastRender = now - lastRenderRef.current
         if (timeSinceLastRender >= 16.67) {

@@ -205,7 +205,9 @@
 }
 
 .redlining {
-  animation: jitter 0.05s infinite alternate, redline-pulse 0.4s infinite alternate;
+  animation:
+    jitter 0.05s infinite alternate,
+    redline-pulse 0.4s infinite alternate;
 }
 
 @keyframes redline-pulse {

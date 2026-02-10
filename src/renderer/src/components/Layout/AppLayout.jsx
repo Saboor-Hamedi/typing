@@ -361,11 +361,11 @@ const AppLayout = ({ addToast }) => {
       const ctrlKey = isMac ? e.metaKey : e.ctrlKey
 
       // Ctrl/Cmd + R: Restart test
-      if (ctrlKey && e.key === 'r' && !e.shiftKey) {
-        e.preventDefault()
-        resetGame()
-        return
-      }
+      // if (ctrlKey && e.key === 'r' && !e.shiftKey) {
+      //   e.preventDefault()
+      //   resetGame()
+      //   return
+      // }
 
       // Ctrl/Cmd + Shift + R: Reload Window
       if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {

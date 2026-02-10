@@ -622,7 +622,7 @@ export function useEngine(testMode, testLimit, activeTab) {
       // 2. SPACE SKIPS WRONG WORD LOGIC + WORD COMPLETE SOUND
       if (!isBackspace && lastChar === ' ') {
         const info = getWordInfo(userInput.length)
-        
+
         if (info) {
           const wordTyped = value.slice(info.start, userInput.length)
           const targetWord = info.word
