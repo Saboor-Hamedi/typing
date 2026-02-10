@@ -1,9 +1,9 @@
 .burst-gauge-container {
   position: absolute;
-  top: 75px; /* Move slightly down for more presence */
+  top: 125px; /* Lowered significantly to clear the 82px header area */
   left: 50%;
   transform: translateX(-50%);
-  width: 220px; /* Wider for better gauge scale */
+  width: 220px;
   height: 120px;
   display: flex;
   flex-direction: column;
@@ -20,14 +20,14 @@
   height: 100%;
   padding: 10px;
   box-sizing: border-box;
-  background: rgba(var(--bg-color-rgb), 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(var(--bg-color-rgb), 0.75); /* Darkened slightly for better contrast */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 110px 110px 15px 15px;
-  border: 1px solid var(--sub-alt-color);
+  border: 1px solid rgba(var(--main-color-rgb), 0.2); /* Integrated theme color into border */
   box-shadow:
-    inset 0 0 20px rgba(0, 0, 0, 0.2),
-    0 10px 30px rgba(0, 0, 0, 0.3);
+    inset 0 0 20px rgba(0, 0, 0, 0.4),
+    0 15px 35px rgba(0, 0, 0, 0.4);
 }
 
 .gauge-svg {
@@ -38,7 +38,7 @@
 
 .gauge-needle-wrapper {
   position: absolute;
-  bottom: 25px; /* Centered in the arch base */
+  bottom: 25px;
   left: 50%;
   width: 3px;
   height: 55px;
@@ -122,7 +122,7 @@
 
 .speed-warning {
   position: absolute;
-  top: -30px;
+  top: -40px; /* Adjusted to sit nicely above lowered gauge */
   font-size: 0.7rem;
   font-weight: 900;
   color: var(--error-color);
@@ -138,7 +138,7 @@
 
 .lag-warning {
   position: absolute;
-  top: -30px;
+  top: -40px; /* Adjusted to sit nicely above lowered gauge */
   font-size: 0.7rem;
   font-weight: 900;
   color: #00d2ff;
@@ -153,8 +153,68 @@
   white-space: nowrap;
 }
 
+.ghost-needle {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  width: 2px;
+  height: 48px;
+  background: var(--sub-color);
+  opacity: 0.15;
+  transform-origin: bottom center;
+  z-index: 1;
+  border-radius: 1px;
+}
+
+.overtake-flash {
+  animation: overtake-flash-anim 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes overtake-flash-anim {
+  0% {
+    background: rgba(var(--main-color-rgb), 0.3);
+    box-shadow: 0 0 100px rgba(var(--main-color-rgb), 0.5);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 rgba(var(--main-color-rgb), 0);
+  }
+}
+
+.gauge-spark {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: var(--main-color);
+  border-radius: 50%;
+  filter: blur(1px);
+}
+
+.limit-break {
+  color: var(--main-color) !important;
+  border-color: var(--main-color) !important;
+  box-shadow: 0 0 30px rgba(var(--main-color-rgb), 0.5) !important;
+}
+
+.overtake {
+  color: #00ff80 !important;
+  border-color: #00ff80 !important;
+  box-shadow: 0 0 40px rgba(0, 255, 128, 0.6) !important;
+}
+
 .redlining {
-  animation: jitter 0.05s infinite alternate;
+  animation: jitter 0.05s infinite alternate, redline-pulse 0.4s infinite alternate;
+}
+
+@keyframes redline-pulse {
+  from {
+    filter: brightness(1);
+  }
+  to {
+    filter: brightness(1.5) drop-shadow(0 0 10px var(--main-color));
+  }
 }
 
 @keyframes jitter {
