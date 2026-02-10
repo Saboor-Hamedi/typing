@@ -27,7 +27,8 @@ import {
   Edit2,
   User,
   ShieldAlert,
-  Plus
+  Plus,
+  X
 } from 'lucide-react'
 import DangerZone from '../Common/DangerZone'
 import ProgressGraph from '../Analytics/ProgressGraph'
@@ -41,6 +42,7 @@ import DatabaseModal from '../Database/DatabaseModal'
 import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
 import UniversalAvatar from '../Common/UniversalAvatar'
 import { HighlightedText } from '../Common'
+import Tooltip from '../Common/Tooltip'
 
 const DashboardView = ({
   stats,
@@ -96,13 +98,14 @@ const DashboardView = ({
 
   const filteredHistory = useMemo(() => {
     if (!activitySearch.trim()) return history.slice(0, 10)
-    const q = activitySearch.toLowerCase()
-    return history.filter(
-      (h) =>
-        h.mode.toLowerCase().includes(q) ||
-        h.wpm.toString().includes(q) ||
-        h.accuracy.toString().includes(q)
-    )
+    
+    // Multi-term search: every word in query must match something in the row
+    const terms = activitySearch.toLowerCase().split(' ').filter(t => t.length > 0)
+    
+    return history.filter((h) => {
+      const rowString = `${h.mode} ${h.wpm} ${h.accuracy}`.toLowerCase()
+      return terms.every(term => rowString.includes(term))
+    })
   }, [history, activitySearch])
 
   return (
@@ -113,24 +116,31 @@ const DashboardView = ({
           <div className="cover-overlay" />
           <div className="hero-actions">
             {!isLoggedIn && (
-              <button className="hero-btn join" onClick={openLoginModal} title="Join TypingZone">
-                <User size={18} />
-              </button>
+              <Tooltip content="Join TypingZone" direction="left">
+                <button className="hero-btn join" onClick={openLoginModal}>
+                  <User size={18} />
+                </button>
+              </Tooltip>
             )}
-            <button
-              className="hero-btn"
-              onClick={() => setIsAddContentOpen(true)}
-              title="Add Content"
-            >
-              <Plus size={18} />
-            </button>
-            <button className="hero-btn" onClick={onSettings} title="Settings">
-              <Settings size={18} />
-            </button>
-            {isLoggedIn && (
-              <button className="hero-btn logout" onClick={onLogout} title="Sign Out">
-                <LogOut size={18} />
+            <Tooltip content="Add Custom Content" direction="left">
+              <button
+                className="hero-btn"
+                onClick={() => setIsAddContentOpen(true)}
+              >
+                <Plus size={18} />
               </button>
+            </Tooltip>
+            <Tooltip content="Dashboard Settings" direction="left">
+              <button className="hero-btn" onClick={onSettings}>
+                <Settings size={18} />
+              </button>
+            </Tooltip>
+            {isLoggedIn && (
+              <Tooltip content="Sign Out" direction="left">
+                <button className="hero-btn logout" onClick={onLogout}>
+                  <LogOut size={18} />
+                </button>
+              </Tooltip>
             )}
           </div>
         </div>
@@ -218,7 +228,9 @@ const DashboardView = ({
         <div className="dashboard-column primary">
           <section className="dashboard-card glass-panel section-graph">
             <div className="section-header">
-              <Activity size={18} />
+              <Tooltip content="Your WPM progress over time" direction="right">
+                <Activity size={18} />
+              </Tooltip>
               <span>Performance Trend</span>
             </div>
             <ProgressGraph data={history} />
@@ -240,6 +252,23 @@ const DashboardView = ({
                   onChange={(e) => setActivitySearch(e.target.value)}
                   className="activity-search-input"
                 />
+                <AnimatePresence>
+                  {activitySearch && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      onClick={() => {
+                        setActivitySearch('')
+                        activitySearchRef.current?.focus()
+                      }}
+                      className="clear-search-btn"
+                      title="Clear Search"
+                    >
+                      <X size={14} />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
             <div className="activity-grid">
@@ -275,24 +304,28 @@ const DashboardView = ({
                           />
                         </div>
                         <div className="stats-row">
-                          <div className="stat-pill wpm">
-                            <span className="value">
-                              <HighlightedText
-                                text={test.wpm.toString()}
-                                query={activitySearch}
-                              />
-                            </span>
-                            <span className="label">WPM</span>
-                          </div>
-                          <div className="stat-pill acc">
-                            <span className="value">
-                              <HighlightedText
-                                text={`${test.accuracy}%`}
-                                query={activitySearch}
-                              />
-                            </span>
-                            <span className="label">ACC</span>
-                          </div>
+                          <Tooltip content="Words Per Minute" direction="top">
+                            <div className="stat-pill wpm">
+                              <span className="value">
+                                <HighlightedText
+                                  text={test.wpm.toString()}
+                                  query={activitySearch}
+                                />
+                              </span>
+                              <span className="label">WPM</span>
+                            </div>
+                          </Tooltip>
+                          <Tooltip content="Typing Accuracy Percentage" direction="top">
+                            <div className="stat-pill acc">
+                              <span className="value">
+                                <HighlightedText
+                                  text={`${test.accuracy}%`}
+                                  query={activitySearch}
+                                />
+                              </span>
+                              <span className="label">ACC</span>
+                            </div>
+                          </Tooltip>
                         </div>
                       </div>
                       <div className="session-marker" />
@@ -327,38 +360,44 @@ const DashboardView = ({
         {/* RIGHT COLUMN: Quick Stats & Milestones */}
         <div className="dashboard-column secondary">
           <div className="sidebar-stats-stack">
-            <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
-              <div className="m-header">
-                <TrendingUp size={16} />
-                <span>AVG SPEED</span>
-              </div>
-              <div className="m-body">
-                <span className="val">{statsCore.avgWpm}</span>
-                <span className="unit">WPM</span>
-              </div>
-            </motion.div>
+            <Tooltip content="Your overall average WPM across all sessions" direction="left" fullWidth>
+              <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
+                <div className="m-header">
+                  <TrendingUp size={16} />
+                  <span>AVG SPEED</span>
+                </div>
+                <div className="m-body">
+                  <span className="val">{statsCore.avgWpm}</span>
+                  <span className="unit">WPM</span>
+                </div>
+              </motion.div>
+            </Tooltip>
 
-            <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
-              <div className="m-header">
-                <Target size={16} />
-                <span>ACCURACY</span>
-              </div>
-              <div className="m-body">
-                <span className="val">{statsCore.avgAcc}</span>
-                <span className="unit">%</span>
-              </div>
-            </motion.div>
+            <Tooltip content="Your overall average accuracy" direction="left" fullWidth>
+              <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
+                <div className="m-header">
+                  <Target size={16} />
+                  <span>ACCURACY</span>
+                </div>
+                <div className="m-body">
+                  <span className="val">{statsCore.avgAcc}</span>
+                  <span className="unit">%</span>
+                </div>
+              </motion.div>
+            </Tooltip>
 
-            <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
-              <div className="m-header">
-                <Zap size={16} />
-                <span>TOTAL RUNS</span>
-              </div>
-              <div className="m-body">
-                <span className="val">{statsCore.total}</span>
-                <span className="unit">TESTS</span>
-              </div>
-            </motion.div>
+            <Tooltip content="Total number of tests completed" direction="left" fullWidth>
+              <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
+                <div className="m-header">
+                  <Zap size={16} />
+                  <span>TOTAL RUNS</span>
+                </div>
+                <div className="m-body">
+                  <span className="val">{statsCore.total}</span>
+                  <span className="unit">TESTS</span>
+                </div>
+              </motion.div>
+            </Tooltip>
           </div>
 
           <section className="dashboard-card glass-panel section-wardrobe">
@@ -372,31 +411,35 @@ const DashboardView = ({
                 const isSelected = selectedAvatarId === av.id
 
                 return (
-                  <div
+                  <Tooltip 
                     key={av.id}
-                    className={`wardrobe-item ${isUnlocked ? 'unlocked' : 'locked'} ${isSelected ? 'selected' : ''}`}
-                    onClick={() => {
-                      if (isUnlocked && !isSelected) {
-                        onUpdateAvatar(av.id)
-                      }
-                    }}
-                    title={isUnlocked ? av.name : `${av.name} (Unlocks at Lvl ${av.level})`}
+                    content={isUnlocked ? av.name : `${av.name} (Unlocks at Lvl ${av.level})`}
+                    direction="top"
                   >
-                    <div className="img-container">
-                      <UniversalAvatar
-                        avatarId={av.id}
-                        theme={av.theme}
-                        className="wardrobe-avatar-img"
-                      />
-                      {!isUnlocked && (
-                        <div className="lock-overlay">
-                          <Lock size={12} />
-                          <span className="unlock-lv">LV{av.level}</span>
-                        </div>
-                      )}
-                      {isSelected && <div className="selected-glow" />}
+                    <div
+                      className={`wardrobe-item ${isUnlocked ? 'unlocked' : 'locked'} ${isSelected ? 'selected' : ''}`}
+                      onClick={() => {
+                        if (isUnlocked && !isSelected) {
+                          onUpdateAvatar(av.id)
+                        }
+                      }}
+                    >
+                      <div className="img-container">
+                        <UniversalAvatar
+                          avatarId={av.id}
+                          theme={av.theme}
+                          className="wardrobe-avatar-img"
+                        />
+                        {!isUnlocked && (
+                          <div className="lock-overlay">
+                            <Lock size={12} />
+                            <span className="unlock-lv">LV{av.level}</span>
+                          </div>
+                        )}
+                        {isSelected && <div className="selected-glow" />}
+                      </div>
                     </div>
-                  </div>
+                  </Tooltip>
                 )
               })}
             </div>
@@ -408,53 +451,55 @@ const DashboardView = ({
               <span>Milestones</span>
             </div>
             <div className="milestones-list">
-              <div
-                className={`milestone-item m-zap ${statsCore.total > 0 ? 'achieved' : 'locked'}`}
-              >
-                <div className="m-icon">
-                  <Zap size={14} />
+              <Tooltip content={statsCore.total > 0 ? "ACHIEVED: You've completed your first test!" : "LOCKED: Complete 1 test to unlock"} direction="top" fullWidth>
+                <div className={`milestone-item m-zap ${statsCore.total > 0 ? 'achieved' : 'locked'}`}>
+                  <div className="m-icon"><Zap size={14} /></div>
+                  <div className="m-info">
+                    <span className="m-title">First Blood</span>
+                    <span className="m-desc">Complete your first test</span>
+                  </div>
                 </div>
-                <div className="m-info">
-                  <span className="m-title">First Blood</span>
-                  <span className="m-desc">Complete your first test</span>
+              </Tooltip>
+
+              <Tooltip content={bestWpm >= 80 ? "ACHIEVED: You reached 80 WPM!" : "LOCKED: Reach 80 WPM to unlock"} direction="top" fullWidth>
+                <div className={`milestone-item m-speed ${bestWpm >= 80 ? 'achieved' : 'locked'}`}>
+                  <div className="m-icon"><Flame size={14} /></div>
+                  <div className="m-info">
+                    <span className="m-title">Speed Demon</span>
+                    <span className="m-desc">Reach 80 WPM</span>
+                  </div>
                 </div>
-              </div>
-              <div className={`milestone-item m-speed ${bestWpm >= 80 ? 'achieved' : 'locked'}`}>
-                <div className="m-icon">
-                  <Flame size={14} />
+              </Tooltip>
+
+              <Tooltip content={bestWpm >= 120 ? "ACHIEVED: You reached 120 WPM!" : "LOCKED: Reach 120 WPM to unlock"} direction="top" fullWidth>
+                <div className={`milestone-item m-flame ${bestWpm >= 120 ? 'achieved' : 'locked'}`}>
+                  <div className="m-icon"><Flame size={14} /></div>
+                  <div className="m-info">
+                    <span className="m-title">Elite</span>
+                    <span className="m-desc">Reach 120 WPM</span>
+                  </div>
                 </div>
-                <div className="m-info">
-                  <span className="m-title">Speed Demon</span>
-                  <span className="m-desc">Reach 80 WPM</span>
+              </Tooltip>
+
+              <Tooltip content={level >= 40 ? "ACHIEVED: You reached Level 40!" : "LOCKED: Reach Level 40 to unlock"} direction="top" fullWidth>
+                <div className={`milestone-item m-cyber ${level >= 40 ? 'achieved' : 'locked'}`}>
+                  <div className="m-icon"><Activity size={14} /></div>
+                  <div className="m-info">
+                    <span className="m-title">Cyber Ghost</span>
+                    <span className="m-desc">Reach Level 40</span>
+                  </div>
                 </div>
-              </div>
-              <div className={`milestone-item m-flame ${bestWpm >= 120 ? 'achieved' : 'locked'}`}>
-                <div className="m-icon">
-                  <Flame size={14} />
+              </Tooltip>
+
+              <Tooltip content={level >= 60 ? "ACHIEVED: You reached Level 60!" : "LOCKED: Reach Level 60 to unlock"} direction="top" fullWidth>
+                <div className={`milestone-item m-trophy ${level >= 60 ? 'achieved' : 'locked'}`}>
+                  <div className="m-icon"><Trophy size={14} /></div>
+                  <div className="m-info">
+                    <span className="m-title">Ascended</span>
+                    <span className="m-desc">Reach Level 60</span>
+                  </div>
                 </div>
-                <div className="m-info">
-                  <span className="m-title">Elite</span>
-                  <span className="m-desc">Reach 120 WPM</span>
-                </div>
-              </div>
-              <div className={`milestone-item m-cyber ${level >= 40 ? 'achieved' : 'locked'}`}>
-                <div className="m-icon">
-                  <Activity size={14} />
-                </div>
-                <div className="m-info">
-                  <span className="m-title">Cyber Ghost</span>
-                  <span className="m-desc">Reach Level 40</span>
-                </div>
-              </div>
-              <div className={`milestone-item m-trophy ${level >= 60 ? 'achieved' : 'locked'}`}>
-                <div className="m-icon">
-                  <Trophy size={14} />
-                </div>
-                <div className="m-info">
-                  <span className="m-title">Ascended</span>
-                  <span className="m-desc">Reach Level 60</span>
-                </div>
-              </div>
+              </Tooltip>
             </div>
           </section>
 

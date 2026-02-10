@@ -1,6 +1,8 @@
 .tooltip-wrapper {
   position: relative;
   display: inline-flex;
+  width: max-content;
+  height: auto;
 }
 
 .tooltip-popup {
@@ -9,18 +11,24 @@
   left: 50%;
   background: var(--sub-alt-color);
   color: var(--text-color);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 10000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 99999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   animation: tooltipFade 0.2s ease;
-  margin-top: 8px; /* knob space */
+  margin-top: 8px;
   transform: translateX(-50%);
+}
+
+.tooltip-popup.fixed {
+  position: fixed;
+  z-index: 100000;
+  pointer-events: none;
 }
 
 .tooltip-popup.align-right {
@@ -39,9 +47,18 @@
 
 .tooltip-popup.top {
   top: auto;
-  bottom: 100%;
+  bottom: auto; /* Handled by JS coords */
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  transform: translate(-50%, -100%) !important;
+}
+
+.tooltip-popup.left {
+  transform: translate(-100%, -50%) !important;
+}
+
+.tooltip-popup.right {
+  transform: translate(0, -50%) !important;
 }
 
 .tooltip-knob {
@@ -59,10 +76,32 @@
 .tooltip-popup.top .tooltip-knob {
   top: auto;
   bottom: -4px;
+  left: 50%;
   border-left: none;
   border-top: none;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tooltip-popup.left .tooltip-knob {
+  top: 50%;
+  left: auto;
+  right: -4px;
+  transform: translateY(-50%) rotate(45deg);
+  border-left: none;
+  border-top: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tooltip-popup.right .tooltip-knob {
+  top: 50%;
+  left: -4px;
+  transform: translateY(-50%) rotate(45deg);
+  border-right: none;
+  border-bottom: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tooltip-popup.align-right .tooltip-knob {
