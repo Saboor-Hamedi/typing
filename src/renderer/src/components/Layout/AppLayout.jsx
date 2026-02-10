@@ -1019,6 +1019,7 @@ const AppLayout = ({ addToast }) => {
         theme={theme}
         initialQuery={paletteInitialQuery}
         engine={engine}
+        onNavigate={(tab) => setActiveTab(tab)}
       />
     </div>
   )

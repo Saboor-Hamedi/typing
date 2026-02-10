@@ -578,6 +578,24 @@
   flex-direction: column;
   gap: 0.8rem;
   margin-top: 1rem;
+  min-height: 200px; /* Stabilizes layout during filtering */
+  position: relative;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--sub-color);
+  font-size: 0.9rem;
+  opacity: 0.6;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.05);
+  margin-top: 1rem;
 }
 
 .session-card {
@@ -935,4 +953,45 @@
   .dashboard-main-grid {
     grid-template-columns: 1fr;
   }
+}
+/* Activity Search Styles */
+.activity-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  transition: all 0.2s ease;
+  width: 180px;
+}
+
+.activity-search-wrap:focus-within {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(var(--main-color-rgb), 0.3);
+  width: 220px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.activity-search-wrap .search-icon {
+  color: var(--sub-color);
+  opacity: 0.5;
+  margin-right: -0.25rem;
+}
+
+.activity-search-input {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 0.85rem;
+  padding: 0.5rem 0.5rem;
+  width: 100%;
+  outline: none;
+  font-family: inherit;
+}
+
+.activity-search-input::placeholder {
+  color: var(--sub-color);
+  opacity: 0.3;
 }

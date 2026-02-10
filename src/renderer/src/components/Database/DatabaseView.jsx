@@ -1,8 +1,8 @@
 import { createPortal } from 'react-dom'
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Plus,
-  Search,
+  Search as SearchIcon,
   Trash2,
   Edit2,
   ChevronLeft,
@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import './DatabaseView.css'
 import ConfirmationModal from '../Modals/ConfirmationModal'
 import DatabaseModal from './DatabaseModal'
+import { HighlightedText } from '../Common'
 
 const DatabaseView = ({ addToast }) => {
   const [sentences, setSentences] = useState([])
@@ -29,7 +30,20 @@ const DatabaseView = ({ addToast }) => {
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const searchRef = useRef(null)
   const limit = 50
+
+  // Global shortcut for focusing search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -253,9 +267,10 @@ const DatabaseView = ({ addToast }) => {
         {/* Table Controls */}
         <div className="db-table-controls">
           <input
+            ref={searchRef}
             type="text"
             className="db-search"
-            placeholder="Search sentences..."
+            placeholder="Search sentences... (Ctrl+K)"
             value={search}
             onChange={handleSearch}
           />
@@ -304,7 +319,7 @@ const DatabaseView = ({ addToast }) => {
                 <div key={item.id} className="db-row">
                   <div className="db-col id">#{item.id}</div>
                   <div className="db-col text" title={item.text}>
-                    {item.text}
+                    <HighlightedText text={item.text} query={search} />
                   </div>
                   <div className="db-col">
                     <span className={`db-badge ${item.difficulty}`}>{item.difficulty}</span>

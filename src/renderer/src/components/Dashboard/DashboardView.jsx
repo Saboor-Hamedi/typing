@@ -33,13 +33,14 @@ import DangerZone from '../Common/DangerZone'
 import ProgressGraph from '../Analytics/ProgressGraph'
 import dashboardBg from '../../assets/dashboard_bg.png'
 import { calculateLevel } from '../../utils/Leveling'
-import { useState, useMemo } from 'react'
-import { Lock, Check, Database } from 'lucide-react'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { Lock, Check, Database, Search as SearchIcon } from 'lucide-react'
 import DatabaseModal from '../Database/DatabaseModal'
 
 // Avatar Registry
 import { AVATAR_MAP, AVATAR_DEFS } from '../../assets/avatars'
 import UniversalAvatar from '../Common/UniversalAvatar'
+import { HighlightedText } from '../Common'
 
 const DashboardView = ({
   stats,
@@ -59,8 +60,22 @@ const DashboardView = ({
   addToast
 }) => {
   const [isAddContentOpen, setIsAddContentOpen] = useState(false)
+  const [activitySearch, setActivitySearch] = useState('')
   const [isEditingName, setIsEditingName] = useState(false)
   const [tempName, setTempName] = useState(username)
+  const activitySearchRef = useRef(null)
+
+  // Global shortcut for focusing search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        activitySearchRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const { experience, level, levelProgress, xpToNext } = progression || calculateLevel(history)
 
@@ -78,6 +93,17 @@ const DashboardView = ({
   }, [history])
 
   const bestWpm = stats.pb || 0
+
+  const filteredHistory = useMemo(() => {
+    if (!activitySearch.trim()) return history.slice(0, 10)
+    const q = activitySearch.toLowerCase()
+    return history.filter(
+      (h) =>
+        h.mode.toLowerCase().includes(q) ||
+        h.wpm.toString().includes(q) ||
+        h.accuracy.toString().includes(q)
+    )
+  }, [history, activitySearch])
 
   return (
     <div className="dashboard-container">
@@ -199,50 +225,101 @@ const DashboardView = ({
           </section>
 
           <section className="dashboard-card glass-panel section-activity">
-            <div className="section-header">
-              <Calendar size={18} />
-              <span>Activity Log</span>
+            <div className="section-header" style={{ justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Calendar size={18} />
+                <span>Activity Log</span>
+              </div>
+              <div className="activity-search-wrap">
+                <SearchIcon size={14} className="search-icon" />
+                <input
+                  ref={activitySearchRef}
+                  type="text"
+                  placeholder="Search activity... (Ctrl+K)"
+                  value={activitySearch}
+                  onChange={(e) => setActivitySearch(e.target.value)}
+                  className="activity-search-input"
+                />
+              </div>
             </div>
             <div className="activity-grid">
-              {history.length > 0 ? (
-                history.slice(0, 10).map((test, i) => (
-                  <div
-                    key={i}
-                    className={`session-card ${test.wpm >= 100 ? 'tier-high' : test.wpm >= 60 ? 'tier-mid' : 'tier-base'}`}
+              <AnimatePresence mode="popLayout" initial={false}>
+                {filteredHistory.length > 0 ? (
+                  filteredHistory.map((test, i) => (
+                    <motion.div
+                      key={test.id || test.date || i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2, ease: 'easeOut' }}
+                      layout
+                      className={`session-card ${test.wpm >= 100 ? 'tier-high' : test.wpm >= 60 ? 'tier-mid' : 'tier-base'}`}
+                    >
+                      <div className="session-icon">
+                        {test.mode === 'time' ? <Calendar size={18} /> : <TrendingUp size={18} />}
+                      </div>
+                      <div className="session-time">
+                        <span className="date">{new Date(test.date).toLocaleDateString()}</span>
+                        <span className="time">
+                          {new Date(test.date).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <div className="session-main">
+                        <div className="mode-badge">
+                          <HighlightedText
+                            text={`${test.mode} ${test.limit || ''}`}
+                            query={activitySearch}
+                          />
+                        </div>
+                        <div className="stats-row">
+                          <div className="stat-pill wpm">
+                            <span className="value">
+                              <HighlightedText
+                                text={test.wpm.toString()}
+                                query={activitySearch}
+                              />
+                            </span>
+                            <span className="label">WPM</span>
+                          </div>
+                          <div className="stat-pill acc">
+                            <span className="value">
+                              <HighlightedText
+                                text={`${test.accuracy}%`}
+                                query={activitySearch}
+                              />
+                            </span>
+                            <span className="label">ACC</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="session-marker" />
+                    </motion.div>
+                  ))
+                ) : (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="empty-state"
                   >
-                    <div className="session-icon">
-                      {test.mode === 'time' ? <Calendar size={18} /> : <TrendingUp size={18} />}
-                    </div>
-                    <div className="session-time">
-                      <span className="date">{new Date(test.date).toLocaleDateString()}</span>
-                      <span className="time">
-                        {new Date(test.date).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
-                    </div>
-                    <div className="session-main">
-                      <div className="mode-badge">
-                        {test.mode} {test.limit || ''}
-                      </div>
-                      <div className="stats-row">
-                        <div className="stat-pill wpm">
-                          <span className="value">{test.wpm}</span>
-                          <span className="label">WPM</span>
-                        </div>
-                        <div className="stat-pill acc">
-                          <span className="value">{test.accuracy}%</span>
-                          <span className="label">ACC</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="session-marker" />
-                  </div>
-                ))
-              ) : (
-                <div className="empty-state">No sessions recorded yet. Get typing!</div>
-              )}
+                    <Search
+                      size={32}
+                      style={{ opacity: 0.2, marginBottom: '1rem' }}
+                      strokeWidth={1.5}
+                    />
+                    <span>
+                      {activitySearch
+                        ? `No results for "${activitySearch}"`
+                        : 'No sessions recorded yet. Get typing!'}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </section>
         </div>

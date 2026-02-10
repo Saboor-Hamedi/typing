@@ -143,6 +143,13 @@
   pointer-events: none;
 }
 
+mark.highlight {
+  background: rgba(var(--main-color-rgb), 0.25);
+  color: var(--main-color);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
 header,
 footer,
 .main-sidebar,
