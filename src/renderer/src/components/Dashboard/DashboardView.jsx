@@ -98,13 +98,16 @@ const DashboardView = ({
 
   const filteredHistory = useMemo(() => {
     if (!activitySearch.trim()) return history.slice(0, 10)
-    
+
     // Multi-term search: every word in query must match something in the row
-    const terms = activitySearch.toLowerCase().split(' ').filter(t => t.length > 0)
-    
+    const terms = activitySearch
+      .toLowerCase()
+      .split(' ')
+      .filter((t) => t.length > 0)
+
     return history.filter((h) => {
       const rowString = `${h.mode} ${h.wpm} ${h.accuracy}`.toLowerCase()
-      return terms.every(term => rowString.includes(term))
+      return terms.every((term) => rowString.includes(term))
     })
   }, [history, activitySearch])
 
@@ -123,10 +126,7 @@ const DashboardView = ({
               </Tooltip>
             )}
             <Tooltip content="Add Custom Content" direction="left">
-              <button
-                className="hero-btn"
-                onClick={() => setIsAddContentOpen(true)}
-              >
+              <button className="hero-btn" onClick={() => setIsAddContentOpen(true)}>
                 <Plus size={18} />
               </button>
             </Tooltip>
@@ -360,7 +360,11 @@ const DashboardView = ({
         {/* RIGHT COLUMN: Quick Stats & Milestones */}
         <div className="dashboard-column secondary">
           <div className="sidebar-stats-stack">
-            <Tooltip content="Your overall average WPM across all sessions" direction="left" fullWidth>
+            <Tooltip
+              content="Your overall average WPM across all sessions"
+              direction="left"
+              fullWidth
+            >
               <motion.div className="mini-stat-card glass-panel" whileHover={{ x: 5 }}>
                 <div className="m-header">
                   <TrendingUp size={16} />
@@ -411,7 +415,7 @@ const DashboardView = ({
                 const isSelected = selectedAvatarId === av.id
 
                 return (
-                  <Tooltip 
+                  <Tooltip
                     key={av.id}
                     content={isUnlocked ? av.name : `${av.name} (Unlocks at Lvl ${av.level})`}
                     direction="top"
@@ -451,9 +455,21 @@ const DashboardView = ({
               <span>Milestones</span>
             </div>
             <div className="milestones-list">
-              <Tooltip content={statsCore.total > 0 ? "ACHIEVED: You've completed your first test!" : "LOCKED: Complete 1 test to unlock"} direction="top" fullWidth>
-                <div className={`milestone-item m-zap ${statsCore.total > 0 ? 'achieved' : 'locked'}`}>
-                  <div className="m-icon"><Zap size={14} /></div>
+              <Tooltip
+                content={
+                  statsCore.total > 0
+                    ? "ACHIEVED: You've completed your first test!"
+                    : 'LOCKED: Complete 1 test to unlock'
+                }
+                direction="top"
+                fullWidth
+              >
+                <div
+                  className={`milestone-item m-zap ${statsCore.total > 0 ? 'achieved' : 'locked'}`}
+                >
+                  <div className="m-icon">
+                    <Zap size={14} />
+                  </div>
                   <div className="m-info">
                     <span className="m-title">First Blood</span>
                     <span className="m-desc">Complete your first test</span>
@@ -461,9 +477,17 @@ const DashboardView = ({
                 </div>
               </Tooltip>
 
-              <Tooltip content={bestWpm >= 80 ? "ACHIEVED: You reached 80 WPM!" : "LOCKED: Reach 80 WPM to unlock"} direction="top" fullWidth>
+              <Tooltip
+                content={
+                  bestWpm >= 80 ? 'ACHIEVED: You reached 80 WPM!' : 'LOCKED: Reach 80 WPM to unlock'
+                }
+                direction="top"
+                fullWidth
+              >
                 <div className={`milestone-item m-speed ${bestWpm >= 80 ? 'achieved' : 'locked'}`}>
-                  <div className="m-icon"><Flame size={14} /></div>
+                  <div className="m-icon">
+                    <Flame size={14} />
+                  </div>
                   <div className="m-info">
                     <span className="m-title">Speed Demon</span>
                     <span className="m-desc">Reach 80 WPM</span>
@@ -471,9 +495,19 @@ const DashboardView = ({
                 </div>
               </Tooltip>
 
-              <Tooltip content={bestWpm >= 120 ? "ACHIEVED: You reached 120 WPM!" : "LOCKED: Reach 120 WPM to unlock"} direction="top" fullWidth>
+              <Tooltip
+                content={
+                  bestWpm >= 120
+                    ? 'ACHIEVED: You reached 120 WPM!'
+                    : 'LOCKED: Reach 120 WPM to unlock'
+                }
+                direction="top"
+                fullWidth
+              >
                 <div className={`milestone-item m-flame ${bestWpm >= 120 ? 'achieved' : 'locked'}`}>
-                  <div className="m-icon"><Flame size={14} /></div>
+                  <div className="m-icon">
+                    <Flame size={14} />
+                  </div>
                   <div className="m-info">
                     <span className="m-title">Elite</span>
                     <span className="m-desc">Reach 120 WPM</span>
@@ -481,9 +515,19 @@ const DashboardView = ({
                 </div>
               </Tooltip>
 
-              <Tooltip content={level >= 40 ? "ACHIEVED: You reached Level 40!" : "LOCKED: Reach Level 40 to unlock"} direction="top" fullWidth>
+              <Tooltip
+                content={
+                  level >= 40
+                    ? 'ACHIEVED: You reached Level 40!'
+                    : 'LOCKED: Reach Level 40 to unlock'
+                }
+                direction="top"
+                fullWidth
+              >
                 <div className={`milestone-item m-cyber ${level >= 40 ? 'achieved' : 'locked'}`}>
-                  <div className="m-icon"><Activity size={14} /></div>
+                  <div className="m-icon">
+                    <Activity size={14} />
+                  </div>
                   <div className="m-info">
                     <span className="m-title">Cyber Ghost</span>
                     <span className="m-desc">Reach Level 40</span>
@@ -491,9 +535,19 @@ const DashboardView = ({
                 </div>
               </Tooltip>
 
-              <Tooltip content={level >= 60 ? "ACHIEVED: You reached Level 60!" : "LOCKED: Reach Level 60 to unlock"} direction="top" fullWidth>
+              <Tooltip
+                content={
+                  level >= 60
+                    ? 'ACHIEVED: You reached Level 60!'
+                    : 'LOCKED: Reach Level 60 to unlock'
+                }
+                direction="top"
+                fullWidth
+              >
                 <div className={`milestone-item m-trophy ${level >= 60 ? 'achieved' : 'locked'}`}>
-                  <div className="m-icon"><Trophy size={14} /></div>
+                  <div className="m-icon">
+                    <Trophy size={14} />
+                  </div>
                   <div className="m-info">
                     <span className="m-title">Ascended</span>
                     <span className="m-desc">Reach Level 60</span>

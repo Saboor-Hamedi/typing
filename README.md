@@ -10,6 +10,7 @@ A high-performance, feature-rich typing application built with Electron and Reac
 ## ✨ Features
 
 ### 🎯 Core Typing Experience
+
 - **Multiple Test Modes**: Time-based (15s, 30s, 60s, 120s) and word-based (10, 25, 50, 100 words)
 - **Difficulty Levels**: Beginner, Intermediate, and Advanced modes
 - **Real-time Feedback**: Instant visual feedback for correct/incorrect characters
@@ -17,6 +18,7 @@ A high-performance, feature-rich typing application built with Electron and Reac
 - **Personal Best Tracking**: Track and beat your personal records
 
 ### 🎨 Visual Customization
+
 - **Chameleon Flow**: Dynamic color transitions that respond to your typing
 - **Kinetic Feedback**: Visual effects that react to your typing rhythm
 - **Caret Styles**: Multiple caret options (bar, block, underline)
@@ -26,11 +28,13 @@ A high-performance, feature-rich typing application built with Electron and Reac
 - **Zen Mode**: Distraction-free typing experience
 
 ### 🔊 Audio Experience
+
 - **Sound Profiles**: Multiple keyboard sound options (ASMR, Thocky, Creamy, Clicky, etc.)
 - **Hall Effect**: Enhanced audio feedback simulation
 - **Volume Control**: Adjustable sound levels
 
 ### 📊 Analytics & Progress
+
 - **Detailed Statistics**: WPM, accuracy, consistency tracking
 - **Performance Graphs**: Visual representation of your typing speed over time
 - **Test History**: Review past test results and track improvement
@@ -39,6 +43,7 @@ A high-performance, feature-rich typing application built with Electron and Reac
 - **Achievements**: Unlock achievements as you improve
 
 ### 🎮 Advanced Features
+
 - **Ghost Racing**: Race against your previous performances
 - **Custom Content**: Create and practice with your own text
 - **Command Palette**: Quick access to all features (Ctrl+K)
@@ -47,12 +52,14 @@ A high-performance, feature-rich typing application built with Electron and Reac
 - **Database Management**: Import/export your typing history
 
 ### ☁️ Cloud & Sync
+
 - **Cloud Sync**: Sync scores and progress with Supabase (optional)
 - **Local-First**: Works offline, syncs when online
 - **Account Management**: Create an account to sync across devices
 - **Privacy-Focused**: All data stored locally by default
 
 ### 🎯 Content Customization
+
 - **Punctuation Toggle**: Practice with or without punctuation
 - **Numbers Mode**: Include numbers in your typing tests
 - **Capitalization**: Practice with capital letters
@@ -161,15 +168,15 @@ typingzone/
 
 ## 🎮 Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+K` | Open Command Palette |
-| `Ctrl+Shift+P` | Open Command Palette |
-| `Tab` | Restart Test |
-| `Esc` | Reset Test |
-| `Ctrl+Shift+Enter` | Pause/Resume Test |
-| `Ctrl+Shift+C` | Copy Results |
-| `Ctrl+Shift+R` | Replay Test |
+| Shortcut           | Action               |
+| ------------------ | -------------------- |
+| `Ctrl+K`           | Open Command Palette |
+| `Ctrl+Shift+P`     | Open Command Palette |
+| `Tab`              | Restart Test         |
+| `Esc`              | Reset Test           |
+| `Ctrl+Shift+Enter` | Pause/Resume Test    |
+| `Ctrl+Shift+C`     | Copy Results         |
+| `Ctrl+Shift+R`     | Replay Test          |
 
 ## 🔧 Configuration
 
@@ -230,6 +237,7 @@ npm run lint
 ## 📦 Dependencies
 
 ### Core Dependencies
+
 - `@supabase/supabase-js` - Cloud sync
 - `better-sqlite3` - Local database
 - `electron-store` - Settings storage
@@ -238,6 +246,7 @@ npm run lint
 - `lucide-react` - Icons
 
 ### Development Dependencies
+
 - `electron-vite` - Build tooling
 - `electron-builder` - App packaging
 - `vitest` - Testing

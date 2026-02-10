@@ -26,11 +26,27 @@ import Tooltip from '../Common/Tooltip'
 
 const SkeletonRow = () => (
   <div className="db-row skeleton">
-    <div className="db-col id"><div className="skeleton-pulse" style={{ width: '20px', height: '14px' }} /></div>
-    <div className="db-col text"><div className="skeleton-pulse" style={{ width: '100%', height: '14px' }} /></div>
-    <div className="db-col difficulty"><div className="skeleton-pulse" style={{ width: '60px', height: '20px', borderRadius: '4px' }} /></div>
-    <div className="db-col category"><div className="skeleton-pulse" style={{ width: '70px', height: '14px' }} /></div>
-    <div className="db-col actions"><div className="skeleton-pulse" style={{ width: '60px', height: '28px', borderRadius: '14px' }} /></div>
+    <div className="db-col id">
+      <div className="skeleton-pulse" style={{ width: '20px', height: '14px' }} />
+    </div>
+    <div className="db-col text">
+      <div className="skeleton-pulse" style={{ width: '100%', height: '14px' }} />
+    </div>
+    <div className="db-col difficulty">
+      <div
+        className="skeleton-pulse"
+        style={{ width: '60px', height: '20px', borderRadius: '4px' }}
+      />
+    </div>
+    <div className="db-col category">
+      <div className="skeleton-pulse" style={{ width: '70px', height: '14px' }} />
+    </div>
+    <div className="db-col actions">
+      <div
+        className="skeleton-pulse"
+        style={{ width: '60px', height: '28px', borderRadius: '14px' }}
+      />
+    </div>
   </div>
 )
 
@@ -312,7 +328,10 @@ const DatabaseView = ({ addToast }) => {
                 <span>Danger Zone</span>
               </div>
               <p>Clear entire database permanently</p>
-              <button className="action-btn-large danger" onClick={() => setShowDeleteAllModal(true)}>
+              <button
+                className="action-btn-large danger"
+                onClick={() => setShowDeleteAllModal(true)}
+              >
                 <Trash2 size={14} />
                 Delete All
               </button>
@@ -383,13 +402,11 @@ const DatabaseView = ({ addToast }) => {
           </div>
 
           <div className="db-list" ref={listRef}>
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               {isLoading ? (
-                Array.from({ length: 10 }).map((_, i) => (
-                  <SkeletonRow key={`skeleton-${i}`} />
-                ))
+                Array.from({ length: 10 }).map((_, i) => <SkeletonRow key={`skeleton-${i}`} />)
               ) : sentences.length === 0 ? (
-                <motion.div 
+                <motion.div
                   key="empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -401,7 +418,9 @@ const DatabaseView = ({ addToast }) => {
                     strokeWidth={1.5}
                     style={{ opacity: 0.3, marginBottom: '16px' }}
                   />
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: 'var(--text-color)' }}>
+                  <h3
+                    style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: 'var(--text-color)' }}
+                  >
                     {search ? 'No matching sentences found' : 'Loading sentences...'}
                   </h3>
                   <p style={{ margin: 0, color: 'var(--sub-color)', fontSize: '0.9rem' }}>

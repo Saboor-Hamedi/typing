@@ -590,24 +590,6 @@ main {
   box-shadow: 0 0 0 2px rgba(var(--main-color-rgb), 0.2);
 }
 
-/* Skip to main content link (for screen readers) */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  background: var(--main-color);
-  color: var(--bg-color);
-  padding: 8px 16px;
-  text-decoration: none;
-  font-weight: 700;
-  z-index: 10000;
-  border-radius: 0 0 4px 0;
-}
-
-.skip-link:focus {
-  top: 0;
-}
-
 /* Screen reader only content */
 .sr-only {
   position: absolute;

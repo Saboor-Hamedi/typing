@@ -118,7 +118,11 @@ const CommandPalette = ({
             if (currentId !== searchIdRef.current) return
 
             const diffLabel =
-              randomDiff === 'easy' ? 'Beginner' : randomDiff === 'hard' ? 'Advanced' : 'Intermediate'
+              randomDiff === 'easy'
+                ? 'Beginner'
+                : randomDiff === 'hard'
+                  ? 'Advanced'
+                  : 'Intermediate'
 
             results = initial.map((text) => ({
               id: `db-${text}`,
@@ -301,10 +305,7 @@ const CommandPalette = ({
                               )}
                               {action.difficulty && (
                                 <span className={`diff-badge ${action.difficulty.toLowerCase()}`}>
-                                  <HighlightedText
-                                    text={action.difficulty}
-                                    query={query}
-                                  />
+                                  <HighlightedText text={action.difficulty} query={query} />
                                 </span>
                               )}
                             </div>

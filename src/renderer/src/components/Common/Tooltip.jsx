@@ -71,7 +71,9 @@ const Tooltip = ({
               top: coords.top,
               left: coords.left,
               transform:
-                direction === 'top' || direction === 'bottom' ? 'translateX(-50%)' : 'translateY(-50%)'
+                direction === 'top' || direction === 'bottom'
+                  ? 'translateX(-50%)'
+                  : 'translateY(-50%)'
             }}
           >
             {content}

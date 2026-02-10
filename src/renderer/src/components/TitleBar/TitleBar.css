@@ -83,12 +83,7 @@
   color: white;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .titlebar {
-    left: 45px; /* Match smaller sidebar */
-  }
-
   .control-btn {
     width: 36px; /* Smaller on mobile */
   }
