@@ -91,47 +91,46 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
 
   // Toggle ConfigBar
   useEffect(() => {
-     const handleToggle = (e) =>{
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 
-      const ctrlKey =  isMac ? e.metaKey : e.ctrlKey
+    const handleToggle = (e) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey
       const shiftKey = e.shiftKey
       // Toggle the modal itself
-      if(ctrlKey && shiftKey && e.key.toLowerCase() === 'c'){
+      if (ctrlKey && shiftKey && e.key.toLowerCase() === 'c') {
         e.preventDefault()
         setIsOpen((prev) => !prev)
       }
       //  Toggle between standard and sentence mode
-      if (ctrlKey && shiftKey && e.key.toLowerCase() === 's'){
+      if (ctrlKey && shiftKey && e.key.toLowerCase() === 's') {
         e.preventDefault()
         setModeValue(setIsSentenceMode, !isSentenceMode, 'isSentenceMode')
         return
       }
 
       // Toggle between time and word mode
-      if (ctrlKey && shiftKey && e.key.toLowerCase() === 'u'){
+      if (ctrlKey && shiftKey && e.key.toLowerCase() === 'u') {
         e.preventDefault()
         setModeValue(setTestMode, testMode === 'time' ? 'words' : 'time', 'testMode')
         return
       }
-      // Select beginner mode 
-      if (ctrlKey && shiftKey && e.key.toLowerCase() === 'e'){
+      // Select beginner mode
+      if (ctrlKey && shiftKey && e.key.toLowerCase() === 'e') {
         e.preventDefault()
         setModeValue(setDifficulty, 'beginner', 'difficulty')
         return
-      }else if(ctrlKey && shiftKey && e.key.toLowerCase() === 'm'){
+      } else if (ctrlKey && shiftKey && e.key.toLowerCase() === 'm') {
         e.preventDefault()
         setModeValue(setDifficulty, 'intermediate', 'difficulty')
         return
-      }else if(ctrlKey && shiftKey && e.key.toLowerCase() === 'a'){
+      } else if (ctrlKey && shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault()
         setModeValue(setDifficulty, 'advanced', 'difficulty')
         return
       }
-     
-     }
-     document.addEventListener('keydown',handleToggle)
-     return () => document.removeEventListener('keydown',handleToggle)
-  },[setModeValue, setIsSentenceMode, isSentenceMode, setTestMode, testMode])
+    }
+    document.addEventListener('keydown', handleToggle)
+    return () => document.removeEventListener('keydown', handleToggle)
+  }, [setModeValue, setIsSentenceMode, isSentenceMode, setTestMode, testMode])
   return (
     <div className="config-container" ref={menuRef}>
       {/* Trigger Pill */}

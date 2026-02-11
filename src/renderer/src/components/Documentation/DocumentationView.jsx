@@ -144,13 +144,13 @@ const DocumentationView = () => {
       <div className="docs-grid">
         <section className="docs-main-section">
           <div className="section-label">
-            <Info size={14} /> 
+            <Info size={14} />
             <span>Encyclopedia</span>
           </div>
           <div className="features-grid">
             {categories.map((cat, idx) => (
-              <motion.div 
-                key={idx} 
+              <motion.div
+                key={idx}
                 className="doc-category glass-panel"
                 whileHover={{ y: -4, backgroundColor: 'rgba(255,255,255,0.03)' }}
               >
@@ -173,10 +173,10 @@ const DocumentationView = () => {
 
         <aside className="docs-sidebar-section">
           <div className="section-label">
-            <Terminal size={14} /> 
+            <Terminal size={14} />
             <span>Command Center</span>
           </div>
-          
+
           <div className="shortcuts-grid">
             {shortcutGroups.map((group, idx) => (
               <div key={idx} className="shortcut-group glass-panel">
@@ -207,35 +207,45 @@ const DocumentationView = () => {
             </div>
             <div className="tech-specs-grid">
               <div className="tech-spec-item">
-                <div className="spec-icon-wrapper"><Cpu size={14} /></div>
+                <div className="spec-icon-wrapper">
+                  <Cpu size={14} />
+                </div>
                 <div className="spec-info">
                   <span className="spec-name">React 18</span>
                   <span className="spec-desc">Fiber-based UI Core</span>
                 </div>
               </div>
               <div className="tech-spec-item">
-                <div className="spec-icon-wrapper"><Zap size={14} /></div>
+                <div className="spec-icon-wrapper">
+                  <Zap size={14} />
+                </div>
                 <div className="spec-info">
                   <span className="spec-name">Vite SDK</span>
                   <span className="spec-desc">Next-gen Build Logic</span>
                 </div>
               </div>
               <div className="tech-spec-item">
-                <div className="spec-icon-wrapper"><Terminal size={14} /></div>
+                <div className="spec-icon-wrapper">
+                  <Terminal size={14} />
+                </div>
                 <div className="spec-info">
                   <span className="spec-name">Electron</span>
                   <span className="spec-desc">Native OS Bridge</span>
                 </div>
               </div>
               <div className="tech-spec-item">
-                <div className="spec-icon-wrapper"><Cloud size={14} /></div>
+                <div className="spec-icon-wrapper">
+                  <Cloud size={14} />
+                </div>
                 <div className="spec-info">
                   <span className="spec-name">Supabase</span>
                   <span className="spec-desc">Cloud Persistence</span>
                 </div>
               </div>
               <div className="tech-spec-item">
-                <div className="spec-icon-wrapper"><Activity size={14} /></div>
+                <div className="spec-icon-wrapper">
+                  <Activity size={14} />
+                </div>
                 <div className="spec-info">
                   <span className="spec-name">WebAudio</span>
                   <span className="spec-desc">DSP Sound Pipeline</span>

@@ -172,8 +172,6 @@ const AppLayout = ({ addToast }) => {
     resetGame
   } = engine
 
-
-
   // Derived state for immersive mode
   const isTestRunning = !!startTime && !isFinished
 
@@ -312,7 +310,6 @@ const AppLayout = ({ addToast }) => {
     fetchVersion()
   }, [])
 
- 
   // Detect if any modal/overlay is currently active
   const isOverlayActive =
     isThemeModalOpen ||
@@ -334,13 +331,13 @@ const AppLayout = ({ addToast }) => {
       const active = document.activeElement
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
       const isOurInput = engine?.inputRef?.current && active === engine.inputRef.current
-      
-      const isTextInput = isInput && (
-        active.type === 'text' || 
-        active.type === 'password' || 
-        active.tagName === 'TEXTAREA' || 
-        active.isContentEditable
-      )
+
+      const isTextInput =
+        isInput &&
+        (active.type === 'text' ||
+          active.type === 'password' ||
+          active.tagName === 'TEXTAREA' ||
+          active.isContentEditable)
 
       // Block all shortcuts if typing in a REAL text field (except our game input)
       if (isTextInput && !isOurInput) return
@@ -403,7 +400,7 @@ const AppLayout = ({ addToast }) => {
       if (isOverlayActive && !isShortcutsModalOpen && !isCommandPaletteOpen) return
 
       // --- 4. NAVIGATION & SYSTEM ---
-      
+
       // Ctrl+Shift+R: Reload
       if (ctrlKey && shiftKey && key === 'r') {
         e.preventDefault()
@@ -431,7 +428,6 @@ const AppLayout = ({ addToast }) => {
         togglePause()
         return
       }
-      
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -787,9 +783,8 @@ const AppLayout = ({ addToast }) => {
         onProfileClick={() => setIsProfileMenuOpen((prev) => !prev)}
       />
 
+      {/* Open Profile Menu */}
 
-{/* Open Profile Menu */}
- 
       <ProfileMenu
         isOpen={isProfileMenuOpen}
         onClose={() => setIsProfileMenuOpen(false)}
