@@ -11,7 +11,7 @@
  * - Auto-updater events forwarded to renderer; background check after launch.
  * - Preload exposes `api` bridge used across the renderer for settings/data/update/deep-link.
  */
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
@@ -119,6 +119,7 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 

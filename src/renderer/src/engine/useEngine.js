@@ -255,6 +255,7 @@ export function useEngine(testMode, testLimit, activeTab) {
 
         if (!finalStartTime || endTime <= finalStartTime) {
           console.warn('Invalid timing data, using fallback')
+          setIsFinished(true) // Still mark as finished to prevent stuck state
           return
         }
 
@@ -752,7 +753,7 @@ export function useEngine(testMode, testLimit, activeTab) {
 
         e.preventDefault()
         e.stopPropagation()
-        console.log('Tab restart')
+        // console.log('Tab restart')
         resetGame({})
         return
       }

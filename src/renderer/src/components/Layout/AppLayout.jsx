@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Header from '../Header/Header'
 import TitleBar from '../TitleBar/TitleBar'
 import Sidebar from '../Sidebar/Sidebar'
-import ConfigBar from '../Header/ConfigBar'
+
 import TypingEngine from '../../engine/TypingEngine'
 import ThemeModal from '../Modals/ThemeModal'
 import LoginModal from '../Modals/LoginModal'
@@ -79,6 +79,7 @@ const AchievementsView = lazy(() => import('../Achievements/AchievementsView'))
 const DocumentationView = lazy(() => import('../Documentation/DocumentationView'))
 const DatabaseView = lazy(() => import('../Database/DatabaseView'))
 const NotFound = lazy(() => import('../Views/NotFound'))
+const ConfigBar = lazy(() => import('../Header/ConfigBar'))
 
 /**
  * Main Application Layout
@@ -170,6 +171,8 @@ const AppLayout = ({ addToast }) => {
     resumeGame,
     resetGame
   } = engine
+
+
 
   // Derived state for immersive mode
   const isTestRunning = !!startTime && !isFinished
@@ -309,6 +312,7 @@ const AppLayout = ({ addToast }) => {
     fetchVersion()
   }, [])
 
+ 
   // Detect if any modal/overlay is currently active
   const isOverlayActive =
     isThemeModalOpen ||
@@ -316,113 +320,126 @@ const AppLayout = ({ addToast }) => {
     isLogoutModalOpen ||
     isClearDataModalOpen ||
     isShortcutsModalOpen ||
-    isCommandPaletteOpen
+    isCommandPaletteOpen ||
+    isProfileMenuOpen
 
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Update Caps Lock state
+      // 0. Update Caps Lock
       if (typeof e.getModifierState === 'function') {
         setIsCapsLockOn(e.getModifierState('CapsLock'))
       }
 
-      // Don't intercept if user is typing in an input/textarea
       const active = document.activeElement
       const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
-      if (isInput && active.type !== 'text' && active.type !== 'password') return
+      const isOurInput = engine?.inputRef?.current && active === engine.inputRef.current
+      
+      const isTextInput = isInput && (
+        active.type === 'text' || 
+        active.type === 'password' || 
+        active.tagName === 'TEXTAREA' || 
+        active.isContentEditable
+      )
 
-      // Escape handling
+      // Block all shortcuts if typing in a REAL text field (except our game input)
+      if (isTextInput && !isOurInput) return
+
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey
+      const shiftKey = e.shiftKey
+      const key = e.key.toLowerCase()
+
+      // --- 1. PRIORITY TOGGLES (Work even if modals are open) ---
+
+      // Ctrl+Shift+D: Toggle Documentation
+      if (ctrlKey && shiftKey && key === 'd') {
+        e.preventDefault()
+        setActiveTab((prev) => (prev === 'docs' ? 'typing' : 'docs'))
+        return
+      }
+
+      // Ctrl+P / Ctrl+Shift+P: Command Palette
+      if (ctrlKey && key === 'p') {
+        e.preventDefault()
+        setPaletteInitialQuery(shiftKey ? '>' : '')
+        setIsCommandPaletteOpen(true)
+        return
+      }
+
+      // Ctrl+T: Themes
+      if (ctrlKey && key === 't' && !shiftKey) {
+        e.preventDefault()
+        setIsThemeModalOpen((prev) => !prev)
+        return
+      }
+
+      // Ctrl+\: Profile Menu
+      if (ctrlKey && (e.key === '\\' || e.key === '|')) {
+        e.preventDefault()
+        setIsProfileMenuOpen((prev) => !prev)
+        return
+      }
+
+      // --- 2. OVERLAY / MODAL CLEANUP (Escape) ---
       if (e.key === 'Escape') {
-        // 1. Close any open modal first
         if (isOverlayActive) {
-          if (isThemeModalOpen) setIsThemeModalOpen(false)
-          if (isLoginModalOpen) setIsLoginModalOpen(false)
-          if (isLogoutModalOpen) setIsLogoutModalOpen(false)
-          if (isClearDataModalOpen) setIsClearDataModalOpen(false)
-          if (isShortcutsModalOpen) setIsShortcutsModalOpen(false)
-          if (isCommandPaletteOpen) setIsCommandPaletteOpen(false)
-          if (isProfileMenuOpen) setIsProfileMenuOpen(false)
+          setIsThemeModalOpen(false)
+          setIsLoginModalOpen(false)
+          setIsLogoutModalOpen(false)
+          setIsClearDataModalOpen(false)
+          setIsShortcutsModalOpen(false)
+          setIsCommandPaletteOpen(false)
+          setIsProfileMenuOpen(false)
           return
         }
-
-        // 2. If no modal is open and we're not in typing tab, go back to typing
         if (activeTab !== 'typing') {
           setActiveTab('typing')
           return
         }
-
-        // 3. If we're already in typing tab and test is finished, engine.js handles reset via its own listener
       }
 
-      // Don't intercept if a modal is open (except shortcuts modal and command palette)
+      // --- 3. MODAL BLOCKER (Remaining shortcuts restricted when modal is open) ---
       if (isOverlayActive && !isShortcutsModalOpen && !isCommandPaletteOpen) return
 
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey
-
-      // Ctrl/Cmd + R: Restart test
-      // if (ctrlKey && e.key === 'r' && !e.shiftKey) {
-      //   e.preventDefault()
-      //   resetGame()
-      //   return
-      // }
-
-      // Ctrl/Cmd + Shift + R: Reload Window
-      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
+      // --- 4. NAVIGATION & SYSTEM ---
+      
+      // Ctrl+Shift+R: Reload
+      if (ctrlKey && shiftKey && key === 'r') {
         e.preventDefault()
         window.location.reload()
         return
       }
 
-      // Ctrl/Cmd + ,: Open settings
+      // Ctrl+,: Settings
       if (ctrlKey && e.key === ',') {
         e.preventDefault()
         setActiveTab('settings')
         return
       }
 
-      // ?: Show keyboard shortcuts
+      // ?: Shortcuts
       if (e.key === '?' && !isInput) {
         e.preventDefault()
         setIsShortcutsModalOpen(true)
         return
       }
 
-      // Ctrl/Cmd + Shift + P: Open Command Palette in COMMAND MODE
-      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'p') {
-        e.preventDefault()
-        setPaletteInitialQuery('>')
-        setIsCommandPaletteOpen(true)
-        return
-      }
-
-      // Ctrl/Cmd + P: Open Command Palette in SEARCH MODE
-      if (ctrlKey && e.key.toLowerCase() === 'p' && !e.shiftKey) {
-        e.preventDefault()
-        setPaletteInitialQuery('')
-        setIsCommandPaletteOpen(true)
-        return
-      }
-
-      // Ctrl/Cmd + Shift + Enter: Toggle Pause
-      if (ctrlKey && e.shiftKey && e.key === 'Enter') {
+      // Ctrl+Shift+Enter: Pause
+      if (ctrlKey && shiftKey && e.key === 'Enter') {
         e.preventDefault()
         togglePause()
         return
       }
-
-      // Ctrl/Cmd + T: Open Themes
-      if (ctrlKey && e.key === 't') {
-        e.preventDefault()
-        setIsThemeModalOpen((prev) => !prev)
-        return
-      }
+      
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [
     isOverlayActive,
+    isProfileMenuOpen,
+    activeTab,
     isThemeModalOpen,
     isLoginModalOpen,
     isLogoutModalOpen,
@@ -430,7 +447,10 @@ const AppLayout = ({ addToast }) => {
     isShortcutsModalOpen,
     isCommandPaletteOpen,
     engine,
-    togglePause
+    togglePause,
+    resetGame,
+    setActiveTab,
+    setPaletteInitialQuery
   ])
 
   // Display value for header (Now always WPM)
@@ -767,6 +787,9 @@ const AppLayout = ({ addToast }) => {
         onProfileClick={() => setIsProfileMenuOpen((prev) => !prev)}
       />
 
+
+{/* Open Profile Menu */}
+ 
       <ProfileMenu
         isOpen={isProfileMenuOpen}
         onClose={() => setIsProfileMenuOpen(false)}

@@ -11,7 +11,11 @@ import {
   Flame,
   Cloud,
   MousePointer2,
-  Terminal
+  Terminal,
+  Settings as SettingsIcon,
+  Navigation,
+  Gamepad2,
+  Info
 } from 'lucide-react'
 import './DocumentationView.css'
 
@@ -19,145 +23,225 @@ const DocumentationView = () => {
   const categories = [
     {
       title: 'Core Mechanics',
-      icon: <Keyboard className="cat-icon" />,
+      icon: <Keyboard className="cat-icon" size={20} />,
       items: [
         {
           name: 'Time Mode',
-          desc: "Test your speed over 15, 30, or 60 seconds with 'Soft Finish' logic."
+          desc: "Test speed over 15, 30, or 60s with 'Soft Finish' logic."
         },
-        { name: 'Words Mode', desc: 'Complete 10, 25, or 50 words at your own pace.' },
+        { name: 'Words Mode', desc: 'Complete set word counts (25, 50, 100) at your own pace.' },
         {
           name: 'Sentence Mode',
-          desc: 'Type real-world quotes and coherent sentences for a natural feel.'
+          desc: 'Type real-world quotes and phrases for a natural typing feel.'
         }
       ]
     },
     {
-      title: 'Advanced Features',
-      icon: <Zap className="cat-icon" />,
+      title: 'Advanced VFX',
+      icon: <Flame className="cat-icon" size={20} />,
       items: [
         {
           name: 'Chameleon Flow',
-          desc: 'The UI color shifts dynamically based on your typing speed (Heat).'
+          desc: 'The UI palette shifts dynamically based on your live WPM heat.'
         },
-        { name: 'Ghost Racing', desc: 'Compete against your Personal Best in real-time.' },
+        { name: 'Ghost Racing', desc: 'Race against your Personal Best shadow in real-time.' },
         {
           name: 'Sound Engine',
-          desc: 'Custom-synthesized mechanical key sounds (Thocky, Creamy, ASMR).'
-        },
-        {
-          name: 'Error Underline',
-          desc: 'Wrongly typed words are highlighted with a red underline (Toggleable).'
-        },
-        {
-          name: 'Space Skip',
-          desc: 'Make a typo? Hit space to immediately jump to the next word.'
+          desc: 'Synthetic mechanical key sounds (Thocky, Creamy, ASMR).'
         }
       ]
     },
     {
-      title: 'Progression System',
-      icon: <Trophy className="cat-icon" />,
+      title: 'Progression',
+      icon: <Trophy className="cat-icon" size={20} />,
       items: [
         {
-          name: 'Leveling',
-          desc: 'Earn XP for every test. Higher accuracy and WPM yield more XP.'
+          name: 'Leveling System',
+          desc: 'Earn XP for every test. Higher accuracy/WPM yields more XP.'
         },
         { name: 'Wardrobe', desc: 'Unlock exclusive avatars as you climb through the Tiers.' },
         { name: 'Rank Tiers', desc: 'Progress from Initiate to Ascended based on your level.' }
       ]
     },
     {
-      title: 'Sync & Cloud',
-      icon: <Cloud className="cat-icon" />,
+      title: 'Cloud & Sync',
+      icon: <Cloud className="cat-icon" size={20} />,
       items: [
-        { name: 'Supabase Integration', desc: 'Sync your scores, PB, and unlocks across devices.' },
+        { name: 'Supabase Sync', desc: 'Sync scores, PBs, and unlocks across all your devices.' },
         {
           name: 'High-Water Mark',
-          desc: 'Smart logic ensures your level never drops during sync delays.'
+          desc: 'Smart level logic ensures your progress never drops during sync.'
         }
       ]
     }
   ]
 
-  const shortcuts = [
-    { keys: ['Tab'], action: 'Restart Test' },
-    { keys: ['Ctrl', 'P'], action: 'Command Palette' },
-    { keys: ['Ctrl', 'T'], action: 'Themes Menu' },
-    { keys: ['Ctrl', ','], action: 'Settings' },
-    { keys: ['Esc'], action: 'Escape Menus / Home' },
-    { keys: ['?'], action: 'View All Shortcuts' }
+  const shortcutGroups = [
+    {
+      title: 'Game Control',
+      icon: <Gamepad2 size={16} />,
+      items: [
+        { keys: ['Tab'], action: 'Restart Test' },
+        { keys: ['Enter'], action: 'Quick Repeat (Result)' },
+        { keys: ['Ctrl', 'Shift', 'Enter'], action: 'Toggle Pause' },
+        { keys: ['Ctrl', 'Shift', 'S'], action: 'Standard ↔ Sentences' },
+        { keys: ['Ctrl', 'Shift', 'U'], action: 'Time ↔ Words' }
+      ]
+    },
+    {
+      title: 'Difficulty',
+      icon: <Activity size={16} />,
+      items: [
+        { keys: ['Ctrl', 'Shift', 'E'], action: 'Easy Mode' },
+        { keys: ['Ctrl', 'Shift', 'M'], action: 'Medium Mode' },
+        { keys: ['Ctrl', 'Shift', 'A'], action: 'Hard Mode' }
+      ]
+    },
+    {
+      title: 'Navigation',
+      icon: <Navigation size={16} />,
+      items: [
+        { keys: ['Ctrl', 'Shift', 'D'], action: 'Toggle Documentation' },
+        { keys: ['Ctrl', '\\'], action: 'Profile Menu' },
+        { keys: ['Ctrl', 'Shift', 'C'], action: 'Config Menu' },
+        { keys: ['Ctrl', 'P'], action: 'Command Search' },
+        { keys: ['Ctrl', 'Shift', 'P'], action: 'Action Palette' },
+        { keys: ['Esc'], action: 'Home / Close Menu' }
+      ]
+    },
+    {
+      title: 'Settings',
+      icon: <SettingsIcon size={16} />,
+      items: [
+        { keys: ['Ctrl', 'T'], action: 'Themes Menu' },
+        { keys: ['Ctrl', ','], action: 'App Settings' },
+        { keys: ['Ctrl', 'Shift', 'R'], action: 'Reload App' },
+        { keys: ['?'], action: 'Shortcut Help' }
+      ]
+    }
   ]
 
   return (
     <motion.div
       className="docs-container"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
       <header className="docs-header">
         <div className="header-info">
-          <Book size={32} className="docs-brand-icon" />
-          <div>
+          <Book size={34} className="docs-brand-icon" />
+          <div className="title-stack">
             <h1>System Documentation</h1>
-            <p>Master the typing experience with TypingZone v1.0.3</p>
+            <div className="header-badges">
+              <span className="version-badge">v1.2.0</span>
+              <span className="status-badge">System Status: Active</span>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="docs-grid">
         <section className="docs-main-section">
-          {categories.map((cat, idx) => (
-            <div key={idx} className="doc-category glass-panel">
-              <div className="category-header">
-                {cat.icon}
-                <h2>{cat.title}</h2>
-              </div>
-              <div className="category-items">
-                {cat.items.map((item, i) => (
-                  <div key={i} className="doc-item">
-                    <h3>{item.name}</h3>
-                    <p>{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+          <div className="section-label">
+            <Info size={14} /> 
+            <span>Encyclopedia</span>
+          </div>
+          <div className="features-grid">
+            {categories.map((cat, idx) => (
+              <motion.div 
+                key={idx} 
+                className="doc-category glass-panel"
+                whileHover={{ y: -4, backgroundColor: 'rgba(255,255,255,0.03)' }}
+              >
+                <div className="category-header">
+                  {cat.icon}
+                  <h2>{cat.title}</h2>
+                </div>
+                <div className="category-items">
+                  {cat.items.map((item, i) => (
+                    <div key={i} className="doc-item">
+                      <h3>{item.name}</h3>
+                      <p>{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </section>
 
         <aside className="docs-sidebar-section">
-          <div className="shortcuts-card glass-panel">
-            <div className="card-header">
-              <Terminal size={18} />
-              <span>Quick Shortcuts</span>
-            </div>
-            <div className="shortcuts-list">
-              {shortcuts.map((s, i) => (
-                <div key={i} className="shortcut-row">
-                  <span className="action">{s.action}</span>
-                  <div className="keys">
-                    {s.keys.map((k) => (
-                      <kbd key={k}>{k}</kbd>
-                    ))}
-                  </div>
+          <div className="section-label">
+            <Terminal size={14} /> 
+            <span>Command Center</span>
+          </div>
+          
+          <div className="shortcuts-grid">
+            {shortcutGroups.map((group, idx) => (
+              <div key={idx} className="shortcut-group glass-panel">
+                <div className="card-header">
+                  {group.icon}
+                  <span>{group.title}</span>
                 </div>
-              ))}
-            </div>
+                <div className="shortcuts-list">
+                  {group.items.map((s, i) => (
+                    <div key={i} className="shortcut-row">
+                      <span className="action">{s.action}</span>
+                      <div className="keys">
+                        {s.keys.map((k, ki) => (
+                          <kbd key={ki}>{k}</kbd>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="tech-stack-card glass-panel">
+          <div className="shortcut-group glass-panel">
             <div className="card-header">
               <Cpu size={18} />
-              <span>Tech Stack</span>
+              <span>System Internals</span>
             </div>
-            <ul className="tech-list">
-              <li>React + Vite</li>
-              <li>Electron (Desktop Core)</li>
-              <li>Supabase (Cloud & Auth)</li>
-              <li>Framer Motion (VFX)</li>
-              <li>Web Audio API (Sound)</li>
-            </ul>
+            <div className="tech-specs-grid">
+              <div className="tech-spec-item">
+                <div className="spec-icon-wrapper"><Cpu size={14} /></div>
+                <div className="spec-info">
+                  <span className="spec-name">React 18</span>
+                  <span className="spec-desc">Fiber-based UI Core</span>
+                </div>
+              </div>
+              <div className="tech-spec-item">
+                <div className="spec-icon-wrapper"><Zap size={14} /></div>
+                <div className="spec-info">
+                  <span className="spec-name">Vite SDK</span>
+                  <span className="spec-desc">Next-gen Build Logic</span>
+                </div>
+              </div>
+              <div className="tech-spec-item">
+                <div className="spec-icon-wrapper"><Terminal size={14} /></div>
+                <div className="spec-info">
+                  <span className="spec-name">Electron</span>
+                  <span className="spec-desc">Native OS Bridge</span>
+                </div>
+              </div>
+              <div className="tech-spec-item">
+                <div className="spec-icon-wrapper"><Cloud size={14} /></div>
+                <div className="spec-info">
+                  <span className="spec-name">Supabase</span>
+                  <span className="spec-desc">Cloud Persistence</span>
+                </div>
+              </div>
+              <div className="tech-spec-item">
+                <div className="spec-icon-wrapper"><Activity size={14} /></div>
+                <div className="spec-info">
+                  <span className="spec-name">WebAudio</span>
+                  <span className="spec-desc">DSP Sound Pipeline</span>
+                </div>
+              </div>
+            </div>
           </div>
         </aside>
       </div>

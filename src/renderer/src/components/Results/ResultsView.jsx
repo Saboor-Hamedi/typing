@@ -60,7 +60,8 @@ const ResultsView = ({
 
   //  Keyboard Shortcuts
   useEffect(() => {
-    const isMac = navigator.platform.includes('Mac')
+    const isMac = navigator.userAgent.toLowerCase().includes('mac')
+
     // Repeat Test
     const handleKeyDown = (e) => {
       const key = e.key.toLowerCase()

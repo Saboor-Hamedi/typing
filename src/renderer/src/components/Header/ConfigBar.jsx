@@ -27,7 +27,6 @@ import './ConfigBar.css'
 const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef(null)
-
   const {
     testMode,
     setTestMode,
@@ -90,6 +89,49 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
     [resetGame]
   )
 
+  // Toggle ConfigBar
+  useEffect(() => {
+     const handleToggle = (e) =>{
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 
+      const ctrlKey =  isMac ? e.metaKey : e.ctrlKey
+      const shiftKey = e.shiftKey
+      // Toggle the modal itself
+      if(ctrlKey && shiftKey && e.key.toLowerCase() === 'c'){
+        e.preventDefault()
+        setIsOpen((prev) => !prev)
+      }
+      //  Toggle between standard and sentence mode
+      if (ctrlKey && shiftKey && e.key.toLowerCase() === 's'){
+        e.preventDefault()
+        setModeValue(setIsSentenceMode, !isSentenceMode, 'isSentenceMode')
+        return
+      }
+
+      // Toggle between time and word mode
+      if (ctrlKey && shiftKey && e.key.toLowerCase() === 'u'){
+        e.preventDefault()
+        setModeValue(setTestMode, testMode === 'time' ? 'words' : 'time', 'testMode')
+        return
+      }
+      // Select beginner mode 
+      if (ctrlKey && shiftKey && e.key.toLowerCase() === 'e'){
+        e.preventDefault()
+        setModeValue(setDifficulty, 'beginner', 'difficulty')
+        return
+      }else if(ctrlKey && shiftKey && e.key.toLowerCase() === 'm'){
+        e.preventDefault()
+        setModeValue(setDifficulty, 'intermediate', 'difficulty')
+        return
+      }else if(ctrlKey && shiftKey && e.key.toLowerCase() === 'a'){
+        e.preventDefault()
+        setModeValue(setDifficulty, 'advanced', 'difficulty')
+        return
+      }
+     
+     }
+     document.addEventListener('keydown',handleToggle)
+     return () => document.removeEventListener('keydown',handleToggle)
+  },[setModeValue, setIsSentenceMode, isSentenceMode, setTestMode, testMode])
   return (
     <div className="config-container" ref={menuRef}>
       {/* Trigger Pill */}
@@ -125,7 +167,7 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
                   className={`menu-item-btn ${testMode === 'time' ? 'active' : ''}`}
                   onClick={() => setModeValue(setTestMode, 'time', 'testMode')}
                 >
-                  <Clock size={16} />
+                  <Clock size={12} />
                   <span>Time</span>
                   <div className="status-dot" />
                 </button>
@@ -133,7 +175,7 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
                   className={`menu-item-btn ${testMode === 'words' ? 'active' : ''}`}
                   onClick={() => setModeValue(setTestMode, 'words', 'testMode')}
                 >
-                  <Type size={16} />
+                  <Type size={12} />
                   <span>Words</span>
                   <div className="status-dot" />
                 </button>
@@ -148,7 +190,7 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
                   className={`menu-item-btn ${!isSentenceMode ? 'active' : ''}`}
                   onClick={() => setModeValue(setIsSentenceMode, false, 'isSentenceMode')}
                 >
-                  <Zap size={16} />
+                  <Zap size={12} />
                   <span>Standard</span>
                   <div className="status-dot" />
                 </button>
@@ -156,7 +198,7 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
                   className={`menu-item-btn ${isSentenceMode ? 'active' : ''}`}
                   onClick={() => setModeValue(setIsSentenceMode, true, 'isSentenceMode')}
                 >
-                  <Quote size={16} />
+                  <Quote size={12} />
                   <span>Sentences</span>
                   <div className="status-dot" />
                 </button>
@@ -174,21 +216,21 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
                     className={`menu-item-btn ${difficulty === 'beginner' ? 'active' : ''}`}
                     onClick={() => setModeValue(setDifficulty, 'beginner', 'difficulty')}
                   >
-                    <span>Easy</span>
+                    <span>Easy (Ctrl+Shift+E)</span>
                     <div className="status-dot" />
                   </button>
                   <button
                     className={`menu-item-btn ${difficulty === 'intermediate' ? 'active' : ''}`}
                     onClick={() => setModeValue(setDifficulty, 'intermediate', 'difficulty')}
                   >
-                    <span>Mid</span>
+                    <span>Medium (Ctrl+Shift+M)</span>
                     <div className="status-dot" />
                   </button>
                   <button
                     className={`menu-item-btn ${difficulty === 'advanced' ? 'active' : ''}`}
                     onClick={() => setModeValue(setDifficulty, 'advanced', 'difficulty')}
                   >
-                    <span>Hard</span>
+                    <span>Hard (Ctrl+Shift+A)</span>
                     <div className="status-dot" />
                   </button>
                 </div>
@@ -213,7 +255,7 @@ const ConfigBar = memo(({ openThemeModal, openSentenceModal, resetGame }) => {
                   className={`menu-item-btn ${hasNumbers ? 'active' : ''}`}
                   onClick={() => toggleSetting(setHasNumbers, hasNumbers, 'hasNumbers')}
                 >
-                  <Hash size={16} />
+                  <Hash size={12} />
                   <div
                     className="status-dot"
                     style={{ position: 'absolute', top: 6, right: 6, margin: 0 }}

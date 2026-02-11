@@ -789,31 +789,34 @@
 
 .wardrobe-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
   margin-top: 1rem;
 }
 
 .wardrobe-item {
   position: relative;
-  aspect-ratio: 1;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0 auto; /* Perfect centering in 6-col grid */
 }
 
 .wardrobe-item.unlocked:hover {
-  transform: scale(1.05);
-  z-index: 2;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+  transform: scale(1.1);
+  border-color: var(--main-color);
+  box-shadow: 0 0 10px rgba(var(--main-color-rgb), 0.3);
 }
 
 .wardrobe-item.selected {
   border-color: var(--main-color);
-  box-shadow: 0 0 15px rgba(var(--main-color-rgb), 0.3);
+  box-shadow: 0 0 12px rgba(var(--main-color-rgb), 0.4);
+  background: rgba(var(--main-color-rgb), 0.1);
 }
 
 .img-container {
@@ -829,10 +832,16 @@
 .wardrobe-item .universal-avatar-container,
 .wardrobe-item .wardrobe-avatar-img,
 .wardrobe-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
   display: block;
+  border-radius: 50% !important; /* BACK TO CIRCLE */
+  border: none !important;
+}
+
+.wardrobe-item .universal-avatar-container {
+  background: rgba(255, 255, 255, 0.03) !important;
 }
 
 .wardrobe-item.locked .wardrobe-avatar-img,
@@ -847,23 +856,22 @@
   inset: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
-  background: rgba(0, 0, 0, 0.3); /* Add subtle dim to locked items */
-  backdrop-filter: blur(1px);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 5;
+  transition: opacity 0.2s;
+}
+
+.wardrobe-item.locked:hover .lock-overlay {
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .unlock-lv {
-  font-size: 0.6rem;
-  font-weight: 800;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: #fff;
-  letter-spacing: 0.5px;
-  opacity: 0.8;
+  display: none; /* Keep it minimalist */
 }
 
 .selected-glow {
@@ -1118,6 +1126,13 @@
   }
 
   .wardrobe-grid {
-    grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)) !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .wardrobe-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
   }
 }
